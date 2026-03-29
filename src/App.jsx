@@ -583,8 +583,8 @@ const welcomeWrap = {
   flexDirection: "column",
   justifyContent: "space-between",
   padding: 22,
-  paddingTop: 40,
-  paddingBottom: 40,
+paddingTop: 24,
+paddingBottom: 24,
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
 };
@@ -612,7 +612,7 @@ const brandTitle = {
 
 const tickerViewport = {
   marginTop: 24,
-  minHeight: 110,
+ minHeight: 90,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -634,7 +634,9 @@ const welcomeCard = {
   border: "1px solid rgba(255,255,255,0.12)",
   borderRadius: 28,
   padding: 20,
-  marginBottom: 18,
+marginTop: 12,
+marginBottom: 0,
+flexShrink: 0,
 };
 
 const welcomeHeading = {
