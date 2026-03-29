@@ -98,6 +98,14 @@ const COLOR_OPTIONS = [
   { name: "Stone", primary: "#1f1f22", accent: "#e5e7eb" },
 ];
 
+const QUICK_REPLIES = [
+  "Simplify my day",
+  "Adjust my routine",
+  "Help with food today",
+  "I feel discouraged",
+  "Pray for me",
+];
+
 const fadeStyle = `
   @keyframes verseFade {
     0% {
@@ -116,19 +124,14 @@ function getRoutineLength(profile) {
   const activity = profile.activityLevel || "";
   const detailed = profile.progressStyle === "Detailed tracking";
 
-  if (activity === "Beginner") {
-    return detailed ? "25–30 min" : "18–24 min";
-  }
-
+  if (activity === "Beginner") return detailed ? "25–30 min" : "18–24 min";
   if (activity === "Active") {
     if (goal === "Build muscle") return "35–45 min";
     if (goal === "Build discipline") return "25–35 min";
     return "30–40 min";
   }
-
   if (goal === "Lose weight") return "28–36 min";
   if (goal === "Mental + physical health") return "22–30 min";
-
   return "24–32 min";
 }
 
@@ -489,14 +492,14 @@ function getRoutineData(profile) {
 function getCoachMessage(profile) {
   const firstName = profile.firstName || "";
   const coachName = profile.coachName || "";
+  const speaker = coachName || "Coach";
   const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
-  const speaker = coachName ? coachName : "Coach";
   const goal = profile.mainGoal || "";
   const detail = profile.progressStyle || "";
   const activity = profile.activityLevel || "";
   const whyStarted = profile.whyStarted || "";
 
-  let message = "Let’s keep today steady and intentional.";
+  let message = `Let’s keep today steady and intentional${greetingName}.`;
   let focus = "Consistency over perfection.";
   let action = "Finish today’s core routine and keep your meals simple.";
 
@@ -552,6 +555,61 @@ function getFoodGuidance(profile) {
   return "Keep meals simple, nourishing, and realistic for the day you actually have.";
 }
 
+function getAIResponse(input, profile) {
+  const lower = input.toLowerCase();
+
+  if (lower.includes("simplify")) {
+    return "Alright — let’s make today lighter. Focus on the warmup, your first two main movements, and one simple nourishing meal choice. That still counts.";
+  }
+
+  if (lower.includes("discouraged")) {
+    return "That feeling is real, but it does not erase your progress. Let’s focus on one faithful next step instead of trying to fix everything at once.";
+  }
+
+  if (lower.includes("food")) {
+    return getFoodGuidance(profile);
+  }
+
+  if (lower.includes("adjust")) {
+    return "We can adjust your plan. Tell me whether you want it shorter, easier, or just different today, and I’ll keep it simple.";
+  }
+
+  if (lower.includes("pray")) {
+    return "God, please give strength, peace, and steady discipline today. Bring clarity, courage, and grace for the next right step. Amen.";
+  }
+
+  return "Got it. I’ll stay neutral where I need more detail. Tell me a little more so I can guide you better.";
+}
+
+function ExerciseCard({ exercise }) {
+  return (
+    <div style={exerciseCard}>
+      <div>
+        <h4 style={exerciseTitle}>{exercise.name}</h4>
+        <p style={exerciseMeta}>
+          <strong>Reps:</strong> {exercise.reps}
+        </p>
+        <p style={exerciseMeta}>
+          <strong>Time:</strong> {exercise.time}
+        </p>
+        {exercise.note ? <p style={exerciseNote}>{exercise.note}</p> : null}
+      </div>
+
+      <div style={videoWrap}>
+        <iframe
+          width="100%"
+          height="190"
+          src={exercise.video}
+          title={exercise.name}
+          style={videoFrame}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
   const [screen, setScreen] = useState("welcome");
@@ -559,6 +617,7 @@ export default function App() {
   const [inputValue, setInputValue] = useState("");
   const [activeTab, setActiveTab] = useState("home");
   const [routineFeedback, setRoutineFeedback] = useState("");
+  const [chatInput, setChatInput] = useState("");
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
     return saved ? JSON.parse(saved) : {};
@@ -577,6 +636,10 @@ export default function App() {
             text: "We’ll keep this simple and take it one step at a time.",
           },
         ];
+  });
+  const [chatMessages, setChatMessages] = useState(() => {
+    const saved = localStorage.getItem("christian-fitness-chat");
+    return saved ? JSON.parse(saved) : [];
   });
   const [selectedTheme, setSelectedTheme] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-theme");
@@ -608,8 +671,26 @@ export default function App() {
   }, [messages]);
 
   useEffect(() => {
+    localStorage.setItem("christian-fitness-chat", JSON.stringify(chatMessages));
+  }, [chatMessages]);
+
+  useEffect(() => {
     localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
   }, [selectedTheme]);
+
+  useEffect(() => {
+    if (activeTab === "chat" && chatMessages.length === 0 && profile.onboardingComplete) {
+      const coachName = profile.coachName || "Coach";
+      const firstName = profile.firstName ? `, ${profile.firstName}` : "";
+      setChatMessages([
+        {
+          role: "ai",
+          speaker: coachName,
+          text: `Welcome back${firstName}. Let’s stay steady today. What do you need?`,
+        },
+      ]);
+    }
+  }, [activeTab, chatMessages.length, profile]);
 
   const currentQuestion = QUESTION_FLOW[questionIndex];
   const completedOnboarding = Boolean(profile.onboardingComplete);
@@ -620,7 +701,6 @@ export default function App() {
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
-
     if (verse.includes("Colossians 3:23")) {
       return {
         verse,
@@ -733,6 +813,7 @@ export default function App() {
   function resetApp() {
     localStorage.removeItem("christian-fitness-profile");
     localStorage.removeItem("christian-fitness-messages");
+    localStorage.removeItem("christian-fitness-chat");
     localStorage.removeItem("christian-fitness-theme");
     setProfile({});
     setMessages([
@@ -745,12 +826,31 @@ export default function App() {
         text: "We’ll keep this simple and take it one step at a time.",
       },
     ]);
+    setChatMessages([]);
     setSelectedTheme(COLOR_OPTIONS[0]);
     setQuestionIndex(0);
     setInputValue("");
+    setChatInput("");
     setScreen("welcome");
     setActiveTab("home");
     setRoutineFeedback("");
+  }
+
+  function sendChatMessage(text) {
+    const cleanText = text.trim();
+    if (!cleanText) return;
+
+    const coachName = profile.coachName || "Coach";
+
+    const userMsg = { role: "user", text: cleanText };
+    const aiMsg = {
+      role: "ai",
+      speaker: coachName,
+      text: getAIResponse(cleanText, profile),
+    };
+
+    setChatMessages((prev) => [...prev, userMsg, aiMsg]);
+    setChatInput("");
   }
 
   const appStyles = {
@@ -826,7 +926,7 @@ export default function App() {
             </button>
           </div>
 
-          <div style={chatArea}>
+          <div style={onboardingChatArea}>
             {messages.map((message, index) => (
               <div
                 key={`${message.role}-${index}`}
@@ -979,7 +1079,7 @@ export default function App() {
                 <p style={bodyText}>
                   <strong>Daily focus:</strong> {coach.focus}
                 </p>
-                <p style={bodyText}>
+                <p style={bodyTextLast}>
                   <strong>Today’s action:</strong> {coach.action}
                 </p>
               </div>
@@ -988,7 +1088,7 @@ export default function App() {
                 <p style={sectionLabel}>Today’s Routine</p>
                 <h3 style={cardTitle}>{routineData.title}</h3>
                 <p style={bodyText}>{routineData.summary}</p>
-                <p style={bodyText}>
+                <p style={bodyTextLast}>
                   <strong>Estimated length:</strong> {routineLength}
                 </p>
                 <button
@@ -1005,14 +1105,14 @@ export default function App() {
                 <p style={bodyText}>
                   <strong>What this means today:</strong> {todayVerseCard.meaning}
                 </p>
-                <p style={bodyText}>
+                <p style={bodyTextLast}>
                   <strong>Today’s action:</strong> {todayVerseCard.action}
                 </p>
               </div>
 
               <div style={dailyCard}>
                 <p style={sectionLabel}>Food guidance</p>
-                <p style={bodyText}>{foodGuidance}</p>
+                <p style={bodyTextLast}>{foodGuidance}</p>
               </div>
 
               <div style={coachMemoryCard}>
@@ -1032,7 +1132,9 @@ export default function App() {
                 <button style={actionCard} onClick={() => setActiveTab("routine")}>
                   Today’s Routine
                 </button>
-                <button style={actionCard}>Chat</button>
+                <button style={actionCard} onClick={() => setActiveTab("chat")}>
+                  Chat
+                </button>
                 <button style={actionCard}>Progress</button>
                 <button style={actionCard}>Food</button>
                 <button style={actionCard}>Sick</button>
@@ -1054,7 +1156,7 @@ export default function App() {
                 <p style={bodyText}>
                   <strong>Estimated length:</strong> {routineLength}
                 </p>
-                <p style={bodyText}>
+                <p style={bodyTextLast}>
                   This plan stays neutral when something is unknown. If it feels too
                   easy or too hard, tell the coach and it can adjust next time.
                 </p>
@@ -1083,15 +1185,14 @@ export default function App() {
 
               <div style={dailyCard}>
                 <p style={sectionLabel}>Walking suggestion</p>
-                <p style={bodyText}>{routineData.walking}</p>
+                <p style={bodyTextLast}>{routineData.walking}</p>
               </div>
 
               <div style={feedbackRow}>
                 <button
                   style={{
                     ...feedbackButton,
-                    background:
-                      routineFeedback === "easy" ? "#dcfce7" : "#ffffff",
+                    background: routineFeedback === "easy" ? "#dcfce7" : "#ffffff",
                   }}
                   onClick={() => setRoutineFeedback("easy")}
                 >
@@ -1100,8 +1201,7 @@ export default function App() {
                 <button
                   style={{
                     ...feedbackButton,
-                    background:
-                      routineFeedback === "hard" ? "#fee2e2" : "#ffffff",
+                    background: routineFeedback === "hard" ? "#fee2e2" : "#ffffff",
                   }}
                   onClick={() => setRoutineFeedback("hard")}
                 >
@@ -1112,6 +1212,69 @@ export default function App() {
               <button style={secondaryButton} onClick={() => setActiveTab("home")}>
                 Back to Home
               </button>
+            </>
+          )}
+
+          {activeTab === "chat" && (
+            <>
+              <div style={dailyCard}>
+                <p style={sectionLabel}>Coach chat</p>
+                <h2 style={cardTitle}>{profile.coachName || "Coach"}</h2>
+                <p style={bodyTextLast}>
+                  Balanced, friendly, and neutral until more is learned from the user.
+                </p>
+              </div>
+
+              <div style={appChatHistory}>
+                {chatMessages.map((msg, index) => (
+                  <div
+                    key={`${msg.role}-${index}`}
+                    style={{
+                      display: "flex",
+                      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
+                    }}
+                  >
+                    <div
+                      style={{
+                        ...bubbleBase,
+                        ...(msg.role === "ai" ? aiBubbleSolid : userBubble),
+                      }}
+                    >
+                      {msg.role === "ai" && (
+                        <div style={chatSpeaker}>{msg.speaker}</div>
+                      )}
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={quickReplyWrap}>
+                {QUICK_REPLIES.map((item) => (
+                  <button
+                    key={item}
+                    style={quickReplyButton}
+                    onClick={() => sendChatMessage(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+
+              <div style={inputAreaLight}>
+                <input
+                  style={textInputLight}
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Type a message..."
+                />
+                <button
+                  style={primaryDarkButton}
+                  onClick={() => sendChatMessage(chatInput)}
+                >
+                  Send
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -1129,38 +1292,13 @@ export default function App() {
           >
             Routine
           </button>
+          <button
+            style={activeTab === "chat" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("chat")}
+          >
+            Chat
+          </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ExerciseCard({ exercise }) {
-  return (
-    <div style={exerciseCard}>
-      <div style={exerciseMetaRow}>
-        <div>
-          <h4 style={exerciseTitle}>{exercise.name}</h4>
-          <p style={exerciseMeta}>
-            <strong>Reps:</strong> {exercise.reps}
-          </p>
-          <p style={exerciseMeta}>
-            <strong>Time:</strong> {exercise.time}
-          </p>
-          {exercise.note ? <p style={exerciseNote}>{exercise.note}</p> : null}
-        </div>
-      </div>
-
-      <div style={videoWrap}>
-        <iframe
-          width="100%"
-          height="190"
-          src={exercise.video}
-          title={exercise.name}
-          style={videoFrame}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
       </div>
     </div>
   );
@@ -1301,7 +1439,7 @@ const ghostButton = {
   cursor: "pointer",
 };
 
-const chatArea = {
+const onboardingChatArea = {
   flex: 1,
   overflowY: "auto",
   padding: "12px 16px 0",
@@ -1324,6 +1462,12 @@ const aiBubble = {
   borderBottomLeftRadius: 8,
 };
 
+const aiBubbleSolid = {
+  background: "#111111",
+  color: "white",
+  borderBottomLeftRadius: 8,
+};
+
 const userBubble = {
   background: "white",
   color: "#111",
@@ -1337,12 +1481,30 @@ const inputArea = {
   gap: 10,
 };
 
+const inputAreaLight = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
+};
+
 const textInput = {
   width: "100%",
   boxSizing: "border-box",
   border: "1px solid rgba(255,255,255,0.15)",
   background: "rgba(255,255,255,0.08)",
   color: "white",
+  borderRadius: 18,
+  padding: "14px 16px",
+  outline: "none",
+  fontSize: 15,
+};
+
+const textInputLight = {
+  width: "100%",
+  boxSizing: "border-box",
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "#ffffff",
+  color: "#111",
   borderRadius: 18,
   padding: "14px 16px",
   outline: "none",
@@ -1511,6 +1673,11 @@ const bodyText = {
   lineHeight: 1.5,
 };
 
+const bodyTextLast = {
+  margin: 0,
+  lineHeight: 1.5,
+};
+
 const bodyTextWhite = {
   margin: 0,
   lineHeight: 1.5,
@@ -1536,7 +1703,7 @@ const actionCard = {
 
 const bottomNav = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  gridTemplateColumns: "1fr 1fr 1fr",
   gap: 10,
   padding: 14,
   background: "#ffffff",
@@ -1583,12 +1750,6 @@ const exerciseCard = {
   background: "#fcfcfd",
 };
 
-const exerciseMetaRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 10,
-};
-
 const exerciseTitle = {
   margin: "0 0 8px",
   fontSize: 18,
@@ -1627,4 +1788,38 @@ const feedbackButton = {
   padding: "14px 12px",
   fontWeight: 700,
   cursor: "pointer",
+};
+
+const appChatHistory = {
+  background: "white",
+  borderRadius: 24,
+  padding: 14,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+  maxHeight: 340,
+  overflowY: "auto",
+};
+
+const chatSpeaker = {
+  fontSize: 12,
+  opacity: 0.7,
+  marginBottom: 6,
+};
+
+const quickReplyWrap = {
+  display: "grid",
+  gap: 8,
+};
+
+const quickReplyButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "#ffffff",
+  color: "#111",
+  borderRadius: 18,
+  padding: "14px 16px",
+  textAlign: "left",
+  cursor: "pointer",
+  fontWeight: 600,
 };
