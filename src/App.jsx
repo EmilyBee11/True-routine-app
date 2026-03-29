@@ -583,8 +583,8 @@ const welcomeWrap = {
   flexDirection: "column",
   justifyContent: "space-between",
   padding: 22,
-paddingTop: 24,
-paddingBottom: 24,
+  paddingTop: 10,
+  paddingBottom: 40,
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
 };
@@ -594,8 +594,9 @@ const brandBlock = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "flex-start",
   textAlign: "center",
+  paddingTop: 120,
 };
 
 const brandTitle = {
@@ -633,24 +634,22 @@ const welcomeCard = {
   background: "rgba(255,255,255,0.1)",
   border: "1px solid rgba(255,255,255,0.12)",
   borderRadius: 28,
-  padding: 20,
-marginTop: 12,
-marginBottom: 0,
-flexShrink: 0,
+  padding: 18,
+  marginBottom: 18,
 };
 
 const welcomeHeading = {
-  margin: "0 0 6px",
-  fontSize: 26,
+  margin: "0 0 4px",
+  fontSize: 24,
   fontWeight: 700,
-  lineHeight: 1.2,
+  lineHeight: 1.15,
 };
 
 const welcomeCopy = {
-  margin: "0 0 20px",
-  color: "rgba(255,255,255,0.75)",
-  fontSize: 15,
-  lineHeight: 1.4,
+  margin: "0 0 16px",
+  color: "rgba(255,255,255,0.78)",
+  fontSize: 14,
+  lineHeight: 1.35,
 };
 
 const primaryButton = {
