@@ -60,32 +60,37 @@ const QUESTION_FLOW = [
     type: "choice",
     options: ["Beginner", "Somewhat active", "Active"],
   },
-  {
-    key: "hasLimitations",
-    label: "Do you have any injuries, disabilities, pain, or physical limitations I should know about?",
-    type: "choice",
-    options: ["Yes", "No"],
-  },
-  {
-    key: "limitationType",
-    label: "Is it more of an injury, a disability, chronic pain, or something else?",
-    type: "text",
-  },
-  {
-    key: "limitationName",
-    label: "What is it called, or how would you describe it?",
-    type: "text",
-  },
-  {
-    key: "limitationDuration",
-    label: "How long have you been dealing with it?",
-    type: "text",
-  },
-  {
-    key: "activityLimit",
-    label: "How active can you comfortably be right now?",
-    type: "text",
-  },
+{
+  key: "hasLimitations",
+  label:
+    "Do you have any injuries, disabilities, pain, or physical limitations I should know about?",
+  type: "choice",
+  options: ["Yes", "No"],
+},
+{
+  key: "limitationType",
+  label: "Is it more of an injury, a disability, chronic pain, or something else?",
+  type: "text",
+  showIf: (profile) => profile.hasLimitations === "Yes",
+},
+{
+  key: "limitationName",
+  label: "What is it called, or how would you describe it?",
+  type: "text",
+  showIf: (profile) => profile.hasLimitations === "Yes",
+},
+{
+  key: "limitationDuration",
+  label: "How long have you been dealing with it?",
+  type: "text",
+  showIf: (profile) => profile.hasLimitations === "Yes",
+},
+{
+  key: "activityLimit",
+  label: "How active can you comfortably be right now?",
+  type: "text",
+  showIf: (profile) => profile.hasLimitations === "Yes",
+},
   {
     key: "mainGoal",
     label: "What are you trying to improve right now with your body or health?",
@@ -128,6 +133,7 @@ const QUICK_REPLIES = [
   "Help with food today",
   "I feel discouraged",
   "Pray for me",
+  "Where do I put my measurements?",
 ];
 
 const COLOR_OPTIONS = [
@@ -191,15 +197,9 @@ function normalizeProfile(profile) {
 }
 
 function getVisibleQuestionFlow(profile) {
-  const hasLimits = profile.hasLimitations === "Yes";
-
   return QUESTION_FLOW.filter((question) => {
-    if (
-      ["limitationType", "limitationName", "limitationDuration", "activityLimit"].includes(
-        question.key
-      )
-    ) {
-      return hasLimits;
+    if (typeof question.showIf === "function") {
+      return question.showIf(profile);
     }
     return true;
   });
@@ -691,34 +691,34 @@ function getFriendlyLead(profile, justAnsweredKey) {
   const coachName = capitalizeName(profile.coachName) || "Coach";
 
   if (!name && justAnsweredKey === "coachName") {
-    return `Perfect. ${coachName} is a great name. `;
+    return `${coachName}: Perfect. ${coachName} is a great name. `;
   }
 
   const map = {
-    coachName: `${coachName} it is. `,
-    firstName: `Nice to meet you, ${name}. `,
-    age: `Got it, ${name}. `,
-    state: `Perfect, ${name}. `,
-    gender: `Thanks, ${name}. `,
-    relationshipStatus: `Okay, ${name}. `,
-    denomination: `Thanks for sharing that, ${name}. `,
-    whyStarted: `I’m glad you told me that, ${name}. `,
-    lifeChange: `That helps a lot, ${name}. `,
-    activityLevel: `Got it, ${name}. `,
-    hasLimitations: `Thanks, ${name}. `,
-    limitationType: `Okay, ${name}. `,
-    limitationName: `Thanks for telling me that, ${name}. `,
-    limitationDuration: `Got it, ${name}. `,
-    activityLimit: `That helps, ${name}. `,
-    mainGoal: `That makes sense, ${name}. `,
-    progressStyle: `Perfect, ${name}. `,
-    measurementUnit: `Good choice, ${name}. `,
-    bodyFocus: `Got it, ${name}. `,
-    bodyMeasurements: `That helps, ${name}. `,
-    foodPreferences: `Good to know, ${name}. `,
+    coachName: `${coachName}: ${coachName} it is. `,
+    firstName: `${coachName}: Nice to meet you, ${name}. `,
+    age: `${coachName}: Got it, ${name}. `,
+    state: `${coachName}: Perfect, ${name}. `,
+    gender: `${coachName}: Thanks, ${name}. `,
+    relationshipStatus: `${coachName}: Okay, ${name}. `,
+    denomination: `${coachName}: Thanks for sharing that, ${name}. `,
+    whyStarted: `${coachName}: I’m glad you told me that, ${name}. `,
+    lifeChange: `${coachName}: That helps a lot, ${name}. `,
+    activityLevel: `${coachName}: Got it, ${name}. `,
+    hasLimitations: `${coachName}: Thanks, ${name}. `,
+    limitationType: `${coachName}: Okay, ${name}. `,
+    limitationName: `${coachName}: Thanks for telling me that, ${name}. `,
+    limitationDuration: `${coachName}: Got it, ${name}. `,
+    activityLimit: `${coachName}: That helps, ${name}. `,
+    mainGoal: `${coachName}: That makes sense, ${name}. `,
+    progressStyle: `${coachName}: Perfect, ${name}. `,
+    measurementUnit: `${coachName}: Good choice, ${name}. `,
+    bodyFocus: `${coachName}: Got it, ${name}. `,
+    bodyMeasurements: `${coachName}: That helps, ${name}. `,
+    foodPreferences: `${coachName}: Good to know, ${name}. `,
   };
 
-  return map[justAnsweredKey] || `Got it, ${name}. `;
+  return map[justAnsweredKey] || `${coachName}: Got it, ${name}. `;
 }
 
 function getMeasurementGuide(unit) {
@@ -1193,19 +1193,20 @@ export default function App() {
     padding: 16,
   };
 
-  const phoneStyles = {
-    width: "100%",
-    maxWidth: 390,
-    minHeight: "95vh",
-    borderRadius: 34,
-    background: "rgba(255,255,255,0.08)",
-    backdropFilter: "blur(18px)",
-    boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-  };
+const phoneStyles = {
+  width: "100%",
+  maxWidth: 390,
+  minHeight: "95vh",
+  borderRadius: 34,
+  background: "rgba(255,255,255,0.08)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column",
+  position: "relative",
+};
 
   if (!completedOnboarding && screen === "welcome") {
     return (
@@ -1685,6 +1686,12 @@ Ankle"
       <p style={bodyText}>
         This is where reset and other settings live now.
       </p>
+      <p style={bodyText}>
+        Coach name: <strong>{capitalizeName(profile.coachName) || "Coach"}</strong>
+      </p>
+      <p style={bodyTextLast}>
+        User name: <strong>{capitalizeName(profile.firstName) || "Not set"}</strong>
+      </p>
       <button style={dangerButton} onClick={resetApp}>
         Reset App
       </button>
@@ -2049,16 +2056,6 @@ const headerTopRow = {
 const homeBrandTitle = {
   margin: 0,
   lineHeight: 1,
-};
-
-const headerResetButton = {
-  border: "1px solid rgba(255,255,255,0.2)",
-  background: "rgba(255,255,255,0.16)",
-  color: "white",
-  borderRadius: 14,
-  padding: "10px 12px",
-  cursor: "pointer",
-  fontWeight: 600,
 };
 
 const tickerViewportHome = {
