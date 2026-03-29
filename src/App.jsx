@@ -8,9 +8,26 @@ const VERSES = [
 ];
 
 const QUESTION_FLOW = [
-  { key: "firstName", label: "What’s your first name?", type: "text" },
-  { key: "age", label: "How old are you?", type: "number" },
-  { key: "state", label: "What state do you live in?", type: "text" },
+  {
+    key: "coachName",
+    label: "Before we start, what do you want to call your coach?",
+    type: "text",
+  },
+  {
+    key: "firstName",
+    label: "And what’s your first name?",
+    type: "text",
+  },
+  {
+    key: "age",
+    label: "How old are you?",
+    type: "number",
+  },
+  {
+    key: "state",
+    label: "What state do you live in?",
+    type: "text",
+  },
   {
     key: "gender",
     label: "Are you a man or a woman?",
@@ -44,8 +61,29 @@ const QUESTION_FLOW = [
     options: ["Beginner", "Somewhat active", "Active"],
   },
   {
-    key: "injuries",
-    label: "Do you have any injuries, pain, or physical limitations I should know about?",
+    key: "hasLimitations",
+    label: "Do you have any injuries, disabilities, pain, or physical limitations I should know about?",
+    type: "choice",
+    options: ["Yes", "No"],
+  },
+  {
+    key: "limitationType",
+    label: "Is it more of an injury, a disability, chronic pain, or something else?",
+    type: "text",
+  },
+  {
+    key: "limitationName",
+    label: "What is it called, or how would you describe it?",
+    type: "text",
+  },
+  {
+    key: "limitationDuration",
+    label: "How long have you been dealing with it?",
+    type: "text",
+  },
+  {
+    key: "activityLimit",
+    label: "How active can you comfortably be right now?",
     type: "text",
   },
   {
@@ -73,18 +111,13 @@ const QUESTION_FLOW = [
   {
     key: "bodyMeasurements",
     label:
-      "We can track body progress over time. Do you want to add starting measurements now, or skip and do that later?",
+      "Do you want to add your starting measurements now, or skip and do them later?",
     type: "text",
   },
   {
     key: "foodPreferences",
     label:
       "Any food preferences, dislikes, allergies, or eating habits I should know about?",
-    type: "text",
-  },
-  {
-    key: "coachName",
-    label: "What do you want to call your coach? You can name me anything.",
     type: "text",
   },
 ];
@@ -137,6 +170,41 @@ const fadeStyle = `
   }
 `;
 
+function capitalizeName(value) {
+  if (!value || typeof value !== "string") return "";
+  return value
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function normalizeProfile(profile) {
+  return {
+    ...profile,
+    firstName: capitalizeName(profile.firstName),
+    coachName: capitalizeName(profile.coachName),
+    limitationType: capitalizeName(profile.limitationType),
+    limitationName: capitalizeName(profile.limitationName),
+  };
+}
+
+function getVisibleQuestionFlow(profile) {
+  const hasLimits = profile.hasLimitations === "Yes";
+
+  return QUESTION_FLOW.filter((question) => {
+    if (
+      ["limitationType", "limitationName", "limitationDuration", "activityLimit"].includes(
+        question.key
+      )
+    ) {
+      return hasLimits;
+    }
+    return true;
+  });
+}
+
 function getRoutineLength(profile) {
   const goal = (profile.mainGoal || "").toLowerCase();
   const activity = profile.activityLevel || "";
@@ -156,6 +224,22 @@ function getRoutineLength(profile) {
 function getRoutineData(profile) {
   const goal = (profile.mainGoal || "").toLowerCase();
   const activity = profile.activityLevel || "Somewhat active";
+  const limitationText = [
+    profile.hasLimitations,
+    profile.limitationType,
+    profile.limitationName,
+    profile.activityLimit,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const shouldGoGentle =
+    activity === "Beginner" ||
+    profile.hasLimitations === "Yes" ||
+    limitationText.includes("injury") ||
+    limitationText.includes("disability") ||
+    limitationText.includes("pain") ||
+    limitationText.includes("limited");
 
   const beginnerRoutine = {
     title: "Foundation Calisthenics Day",
@@ -437,7 +521,7 @@ function getRoutineData(profile) {
     walking: "Aim for an easy 20-minute walk sometime today.",
   };
 
-  if (activity === "Beginner") return beginnerRoutine;
+  if (shouldGoGentle) return beginnerRoutine;
   if (goal.includes("discipline")) return disciplineRoutine;
   if (goal.includes("muscle") || goal.includes("strength")) return muscleRoutine;
   if (goal.includes("weight")) return weightLossRoutine;
@@ -508,8 +592,8 @@ function getRoutineData(profile) {
 }
 
 function getCoachMessage(profile) {
-  const firstName = profile.firstName || "";
-  const coachName = profile.coachName || "Coach";
+  const firstName = capitalizeName(profile.firstName) || "";
+  const coachName = capitalizeName(profile.coachName) || "Coach";
   const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
   const goal = (profile.mainGoal || "").toLowerCase();
   const detail = profile.progressStyle || "";
@@ -575,6 +659,14 @@ function getFoodGuidance(profile) {
 function getAIResponse(input, profile) {
   const lower = input.toLowerCase();
 
+  if (
+    lower.includes("measurement") ||
+    lower.includes("measurements") ||
+    lower.includes("where do i put")
+  ) {
+    return "Put your measurements in the Progress tab, inside the Your Measurements box. That is where your body tracking goes.";
+  }
+
   if (lower.includes("simplify")) {
     return "Alright — let’s make today lighter. Focus on the warmup, your first two main movements, and one simple nourishing meal choice. That still counts.";
   }
@@ -590,14 +682,20 @@ function getAIResponse(input, profile) {
   if (lower.includes("pray")) {
     return "God, please give strength, peace, and steady discipline today. Bring clarity, courage, and grace for the next right step. Amen.";
   }
-  return "Got it. I’ll stay neutral where I need more detail. Tell me a little more so I can guide you better.";
+
+  return "Got it. Tell me a little more and I’ll guide you based on what you’re dealing with.";
 }
 
 function getFriendlyLead(profile, justAnsweredKey) {
-  const name = profile.firstName || "";
-  if (!name) return "";
+  const name = capitalizeName(profile.firstName) || "";
+  const coachName = capitalizeName(profile.coachName) || "Coach";
+
+  if (!name && justAnsweredKey === "coachName") {
+    return `Perfect. ${coachName} is a great name. `;
+  }
 
   const map = {
+    coachName: `${coachName} it is. `,
     firstName: `Nice to meet you, ${name}. `,
     age: `Got it, ${name}. `,
     state: `Perfect, ${name}. `,
@@ -607,7 +705,11 @@ function getFriendlyLead(profile, justAnsweredKey) {
     whyStarted: `I’m glad you told me that, ${name}. `,
     lifeChange: `That helps a lot, ${name}. `,
     activityLevel: `Got it, ${name}. `,
-    injuries: `Thanks for telling me that, ${name}. `,
+    hasLimitations: `Thanks, ${name}. `,
+    limitationType: `Okay, ${name}. `,
+    limitationName: `Thanks for telling me that, ${name}. `,
+    limitationDuration: `Got it, ${name}. `,
+    activityLimit: `That helps, ${name}. `,
     mainGoal: `That makes sense, ${name}. `,
     progressStyle: `Perfect, ${name}. `,
     measurementUnit: `Good choice, ${name}. `,
@@ -623,11 +725,40 @@ function getMeasurementGuide(unit) {
   const u = unit === "Centimeters" ? "cm" : "in";
   return [
     `Waist: wrap the tape around the narrowest part of your waist and keep it level. Write it down in ${u}.`,
-    `Hips: measure around the fullest part of your hips and glutes.`,
-    `Chest: wrap around the fullest part of your chest while standing naturally.`,
-    `Thigh: measure around the widest part of one upper thigh.`,
-    `Arm: measure around the fullest part of your upper arm while relaxed.`,
+    "Hips: measure around the fullest part of your hips and glutes.",
+    "Chest: wrap around the fullest part of your chest while standing naturally.",
+    "Thigh: measure around the widest part of one upper thigh.",
+    "Arm: measure around the fullest part of your upper arm while relaxed.",
   ];
+}
+
+function TourMeasurementDiagram() {
+  return (
+    <div style={diagramWrap}>
+      <svg viewBox="0 0 220 260" style={diagramSvg}>
+        <circle cx="110" cy="35" r="20" fill="none" stroke="#111" strokeWidth="3" />
+        <path d="M110 55 L110 120" stroke="#111" strokeWidth="3" fill="none" />
+        <path d="M80 85 L140 85" stroke="#111" strokeWidth="3" fill="none" />
+        <path d="M110 120 L85 180" stroke="#111" strokeWidth="3" fill="none" />
+        <path d="M110 120 L135 180" stroke="#111" strokeWidth="3" fill="none" />
+
+        <ellipse cx="110" cy="92" rx="34" ry="18" fill="none" stroke="#2563eb" strokeWidth="3" />
+        <ellipse cx="110" cy="122" rx="42" ry="18" fill="none" stroke="#14b8a6" strokeWidth="3" />
+        <ellipse cx="90" cy="155" rx="16" ry="26" fill="none" stroke="#f97316" strokeWidth="3" />
+
+        <text x="150" y="94" fontSize="12" fill="#2563eb">Chest</text>
+        <text x="150" y="124" fontSize="12" fill="#14b8a6">Waist / Hips</text>
+        <text x="144" y="156" fontSize="12" fill="#f97316">Thigh</text>
+      </svg>
+
+      <div style={diagramText}>
+        <p style={diagramLine}><strong>Chest:</strong> tape around the fullest part.</p>
+        <p style={diagramLine}><strong>Waist:</strong> tape around the narrowest part.</p>
+        <p style={diagramLine}><strong>Hips:</strong> tape around the fullest part.</p>
+        <p style={diagramLine}><strong>Thigh:</strong> tape around the upper thigh.</p>
+      </div>
+    </div>
+  );
 }
 
 function ExerciseCard({ exercise }) {
@@ -643,7 +774,6 @@ function ExerciseCard({ exercise }) {
         </p>
         {exercise.note ? <p style={exerciseNote}>{exercise.note}</p> : null}
       </div>
-
       <div style={videoWrap}>
         <iframe
           width="100%"
@@ -673,7 +803,7 @@ export default function App() {
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
-    return saved ? JSON.parse(saved) : {};
+    return saved ? normalizeProfile(JSON.parse(saved)) : {};
   });
 
   const [messages, setMessages] = useState(() => {
@@ -694,7 +824,12 @@ export default function App() {
 
   const [chatMessages, setChatMessages] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-chat");
-    return saved ? JSON.parse(saved) : [];
+    return saved
+      ? JSON.parse(saved).map((msg) => ({
+          ...msg,
+          speaker: capitalizeName(msg.speaker),
+        }))
+      : [];
   });
 
   const [selectedTheme, setSelectedTheme] = useState(() => {
@@ -717,7 +852,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("christian-fitness-profile", JSON.stringify(profile));
+    localStorage.setItem(
+      "christian-fitness-profile",
+      JSON.stringify(normalizeProfile(profile))
+    );
   }, [profile]);
 
   useEffect(() => {
@@ -734,8 +872,11 @@ export default function App() {
 
   useEffect(() => {
     if (activeTab === "chat" && chatMessages.length === 0 && profile.onboardingComplete) {
-      const coachName = profile.coachName || "Coach";
-      const firstName = profile.firstName ? `, ${profile.firstName}` : "";
+      const coachName = capitalizeName(profile.coachName) || "Coach";
+      const firstName = capitalizeName(profile.firstName)
+        ? `, ${capitalizeName(profile.firstName)}`
+        : "";
+
       setChatMessages([
         {
           role: "ai",
@@ -746,7 +887,8 @@ export default function App() {
     }
   }, [activeTab, chatMessages.length, profile]);
 
-  const currentQuestion = QUESTION_FLOW[questionIndex];
+  const visibleQuestionFlow = getVisibleQuestionFlow(profile);
+  const currentQuestion = visibleQuestionFlow[questionIndex];
   const completedOnboarding = Boolean(profile.onboardingComplete);
   const routineData = useMemo(() => getRoutineData(profile), [profile]);
   const coach = useMemo(() => getCoachMessage(profile), [profile]);
@@ -755,6 +897,7 @@ export default function App() {
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
+
     if (verse.includes("Colossians 3:23")) {
       return {
         verse,
@@ -798,7 +941,7 @@ export default function App() {
     },
     {
       title: "Progress",
-      body: "This is where body tracking will go. Later we can add a real diagram, but for now use the guide below to measure the same way each time.",
+      body: "This is where body tracking goes. You can save your measurements here and use the diagram to learn how to measure.",
     },
   ];
 
@@ -823,11 +966,12 @@ export default function App() {
         ? ""
         : answer;
 
-    setMessages((current) => [...current, { role: "user", text: answer }]);
-
-    const updatedProfile = {
+    const nextProfile = normalizeProfile({
       ...profile,
-      [currentQuestion.key]: safeAnswer,
+      [currentQuestion.key]:
+        currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
+          ? capitalizeName(safeAnswer)
+          : safeAnswer,
       coachMemory: {
         detailLevel:
           currentQuestion.key === "progressStyle" && answer === "Track it closely"
@@ -836,22 +980,25 @@ export default function App() {
         tone: "balanced",
         neutralUntilLearned: true,
       },
-    };
+    });
 
-    setProfile(updatedProfile);
+    setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
+    setProfile(nextProfile);
     setInputValue("");
 
+    const nextVisibleFlow = getVisibleQuestionFlow(nextProfile);
     const nextIndex = questionIndex + 1;
 
-    if (nextIndex < QUESTION_FLOW.length) {
+    if (nextIndex < nextVisibleFlow.length) {
       setQuestionIndex(nextIndex);
-      const lead = getFriendlyLead(updatedProfile, currentQuestion.key);
+      const lead = getFriendlyLead(nextProfile, currentQuestion.key);
+
       setTimeout(() => {
         setMessages((current) => [
           ...current,
           {
             role: "ai",
-            text: lead + QUESTION_FLOW[nextIndex].label,
+            text: lead + nextVisibleFlow[nextIndex].label,
           },
         ]);
       }, 250);
@@ -863,14 +1010,14 @@ export default function App() {
         ...current,
         {
           role: "ai",
-          text: `Perfect${updatedProfile.firstName ? `, ${updatedProfile.firstName}` : ""}. I’ve got your first setup saved. Next I’ll walk you through a quick tour.`,
+          text: `Perfect${nextProfile.firstName ? `, ${nextProfile.firstName}` : ""}. I’ve got your first setup saved. Next I’ll walk you through a quick tour.`,
         },
       ]);
     }, 250);
 
     setProfile((current) => ({
       ...current,
-      ...updatedProfile,
+      ...nextProfile,
       onboardingStage: "tour",
     }));
 
@@ -939,7 +1086,7 @@ export default function App() {
     const cleanText = text.trim();
     if (!cleanText) return;
 
-    const coachName = profile.coachName || "Coach";
+    const coachName = capitalizeName(profile.coachName) || "Coach";
 
     const userMsg = { role: "user", text: cleanText };
     const aiMsg = {
@@ -986,18 +1133,15 @@ export default function App() {
                 <span>Christian</span>
                 <span>Fitness</span>
               </h1>
-
               <div style={tickerViewport}>
                 <div key={verseIndex} style={tickerText}>
                   {VERSES[verseIndex]}
                 </div>
               </div>
             </div>
-
             <div style={welcomeCard}>
               <h2 style={welcomeHeading}>Christian Wellness Coach</h2>
               <p style={welcomeCopy}>Build your body with purpose.</p>
-
               <button style={primaryButton} onClick={startOnboarding}>
                 Start
               </button>
@@ -1016,10 +1160,9 @@ export default function App() {
             <div>
               <h2 style={{ margin: 0 }}>Christian Fitness</h2>
               <p style={subtleText}>
-                Question {questionIndex + 1} of {QUESTION_FLOW.length}
+                Question {questionIndex + 1} of {visibleQuestionFlow.length}
               </p>
             </div>
-
             <button style={ghostButton} onClick={resetApp}>
               Reset
             </button>
@@ -1328,9 +1471,13 @@ export default function App() {
           {activeTab === "chat" && (
             <>
               <div style={coachCard}>
-                <p style={sectionLabelWhite}>{profile.coachName || "Coach"}</p>
+                <p style={sectionLabelWhite}>
+                  {capitalizeName(profile.coachName) || "Coach"}
+                </p>
                 <h2 style={cardTitle}>
-                  {profile.firstName ? `Welcome back, ${profile.firstName}.` : "Welcome back."}
+                  {profile.firstName
+                    ? `Welcome back, ${capitalizeName(profile.firstName)}.`
+                    : "Welcome back."}
                 </h2>
                 <p style={bodyTextWhite}>Let’s stay steady today.</p>
               </div>
@@ -1351,7 +1498,9 @@ export default function App() {
                       }}
                     >
                       {msg.role === "ai" && (
-                        <div style={chatSpeaker}>{msg.speaker}</div>
+                        <div style={chatSpeaker}>
+                          {capitalizeName(msg.speaker) || "Coach"}
+                        </div>
                       )}
                       {msg.text}
                     </div>
@@ -1397,7 +1546,29 @@ export default function App() {
                   This section is where measurements, reports, and progress views will go next.
                 </p>
                 <p style={bodyTextLast}>
-                  For now, use the same method each time you measure so the numbers stay consistent.
+                  Add or update your measurements below whenever you want.
+                </p>
+              </div>
+
+              <div style={routineSectionCard}>
+                <h3 style={routineSectionTitle}>Your measurements</h3>
+
+                <textarea
+                  style={measurementInput}
+                  value={profile.savedMeasurements || ""}
+                  onChange={(e) =>
+                    setProfile((current) =>
+                      normalizeProfile({
+                        ...current,
+                        savedMeasurements: e.target.value,
+                      })
+                    )
+                  }
+                  placeholder="Example: Waist 30, Hips 40, Chest 36, Thigh 22, Arm 12"
+                />
+
+                <p style={bodyTextLast}>
+                  These save on this device automatically.
                 </p>
               </div>
 
@@ -1411,6 +1582,11 @@ export default function App() {
                 <p style={bodyTextLast}>
                   Tip: measure at about the same time of day each time for cleaner tracking.
                 </p>
+              </div>
+
+              <div style={routineSectionCard}>
+                <h3 style={routineSectionTitle}>How to measure</h3>
+                <TourMeasurementDiagram />
               </div>
             </>
           )}
@@ -1454,11 +1630,7 @@ export default function App() {
 
               {tourStep === 3 && (
                 <div style={measurementMiniCard}>
-                  {getMeasurementGuide(profile.measurementUnit).slice(0, 3).map((item) => (
-                    <p key={item} style={{ margin: "0 0 8px", lineHeight: 1.45 }}>
-                      {item}
-                    </p>
-                  ))}
+                  <TourMeasurementDiagram />
                 </div>
               )}
 
@@ -1684,6 +1856,21 @@ const textInputLight = {
   padding: "14px 16px",
   outline: "none",
   fontSize: 15,
+};
+
+const measurementInput = {
+  width: "100%",
+  minHeight: 120,
+  boxSizing: "border-box",
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "#ffffff",
+  color: "#111",
+  borderRadius: 18,
+  padding: "14px 16px",
+  outline: "none",
+  fontSize: 15,
+  resize: "vertical",
+  marginBottom: 12,
 };
 
 const choiceWrap = {
@@ -2026,4 +2213,32 @@ const measurementMiniCard = {
   borderRadius: 18,
   padding: 14,
   marginBottom: 14,
+};
+
+const diagramWrap = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+  background: "rgba(255,255,255,0.9)",
+  borderRadius: 22,
+  padding: 16,
+  color: "#111",
+};
+
+const diagramSvg = {
+  width: "100%",
+  height: 220,
+  background: "#fff",
+  borderRadius: 16,
+};
+
+const diagramText = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+};
+
+const diagramLine = {
+  margin: 0,
+  lineHeight: 1.45,
 };
