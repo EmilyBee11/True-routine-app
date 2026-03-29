@@ -732,30 +732,114 @@ function getMeasurementGuide(unit) {
   ];
 }
 
-function TourMeasurementDiagram() {
+function TourMeasurementDiagram({ gender }) {
+  const isWoman = gender === "Woman";
+
   return (
     <div style={diagramWrap}>
-      <svg viewBox="0 0 220 260" style={diagramSvg}>
-        <circle cx="110" cy="35" r="20" fill="none" stroke="#111" strokeWidth="3" />
-        <path d="M110 55 L110 120" stroke="#111" strokeWidth="3" fill="none" />
-        <path d="M80 85 L140 85" stroke="#111" strokeWidth="3" fill="none" />
-        <path d="M110 120 L85 180" stroke="#111" strokeWidth="3" fill="none" />
-        <path d="M110 120 L135 180" stroke="#111" strokeWidth="3" fill="none" />
+      <svg viewBox="0 0 320 300" style={diagramSvg}>
+        {isWoman ? (
+          <>
+            <circle cx="160" cy="42" r="20" fill="#f59e8b" opacity="0.9" />
+            <path
+              d="M160 64
+                 C145 78, 138 98, 140 120
+                 L132 185
+                 C130 202, 138 220, 150 236
+                 L155 278
+                 L165 278
+                 L170 236
+                 C182 220, 190 202, 188 185
+                 L180 120
+                 C182 98, 175 78, 160 64 Z"
+              fill="#f59e8b"
+              opacity="0.9"
+            />
+            <path d="M140 108 L108 168" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
+            <path d="M180 108 L212 168" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
+            <path d="M148 236 L142 292" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
+            <path d="M172 236 L178 292" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
 
-        <ellipse cx="110" cy="92" rx="34" ry="18" fill="none" stroke="#2563eb" strokeWidth="3" />
-        <ellipse cx="110" cy="122" rx="42" ry="18" fill="none" stroke="#14b8a6" strokeWidth="3" />
-        <ellipse cx="90" cy="155" rx="16" ry="26" fill="none" stroke="#f97316" strokeWidth="3" />
+            <line x1="34" y1="42" x2="140" y2="42" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="46" fontSize="14" fill="#f59e8b" fontWeight="700">Head</text>
 
-        <text x="150" y="94" fontSize="12" fill="#2563eb">Chest</text>
-        <text x="150" y="124" fontSize="12" fill="#14b8a6">Waist / Hips</text>
-        <text x="144" y="156" fontSize="12" fill="#f97316">Thigh</text>
+            <line x1="34" y1="86" x2="140" y2="86" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="90" fontSize="14" fill="#f59e8b" fontWeight="700">Shoulder</text>
+
+            <line x1="34" y1="118" x2="134" y2="118" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="122" fontSize="14" fill="#f59e8b" fontWeight="700">Chest</text>
+
+            <line x1="34" y1="150" x2="132" y2="150" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="154" fontSize="14" fill="#f59e8b" fontWeight="700">Waist</text>
+
+            <line x1="34" y1="176" x2="128" y2="176" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="180" fontSize="14" fill="#f59e8b" fontWeight="700">High Hip</text>
+
+            <line x1="34" y1="200" x2="126" y2="200" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="204" fontSize="14" fill="#f59e8b" fontWeight="700">Hip</text>
+
+            <line x1="34" y1="248" x2="142" y2="248" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="252" fontSize="14" fill="#f59e8b" fontWeight="700">Knee</text>
+
+            <line x1="34" y1="286" x2="142" y2="286" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="290" fontSize="14" fill="#f59e8b" fontWeight="700">Ankle</text>
+          </>
+        ) : (
+          <>
+            <circle cx="160" cy="42" r="20" fill="#7dd3fc" opacity="0.95" />
+            <path
+              d="M160 64
+                 C142 74, 132 92, 132 118
+                 L128 188
+                 C127 208, 138 224, 148 236
+                 L152 292
+                 L162 292
+                 L166 236
+                 C176 224, 188 208, 187 188
+                 L183 118
+                 C183 92, 178 74, 160 64 Z"
+              fill="#7dd3fc"
+              opacity="0.95"
+            />
+            <path d="M132 104 L96 174" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
+            <path d="M188 104 L224 174" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
+            <path d="M148 236 L144 296" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
+            <path d="M172 236 L176 296" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
+
+            <line x1="34" y1="42" x2="140" y2="42" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="46" fontSize="14" fill="#67c7dd" fontWeight="700">Head</text>
+
+            <line x1="34" y1="86" x2="138" y2="86" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="90" fontSize="14" fill="#67c7dd" fontWeight="700">Shoulder</text>
+
+            <line x1="34" y1="122" x2="130" y2="122" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="126" fontSize="14" fill="#67c7dd" fontWeight="700">Chest</text>
+
+            <line x1="34" y1="156" x2="128" y2="156" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="160" fontSize="14" fill="#67c7dd" fontWeight="700">Waist</text>
+
+            <line x1="34" y1="184" x2="126" y2="184" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="188" fontSize="14" fill="#67c7dd" fontWeight="700">High Hip</text>
+
+            <line x1="34" y1="208" x2="126" y2="208" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="212" fontSize="14" fill="#67c7dd" fontWeight="700">Hip</text>
+
+            <line x1="34" y1="248" x2="144" y2="248" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="252" fontSize="14" fill="#67c7dd" fontWeight="700">Knee</text>
+
+            <line x1="34" y1="286" x2="144" y2="286" stroke="#9ca3af" strokeWidth="2" />
+            <text x="10" y="290" fontSize="14" fill="#67c7dd" fontWeight="700">Ankle</text>
+          </>
+        )}
       </svg>
 
       <div style={diagramText}>
         <p style={diagramLine}><strong>Chest:</strong> tape around the fullest part.</p>
         <p style={diagramLine}><strong>Waist:</strong> tape around the narrowest part.</p>
-        <p style={diagramLine}><strong>Hips:</strong> tape around the fullest part.</p>
-        <p style={diagramLine}><strong>Thigh:</strong> tape around the upper thigh.</p>
+        <p style={diagramLine}><strong>High Hip:</strong> measure just above the fullest hip area.</p>
+        <p style={diagramLine}><strong>Hip:</strong> tape around the fullest part.</p>
+        <p style={diagramLine}><strong>Knee:</strong> measure around the knee area if you want to track it.</p>
+        <p style={diagramLine}><strong>Ankle:</strong> measure around the ankle if you want to track it.</p>
       </div>
     </div>
   );
@@ -1300,9 +1384,6 @@ export default function App() {
                 <span style={{ display: "block" }}>Fitness</span>
               </h1>
             </div>
-            <button style={headerResetButton} onClick={resetApp}>
-              Reset
-            </button>
           </div>
 
           <div style={tickerViewportHome}>
@@ -1537,87 +1618,113 @@ export default function App() {
             </>
           )}
 
-          {activeTab === "progress" && (
-            <>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Progress</p>
-                <h2 style={cardTitle}>Tracking will grow here</h2>
-                <p style={bodyText}>
-                  This section is where measurements, reports, and progress views will go next.
-                </p>
-                <p style={bodyTextLast}>
-                  Add or update your measurements below whenever you want.
-                </p>
-              </div>
+{activeTab === "progress" && (
+  <>
+    <div style={dailyCard}>
+      <p style={sectionLabel}>Progress</p>
+      <h2 style={cardTitle}>Tracking will grow here</h2>
+      <p style={bodyText}>
+        This section is where measurements, reports, and progress views will go next.
+      </p>
+      <p style={bodyTextLast}>
+        Add or update your measurements in the box below.
+      </p>
+    </div>
 
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Your measurements</h3>
+    <div style={routineSectionCard}>
+      <h3 style={routineSectionTitle}>Your Measurements</h3>
+      <textarea
+        style={measurementInput}
+        value={profile.savedMeasurements || ""}
+        onChange={(e) =>
+          setProfile((current) => ({
+            ...current,
+            savedMeasurements: e.target.value,
+          }))
+        }
+        placeholder="Example:
+Head
+Shoulder
+Chest
+Waist
+High Hip
+Hip
+Waist to Knee
+Knee
+Ankle"
+      />
+      <p style={{ ...bodyText, marginTop: 12 }}>
+        These save on this device automatically.
+      </p>
+    </div>
 
-                <textarea
-                  style={measurementInput}
-                  value={profile.savedMeasurements || ""}
-                  onChange={(e) =>
-                    setProfile((current) =>
-                      normalizeProfile({
-                        ...current,
-                        savedMeasurements: e.target.value,
-                      })
-                    )
-                  }
-                  placeholder="Example: Waist 30, Hips 40, Chest 36, Thigh 22, Arm 12"
-                />
+    <div style={routineSectionCard}>
+      <h3 style={routineSectionTitle}>Measurement guide</h3>
+      {getMeasurementGuide(profile.measurementUnit).map((item) => (
+        <p key={item} style={bodyText}>
+          {item}
+        </p>
+      ))}
+      <p style={bodyTextLast}>
+        Tip: measure at about the same time of day each time for cleaner tracking.
+      </p>
+    </div>
 
-                <p style={bodyTextLast}>
-                  These save on this device automatically.
-                </p>
-              </div>
+    <div style={routineSectionCard}>
+      <h3 style={routineSectionTitle}>How to measure</h3>
+      <TourMeasurementDiagram gender={profile.gender} />
+    </div>
+  </>
+)}
 
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Measurement guide</h3>
-                {getMeasurementGuide(profile.measurementUnit).map((item) => (
-                  <p key={item} style={bodyText}>
-                    {item}
-                  </p>
-                ))}
-                <p style={bodyTextLast}>
-                  Tip: measure at about the same time of day each time for cleaner tracking.
-                </p>
-              </div>
-
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>How to measure</h3>
-                <TourMeasurementDiagram />
-              </div>
-            </>
-          )}
+{activeTab === "settings" && (
+  <>
+    <div style={dailyCard}>
+      <p style={sectionLabel}>Settings</p>
+      <h2 style={cardTitle}>App settings</h2>
+      <p style={bodyText}>
+        This is where reset and other settings live now.
+      </p>
+      <button style={dangerButton} onClick={resetApp}>
+        Reset App
+      </button>
+    </div>
+  </>
+)}
         </div>
 
-        <div style={bottomNav}>
-          <button
-            style={activeTab === "home" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("home")}
-          >
-            Home
-          </button>
-          <button
-            style={activeTab === "routine" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("routine")}
-          >
-            Routine
-          </button>
-          <button
-            style={activeTab === "chat" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("chat")}
-          >
-            Chat
-          </button>
-          <button
-            style={activeTab === "progress" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("progress")}
-          >
-            Progress
-          </button>
-        </div>
+<div style={bottomNav}>
+  <button
+    style={activeTab === "home" ? navButtonActive : navButton}
+    onClick={() => setActiveTab("home")}
+  >
+    Home
+  </button>
+  <button
+    style={activeTab === "routine" ? navButtonActive : navButton}
+    onClick={() => setActiveTab("routine")}
+  >
+    Routine
+  </button>
+  <button
+    style={activeTab === "chat" ? navButtonActive : navButton}
+    onClick={() => setActiveTab("chat")}
+  >
+    Chat
+  </button>
+  <button
+    style={activeTab === "progress" ? navButtonActive : navButton}
+    onClick={() => setActiveTab("progress")}
+  >
+    Progress
+  </button>
+  <button
+    style={activeTab === "settings" ? navButtonActive : navButton}
+    onClick={() => setActiveTab("settings")}
+  >
+    Settings
+  </button>
+</div>
 
         {showTour && (
           <div style={tourOverlay}>
@@ -1630,7 +1737,7 @@ export default function App() {
 
               {tourStep === 3 && (
                 <div style={measurementMiniCard}>
-                  <TourMeasurementDiagram />
+                 <TourMeasurementDiagram gender={profile.gender} />
                 </div>
               )}
 
@@ -1857,7 +1964,32 @@ const textInputLight = {
   outline: "none",
   fontSize: 15,
 };
+const measurementInput = {
+  width: "100%",
+  minHeight: 170,
+  boxSizing: "border-box",
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "rgba(255,255,255,0.95)",
+  color: "#111",
+  borderRadius: 18,
+  padding: "14px 16px",
+  outline: "none",
+  fontSize: 15,
+  resize: "vertical",
+};
 
+const dangerButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 18,
+  padding: "15px 18px",
+  background: "#111111",
+  color: "white",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+  marginTop: 8,
+};
 const measurementInput = {
   width: "100%",
   minHeight: 120,
@@ -2066,7 +2198,7 @@ const actionCard = {
 
 const bottomNav = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr 1fr",
+  gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
   gap: 10,
   padding: 14,
   background: "#ffffff",
