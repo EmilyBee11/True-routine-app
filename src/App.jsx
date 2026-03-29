@@ -111,16 +111,458 @@ const fadeStyle = `
   }
 `;
 
+function getRoutineLength(profile) {
+  const goal = profile.mainGoal || "";
+  const activity = profile.activityLevel || "";
+  const detailed = profile.progressStyle === "Detailed tracking";
+
+  if (activity === "Beginner") {
+    return detailed ? "25–30 min" : "18–24 min";
+  }
+
+  if (activity === "Active") {
+    if (goal === "Build muscle") return "35–45 min";
+    if (goal === "Build discipline") return "25–35 min";
+    return "30–40 min";
+  }
+
+  if (goal === "Lose weight") return "28–36 min";
+  if (goal === "Mental + physical health") return "22–30 min";
+
+  return "24–32 min";
+}
+
+function getRoutineData(profile) {
+  const goal = profile.mainGoal || "General fitness";
+  const activity = profile.activityLevel || "Somewhat active";
+
+  const beginnerRoutine = {
+    title: "Foundation Calisthenics Day",
+    summary: "A lighter full-body session built for consistency and form.",
+    warmup: [
+      {
+        name: "Arm Circles",
+        reps: "30 sec each way",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/140RTNMciH8",
+      },
+      {
+        name: "Bodyweight Good Mornings",
+        reps: "12 reps",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/vKPGe8zb2S4",
+      },
+      {
+        name: "March in Place",
+        reps: "60 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/czYx1UcuQ4Y",
+      },
+    ],
+    main: [
+      {
+        name: "Incline Push-Ups",
+        reps: "3 x 8",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/zkU6Ok44_CI",
+        note: "Use a bench, table, or sturdy surface to keep form clean.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "3 x 12",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/YaXPRqUwItQ",
+        note: "Sit back and keep your chest lifted.",
+      },
+      {
+        name: "Glute Bridges",
+        reps: "3 x 12",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/wPM8icPu6H8",
+        note: "Pause at the top and squeeze for control.",
+      },
+      {
+        name: "Dead Bug",
+        reps: "3 x 8 each side",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/g_BYB0R-4Ws",
+        note: "Keep your lower back steady against the floor.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Child’s Pose",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/eqVMAPM00DM",
+      },
+      {
+        name: "Standing Quad Stretch",
+        reps: "30 sec each side",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/8caF1Keg2XU",
+      },
+    ],
+    walking: "Easy 10–15 minute walk if energy feels good.",
+  };
+
+  const disciplineRoutine = {
+    title: "Consistency Builder Routine",
+    summary: "A balanced calisthenics session built to reinforce daily discipline.",
+    warmup: [
+      {
+        name: "Jumping Jacks",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/c4DAnQ6DtF8",
+      },
+      {
+        name: "Hip Openers",
+        reps: "10 each side",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/jj2AAH6jbHk",
+      },
+      {
+        name: "World’s Greatest Stretch",
+        reps: "5 each side",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/-CiWQ2IvY34",
+      },
+    ],
+    main: [
+      {
+        name: "Push-Ups",
+        reps: "4 x 8–12",
+        time: "6 min",
+        video: "https://www.youtube.com/embed/IODxDxX7oi4",
+        note: "Drop to knees if needed, but keep reps honest.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "4 x 15",
+        time: "6 min",
+        video: "https://www.youtube.com/embed/YaXPRqUwItQ",
+        note: "Move smoothly and control the lowering phase.",
+      },
+      {
+        name: "Reverse Lunges",
+        reps: "3 x 10 each leg",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/7pw6gM0s4V8",
+        note: "Step back softly and keep your front foot stable.",
+      },
+      {
+        name: "Plank",
+        reps: "3 rounds",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/pSHjTRCQxIw",
+        note: "Brace your core and keep hips level.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Seated Hamstring Stretch",
+        reps: "45 sec each side",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/0hTllAb4XGg",
+      },
+      {
+        name: "Chest Opener Stretch",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/SV7l1sfEmO0",
+      },
+    ],
+    walking: "Optional 15–20 minute walk to reinforce consistency.",
+  };
+
+  const muscleRoutine = {
+    title: "Strength-Focused Calisthenics Day",
+    summary: "More volume and slower reps to build strength without equipment.",
+    warmup: [
+      {
+        name: "High Knees",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/oDdkytliOqE",
+      },
+      {
+        name: "Shoulder Taps",
+        reps: "20 taps",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/gWHQpMUd51A",
+      },
+      {
+        name: "Deep Squat Hold",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/ZvFe8xIYw4Q",
+      },
+    ],
+    main: [
+      {
+        name: "Tempo Push-Ups",
+        reps: "4 x 8",
+        time: "6 min",
+        video: "https://www.youtube.com/embed/IODxDxX7oi4",
+        note: "Lower for 3 seconds, then press up strong.",
+      },
+      {
+        name: "Bulgarian Split Squat",
+        reps: "3 x 10 each leg",
+        time: "6 min",
+        video: "https://www.youtube.com/embed/2C-uNgKwPLE",
+        note: "Use a chair or couch edge for the back foot.",
+      },
+      {
+        name: "Pike Push-Ups",
+        reps: "3 x 8–10",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/xoU6NwB5Nf0",
+        note: "Focus on shoulder control and range.",
+      },
+      {
+        name: "Hollow Body Hold",
+        reps: "3 x 25 sec",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/4xRpGgttca8",
+        note: "Keep your lower back pressed down.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Hip Flexor Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/lPKRiU9u_Hc",
+      },
+      {
+        name: "Thread the Needle",
+        reps: "30 sec each side",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/M7R6xM4z6-k",
+      },
+    ],
+    walking: "Light 10-minute walk after training if your legs feel good.",
+  };
+
+  const weightLossRoutine = {
+    title: "Cardio Calisthenics Circuit",
+    summary: "A higher-movement session built to keep energy up and the workout simple.",
+    warmup: [
+      {
+        name: "Jump Rope Without Rope",
+        reps: "60 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/1BZM8TORnJU",
+      },
+      {
+        name: "Leg Swings",
+        reps: "10 each side",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/fajfA1vT0lA",
+      },
+      {
+        name: "Walkouts",
+        reps: "8 reps",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/LzQ2cKk3S7Q",
+      },
+    ],
+    main: [
+      {
+        name: "Squat to Knee Drive",
+        reps: "3 x 12 each side",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/tjJdXQ6LC0g",
+        note: "Keep your core engaged and drive the knee with control.",
+      },
+      {
+        name: "Mountain Climbers",
+        reps: "3 x 30 sec",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/nmwgirgXLYM",
+        note: "Move steadily instead of rushing.",
+      },
+      {
+        name: "Alternating Reverse Lunges",
+        reps: "3 x 12 each side",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/7pw6gM0s4V8",
+        note: "Stay tall through the whole set.",
+      },
+      {
+        name: "Forearm Plank",
+        reps: "3 x 30 sec",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/pSHjTRCQxIw",
+        note: "Strong core, steady breathing.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Standing Forward Fold",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/g7Uhp5tphAs",
+      },
+      {
+        name: "Figure Four Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/OTEXv5n_aKU",
+      },
+    ],
+    walking: "Aim for an easy 20-minute walk sometime today.",
+  };
+
+  if (activity === "Beginner") return beginnerRoutine;
+  if (goal === "Build discipline") return disciplineRoutine;
+  if (goal === "Build muscle") return muscleRoutine;
+  if (goal === "Lose weight") return weightLossRoutine;
+
+  return {
+    title: "Balanced Full-Body Day",
+    summary: "A moderate calisthenics session built to support strength, energy, and consistency.",
+    warmup: [
+      {
+        name: "Jumping Jacks",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/c4DAnQ6DtF8",
+      },
+      {
+        name: "Hip Circles",
+        reps: "30 sec each way",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/J4v8V2q5-OU",
+      },
+    ],
+    main: [
+      {
+        name: "Push-Ups",
+        reps: "3 x 10",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/IODxDxX7oi4",
+        note: "Use a knee version if needed and keep your form strong.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "3 x 15",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/YaXPRqUwItQ",
+        note: "Drive through your whole foot.",
+      },
+      {
+        name: "Walking Lunges",
+        reps: "3 x 10 each leg",
+        time: "5 min",
+        video: "https://www.youtube.com/embed/L8fvypPrzzs",
+        note: "Stay stable and avoid rushing.",
+      },
+      {
+        name: "Dead Bug",
+        reps: "3 x 10 each side",
+        time: "4 min",
+        video: "https://www.youtube.com/embed/g_BYB0R-4Ws",
+        note: "Move with control and brace your core.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Hamstring Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube.com/embed/0hTllAb4XGg",
+      },
+      {
+        name: "Chest Stretch",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube.com/embed/SV7l1sfEmO0",
+      },
+    ],
+    walking: "Optional 15-minute walk for recovery and energy.",
+  };
+}
+
+function getCoachMessage(profile) {
+  const firstName = profile.firstName || "";
+  const coachName = profile.coachName || "";
+  const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
+  const speaker = coachName ? coachName : "Coach";
+  const goal = profile.mainGoal || "";
+  const detail = profile.progressStyle || "";
+  const activity = profile.activityLevel || "";
+  const whyStarted = profile.whyStarted || "";
+
+  let message = "Let’s keep today steady and intentional.";
+  let focus = "Consistency over perfection.";
+  let action = "Finish today’s core routine and keep your meals simple.";
+
+  if (goal === "Build discipline") {
+    message = `Let’s build trust with yourself${greetingName} by following through today.`;
+    focus = "Discipline grows through repeatable action.";
+    action = "Complete the routine even if you need to scale parts of it down.";
+  } else if (goal === "Build muscle") {
+    message = `Today is a strength day${greetingName} — control your reps and move with intention.`;
+    focus = "Effort and tension matter more than rushing.";
+    action = "Give your main sets full focus and recover well after.";
+  } else if (goal === "Lose weight") {
+    message = `Let’s keep today active and clean${greetingName}.`;
+    focus = "Simple movement plus simple food choices adds up.";
+    action = "Finish the workout and add a walk if your energy is there.";
+  } else if (goal === "Mental + physical health") {
+    message = `We’re aiming for strength and steadiness today${greetingName}.`;
+    focus = "Movement should support your mind, not just your body.";
+    action = "Finish the session, breathe slowly, and do not chase perfection.";
+  }
+
+  if (detail === "Detailed tracking") {
+    focus = `${focus} We’ll pay closer attention to measurable progress over time.`;
+  }
+
+  if (activity === "Beginner") {
+    message = `We’re keeping this approachable${greetingName} and building from where you are now.`;
+  }
+
+  if (whyStarted && whyStarted.length > 10) {
+    action = `Remember why you started: ${whyStarted.slice(0, 55)}${whyStarted.length > 55 ? "..." : ""}`;
+  }
+
+  return { speaker, message, focus, action };
+}
+
+function getFoodGuidance(profile) {
+  const goal = profile.mainGoal || "";
+  const prefs = (profile.foodPreferences || "").toLowerCase();
+
+  if (prefs.includes("allerg")) {
+    return "Keep meals simple today and stay aware of the foods you already know work well for you.";
+  }
+  if (goal === "Build muscle") {
+    return "Center meals around protein, enough carbs for training energy, and good hydration.";
+  }
+  if (goal === "Lose weight") {
+    return "Focus on protein, fiber, and meals that keep you full without overcomplicating things.";
+  }
+  if (goal === "Mental + physical health") {
+    return "Choose steady meals today that help energy, mood, and focus stay stable.";
+  }
+  return "Keep meals simple, nourishing, and realistic for the day you actually have.";
+}
+
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
   const [screen, setScreen] = useState("welcome");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
+  const [activeTab, setActiveTab] = useState("home");
+  const [routineFeedback, setRoutineFeedback] = useState("");
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
     return saved ? JSON.parse(saved) : {};
   });
-
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-messages");
     return saved
@@ -136,7 +578,6 @@ export default function App() {
           },
         ];
   });
-
   const [selectedTheme, setSelectedTheme] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-theme");
     return saved ? JSON.parse(saved) : COLOR_OPTIONS[0];
@@ -153,7 +594,6 @@ export default function App() {
     const styleTag = document.createElement("style");
     styleTag.innerHTML = fadeStyle;
     document.head.appendChild(styleTag);
-
     return () => {
       document.head.removeChild(styleTag);
     };
@@ -173,6 +613,10 @@ export default function App() {
 
   const currentQuestion = QUESTION_FLOW[questionIndex];
   const completedOnboarding = Boolean(profile.onboardingComplete);
+  const routineData = useMemo(() => getRoutineData(profile), [profile]);
+  const coach = useMemo(() => getCoachMessage(profile), [profile]);
+  const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
+  const routineLength = useMemo(() => getRoutineLength(profile), [profile]);
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
@@ -184,7 +628,6 @@ export default function App() {
         action: "Give today’s plan your full effort, even if it’s simple.",
       };
     }
-
     if (verse.includes("Philippians 4:13")) {
       return {
         verse,
@@ -192,7 +635,6 @@ export default function App() {
         action: "Take the next healthy step today instead of waiting to feel ready.",
       };
     }
-
     if (verse.includes("Galatians 6:9")) {
       return {
         verse,
@@ -200,7 +642,6 @@ export default function App() {
         action: "Stay steady today and do not quit just because it feels imperfect.",
       };
     }
-
     return {
       verse,
       meaning: "Fitness matters, but your deeper growth matters too.",
@@ -210,7 +651,6 @@ export default function App() {
 
   function startOnboarding() {
     setScreen("onboarding");
-
     if (messages.length <= 2) {
       setMessages((current) => [
         ...current,
@@ -241,6 +681,7 @@ export default function App() {
             ? "detailed"
             : profile.coachMemory?.detailLevel || "balanced",
         tone: "balanced",
+        neutralUntilLearned: true,
       },
     };
 
@@ -286,13 +727,13 @@ export default function App() {
       onboardingStage: "done",
     }));
     setScreen("home");
+    setActiveTab("home");
   }
 
   function resetApp() {
     localStorage.removeItem("christian-fitness-profile");
     localStorage.removeItem("christian-fitness-messages");
     localStorage.removeItem("christian-fitness-theme");
-
     setProfile({});
     setMessages([
       {
@@ -308,6 +749,8 @@ export default function App() {
     setQuestionIndex(0);
     setInputValue("");
     setScreen("welcome");
+    setActiveTab("home");
+    setRoutineFeedback("");
   }
 
   const appStyles = {
@@ -469,7 +912,6 @@ export default function App() {
                       background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
                     }}
                   />
-
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontWeight: 700 }}>{option.name}</div>
                     <div style={subtleText}>Use this as your base style</div>
@@ -496,6 +938,9 @@ export default function App() {
     );
   }
 
+  const headerTextColor =
+    selectedTheme.accent === "#ffffff" ? "#111111" : "#ffffff";
+
   return (
     <div style={appStyles}>
       <div style={phoneStyles}>
@@ -503,13 +948,20 @@ export default function App() {
           style={{
             ...homeHeader,
             background: `linear-gradient(135deg, ${selectedTheme.primary}, ${selectedTheme.accent})`,
-            color: selectedTheme.accent === "#ffffff" ? "#111" : "#fff",
+            color: headerTextColor,
           }}
         >
-          <h1 style={{ margin: 0, lineHeight: 1 }}>
-            <span style={{ display: "block" }}>Christian</span>
-            <span style={{ display: "block" }}>Fitness</span>
-          </h1>
+          <div style={headerTopRow}>
+            <div>
+              <h1 style={homeBrandTitle}>
+                <span style={{ display: "block" }}>Christian</span>
+                <span style={{ display: "block" }}>Fitness</span>
+              </h1>
+            </div>
+            <button style={headerResetButton} onClick={resetApp}>
+              Reset
+            </button>
+          </div>
 
           <div style={tickerViewportHome}>
             <div key={verseIndex} style={tickerTextHome}>
@@ -519,59 +971,196 @@ export default function App() {
         </div>
 
         <div style={homeBody}>
-          <div style={dailyCard}>
-            <p style={sectionLabel}>Today’s focus</p>
-            <h2 style={cardTitle}>
-              {profile.firstName ? `Good morning, ${profile.firstName}` : "Good morning"}
-            </h2>
-            <p style={bodyText}>
-              Show up with effort, keep it simple, and honor God in how you care
-              for your body today.
-            </p>
-          </div>
+          {activeTab === "home" && (
+            <>
+              <div style={coachCard}>
+                <p style={sectionLabelDark}>{coach.speaker}</p>
+                <h2 style={cardTitle}>{coach.message}</h2>
+                <p style={bodyText}>
+                  <strong>Daily focus:</strong> {coach.focus}
+                </p>
+                <p style={bodyText}>
+                  <strong>Today’s action:</strong> {coach.action}
+                </p>
+              </div>
 
-          <div style={verseCard}>
-            <p style={sectionLabel}>Daily verse</p>
-            <h3 style={cardTitle}>{todayVerseCard.verse}</h3>
-            <p style={bodyText}>
-              <strong>What this means today:</strong> {todayVerseCard.meaning}
-            </p>
-            <p style={bodyText}>
-              <strong>Today’s action:</strong> {todayVerseCard.action}
-            </p>
-          </div>
+              <div style={dailyCard}>
+                <p style={sectionLabel}>Today’s Routine</p>
+                <h3 style={cardTitle}>{routineData.title}</h3>
+                <p style={bodyText}>{routineData.summary}</p>
+                <p style={bodyText}>
+                  <strong>Estimated length:</strong> {routineLength}
+                </p>
+                <button
+                  style={secondaryButton}
+                  onClick={() => setActiveTab("routine")}
+                >
+                  Open full routine
+                </button>
+              </div>
 
-          <div style={coachMemoryCard}>
-            <p style={sectionLabel}>Coach memory note</p>
-            <p style={bodyText}>
-              Prefers{" "}
-              <strong>
-                {profile.coachMemory?.detailLevel === "detailed"
-                  ? "detailed progress"
-                  : "balanced guidance"}
-              </strong>
-              , uses <strong>{profile.measurementUnit || "chosen units"}</strong>,
-              and wants a <strong>faith-centered fitness plan</strong>.
-            </p>
-          </div>
+              <div style={verseCard}>
+                <p style={sectionLabel}>Daily verse</p>
+                <h3 style={cardTitle}>{todayVerseCard.verse}</h3>
+                <p style={bodyText}>
+                  <strong>What this means today:</strong> {todayVerseCard.meaning}
+                </p>
+                <p style={bodyText}>
+                  <strong>Today’s action:</strong> {todayVerseCard.action}
+                </p>
+              </div>
 
-          <div style={buttonGrid}>
-            <button style={actionCard}>Today’s Routine</button>
-            <button style={actionCard}>Chat</button>
-            <button style={actionCard}>Progress</button>
-            <button style={actionCard}>Food</button>
-            <button style={actionCard}>Sick</button>
-            <button style={actionCard}>Travel</button>
-            <button style={actionCard}>Emergency</button>
-            <button style={actionCard}>Budget</button>
-          </div>
+              <div style={dailyCard}>
+                <p style={sectionLabel}>Food guidance</p>
+                <p style={bodyText}>{foodGuidance}</p>
+              </div>
 
-          <button style={primaryButton}>Simplify My Day</button>
+              <div style={coachMemoryCard}>
+                <p style={sectionLabelWhite}>Coach memory note</p>
+                <p style={bodyTextWhite}>
+                  Neutral until the app learns more. Current preference:{" "}
+                  <strong>
+                    {profile.coachMemory?.detailLevel === "detailed"
+                      ? "detailed progress"
+                      : "balanced guidance"}
+                  </strong>
+                  . Main goal: <strong>{profile.mainGoal || "still learning"}</strong>.
+                </p>
+              </div>
 
-          <button style={ghostButtonDark} onClick={resetApp}>
-            Reset onboarding
+              <div style={buttonGrid}>
+                <button style={actionCard} onClick={() => setActiveTab("routine")}>
+                  Today’s Routine
+                </button>
+                <button style={actionCard}>Chat</button>
+                <button style={actionCard}>Progress</button>
+                <button style={actionCard}>Food</button>
+                <button style={actionCard}>Sick</button>
+                <button style={actionCard}>Travel</button>
+                <button style={actionCard}>Emergency</button>
+                <button style={actionCard}>Budget</button>
+              </div>
+
+              <button style={primaryDarkButton}>Simplify My Day</button>
+            </>
+          )}
+
+          {activeTab === "routine" && (
+            <>
+              <div style={dailyCard}>
+                <p style={sectionLabel}>Generated routine</p>
+                <h2 style={cardTitle}>{routineData.title}</h2>
+                <p style={bodyText}>{routineData.summary}</p>
+                <p style={bodyText}>
+                  <strong>Estimated length:</strong> {routineLength}
+                </p>
+                <p style={bodyText}>
+                  This plan stays neutral when something is unknown. If it feels too
+                  easy or too hard, tell the coach and it can adjust next time.
+                </p>
+              </div>
+
+              <div style={routineSectionCard}>
+                <h3 style={routineSectionTitle}>Warmup</h3>
+                {routineData.warmup.map((exercise, index) => (
+                  <ExerciseCard key={`warmup-${index}`} exercise={exercise} />
+                ))}
+              </div>
+
+              <div style={routineSectionCard}>
+                <h3 style={routineSectionTitle}>Main workout</h3>
+                {routineData.main.map((exercise, index) => (
+                  <ExerciseCard key={`main-${index}`} exercise={exercise} />
+                ))}
+              </div>
+
+              <div style={routineSectionCard}>
+                <h3 style={routineSectionTitle}>Cooldown</h3>
+                {routineData.cooldown.map((exercise, index) => (
+                  <ExerciseCard key={`cooldown-${index}`} exercise={exercise} />
+                ))}
+              </div>
+
+              <div style={dailyCard}>
+                <p style={sectionLabel}>Walking suggestion</p>
+                <p style={bodyText}>{routineData.walking}</p>
+              </div>
+
+              <div style={feedbackRow}>
+                <button
+                  style={{
+                    ...feedbackButton,
+                    background:
+                      routineFeedback === "easy" ? "#dcfce7" : "#ffffff",
+                  }}
+                  onClick={() => setRoutineFeedback("easy")}
+                >
+                  👍 Too easy
+                </button>
+                <button
+                  style={{
+                    ...feedbackButton,
+                    background:
+                      routineFeedback === "hard" ? "#fee2e2" : "#ffffff",
+                  }}
+                  onClick={() => setRoutineFeedback("hard")}
+                >
+                  👎 Too hard
+                </button>
+              </div>
+
+              <button style={secondaryButton} onClick={() => setActiveTab("home")}>
+                Back to Home
+              </button>
+            </>
+          )}
+        </div>
+
+        <div style={bottomNav}>
+          <button
+            style={activeTab === "home" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("home")}
+          >
+            Home
+          </button>
+          <button
+            style={activeTab === "routine" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("routine")}
+          >
+            Routine
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ExerciseCard({ exercise }) {
+  return (
+    <div style={exerciseCard}>
+      <div style={exerciseMetaRow}>
+        <div>
+          <h4 style={exerciseTitle}>{exercise.name}</h4>
+          <p style={exerciseMeta}>
+            <strong>Reps:</strong> {exercise.reps}
+          </p>
+          <p style={exerciseMeta}>
+            <strong>Time:</strong> {exercise.time}
+          </p>
+          {exercise.note ? <p style={exerciseNote}>{exercise.note}</p> : null}
+        </div>
+      </div>
+
+      <div style={videoWrap}>
+        <iframe
+          width="100%"
+          height="190"
+          src={exercise.video}
+          title={exercise.name}
+          style={videoFrame}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
       </div>
     </div>
   );
@@ -596,7 +1185,7 @@ const brandBlock = {
   alignItems: "center",
   justifyContent: "flex-start",
   textAlign: "center",
- paddingTop: 90,
+  paddingTop: 90,
 };
 
 const brandTitle = {
@@ -613,7 +1202,7 @@ const brandTitle = {
 
 const tickerViewport = {
   marginTop: 24,
- minHeight: 90,
+  minHeight: 110,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -660,6 +1249,31 @@ const primaryButton = {
   padding: "15px 18px",
   background: "white",
   color: "#111",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const secondaryButton = {
+  width: "100%",
+  border: "1px solid rgba(0,0,0,0.1)",
+  borderRadius: 18,
+  padding: "14px 16px",
+  background: "#ffffff",
+  color: "#111",
+  fontWeight: 700,
+  fontSize: 15,
+  cursor: "pointer",
+  marginTop: 12,
+};
+
+const primaryDarkButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 18,
+  padding: "15px 18px",
+  background: "#111111",
+  color: "white",
   fontWeight: 700,
   fontSize: 16,
   cursor: "pointer",
@@ -784,6 +1398,28 @@ const homeHeader = {
   padding: 22,
 };
 
+const headerTopRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 12,
+};
+
+const homeBrandTitle = {
+  margin: 0,
+  lineHeight: 1,
+};
+
+const headerResetButton = {
+  border: "1px solid rgba(0,0,0,0.12)",
+  background: "rgba(255,255,255,0.5)",
+  color: "#111",
+  borderRadius: 14,
+  padding: "10px 12px",
+  cursor: "pointer",
+  fontWeight: 600,
+};
+
 const tickerViewportHome = {
   marginTop: 14,
   minHeight: 70,
@@ -808,6 +1444,14 @@ const homeBody = {
   display: "flex",
   flexDirection: "column",
   gap: 14,
+  overflowY: "auto",
+};
+
+const coachCard = {
+  background: "#111111",
+  color: "white",
+  borderRadius: 24,
+  padding: 18,
 };
 
 const dailyCard = {
@@ -839,14 +1483,38 @@ const sectionLabel = {
   opacity: 0.7,
 };
 
+const sectionLabelDark = {
+  margin: 0,
+  fontSize: 12,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  opacity: 0.75,
+  color: "rgba(255,255,255,0.72)",
+};
+
+const sectionLabelWhite = {
+  margin: 0,
+  fontSize: 12,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  opacity: 0.9,
+  color: "rgba(255,255,255,0.72)",
+};
+
 const cardTitle = {
   margin: "8px 0 10px",
   lineHeight: 1.3,
 };
 
 const bodyText = {
+  margin: "0 0 10px",
+  lineHeight: 1.5,
+};
+
+const bodyTextWhite = {
   margin: 0,
   lineHeight: 1.5,
+  color: "white",
 };
 
 const buttonGrid = {
@@ -866,11 +1534,97 @@ const actionCard = {
   cursor: "pointer",
 };
 
-const ghostButtonDark = {
-  border: "1px solid rgba(0,0,0,0.1)",
-  background: "transparent",
+const bottomNav = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 10,
+  padding: 14,
+  background: "#ffffff",
+  borderTop: "1px solid rgba(0,0,0,0.06)",
+};
+
+const navButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "#f4f4f5",
   color: "#111",
+  borderRadius: 16,
+  padding: "14px 12px",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const navButtonActive = {
+  border: "1px solid #111",
+  background: "#111",
+  color: "white",
+  borderRadius: 16,
+  padding: "14px 12px",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const routineSectionCard = {
+  background: "white",
+  borderRadius: 24,
+  padding: 18,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+};
+
+const routineSectionTitle = {
+  marginTop: 0,
+  marginBottom: 12,
+};
+
+const exerciseCard = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 20,
+  padding: 14,
+  marginBottom: 14,
+  background: "#fcfcfd",
+};
+
+const exerciseMetaRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 10,
+};
+
+const exerciseTitle = {
+  margin: "0 0 8px",
+  fontSize: 18,
+};
+
+const exerciseMeta = {
+  margin: "0 0 6px",
+  lineHeight: 1.4,
+};
+
+const exerciseNote = {
+  margin: "8px 0 0",
+  color: "#4b5563",
+  lineHeight: 1.4,
+  fontSize: 14,
+};
+
+const videoWrap = {
+  marginTop: 12,
+};
+
+const videoFrame = {
+  border: "none",
+  borderRadius: 16,
+};
+
+const feedbackRow = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 10,
+};
+
+const feedbackButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
   borderRadius: 18,
-  padding: "14px 16px",
+  padding: "14px 12px",
+  fontWeight: 700,
   cursor: "pointer",
 };
