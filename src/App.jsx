@@ -8,21 +8,9 @@ const VERSES = [
 ];
 
 const QUESTION_FLOW = [
-  {
-    key: "firstName",
-    label: "What’s your first name?",
-    type: "text",
-  },
-  {
-    key: "age",
-    label: "How old are you?",
-    type: "number",
-  },
-  {
-    key: "state",
-    label: "What state do you live in?",
-    type: "text",
-  },
+  { key: "firstName", label: "What’s your first name?", type: "text" },
+  { key: "age", label: "How old are you?", type: "number" },
+  { key: "state", label: "What state do you live in?", type: "text" },
   {
     key: "gender",
     label: "Are you male or female?",
@@ -72,10 +60,7 @@ const QUESTION_FLOW = [
     key: "progressStyle",
     label: "How detailed do you want progress tracking to be?",
     type: "choice",
-    options: [
-      "Simple progress only",
-      "Detailed tracking",
-    ],
+    options: ["Simple progress only", "Detailed tracking"],
   },
   {
     key: "measurementUnit",
@@ -84,22 +69,46 @@ const QUESTION_FLOW = [
     options: ["Inches", "Centimeters"],
   },
   {
+    key: "bodyFocus",
+    label: "What part of your body or fitness do you most want to improve first?",
+    type: "text",
+  },
+  {
+    key: "bodyMeasurements",
+    label:
+      "If you want body tracking, add any starting measurements you know now. You can list waist, hips, chest, thighs, arms, weight, or type skip.",
+    type: "text",
+  },
+  {
     key: "foodPreferences",
-    label: "Any food preferences, dislikes, or allergies I should know about?",
+    label: "Any food preferences, dislikes, allergies, or eating habits I should know about?",
     type: "text",
   },
   {
     key: "coachName",
-    label: "Do you want to name your AI coach? You can type one or say skip.",
+    label: "Do you want to name your AI coach? Type a name or say skip.",
     type: "text",
   },
 ];
 
 const COLOR_OPTIONS = [
-  { name: "Obsidian", primary: "#111111", accent: "#ffffff" },
-  { name: "Midnight", primary: "#0f172a", accent: "#cbd5e1" },
-  { name: "Graphite", primary: "#1f2937", accent: "#f9fafb" },
+  { name: "Obsidian", primary: "#0d0d0f", accent: "#ffffff" },
+  { name: "Graphite", primary: "#17181c", accent: "#f3f4f6" },
+  { name: "Stone", primary: "#1f1f22", accent: "#e5e7eb" },
 ];
+
+const fadeStyle = `
+  @keyframes verseFade {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
 
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
@@ -134,8 +143,17 @@ export default function App() {
     const timer = setInterval(() => {
       setVerseIndex((current) => (current + 1) % VERSES.length);
     }, 5000);
-
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = fadeStyle;
+    document.head.appendChild(styleTag);
+
+    return () => {
+      document.head.removeChild(styleTag);
+    };
   }, []);
 
   useEffect(() => {
@@ -155,31 +173,35 @@ export default function App() {
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
+
     if (verse.includes("Colossians 3:23")) {
       return {
         verse,
-        meaning: "Show up with effort and integrity, even in small things.",
-        action: "Give today’s routine your full effort, even if it’s short.",
+        meaning: "Show up with discipline and effort, even in the small things.",
+        action: "Give today’s plan your full effort, even if it’s simple.",
       };
     }
+
     if (verse.includes("Philippians 4:13")) {
       return {
         verse,
-        meaning: "Your strength is not only your own.",
-        action: "Do the next right thing instead of waiting to feel perfect.",
+        meaning: "You do not have to rely only on your own strength.",
+        action: "Take the next healthy step today instead of waiting to feel ready.",
       };
     }
+
     if (verse.includes("Galatians 6:9")) {
       return {
         verse,
-        meaning: "Consistency matters more than instant results.",
-        action: "Keep going today, even if progress feels slow.",
+        meaning: "Consistency matters, even when progress feels slow.",
+        action: "Stay steady today and do not quit just because it feels imperfect.",
       };
     }
+
     return {
       verse,
-      meaning: "Care for your body while keeping your faith first.",
-      action: "Choose one healthy action that supports both body and spirit.",
+      meaning: "Fitness matters, but your deeper growth matters too.",
+      action: "Choose one action today that strengthens both body and spirit.",
     };
   }, [verseIndex]);
 
@@ -200,22 +222,16 @@ export default function App() {
     if (!answer) return;
 
     const safeAnswer =
-      currentQuestion.key === "coachName" && answer.toLowerCase() === "skip"
-        ? ""
-        : answer;
+      answer.toLowerCase() === "skip" && currentQuestion.type === "text" ? "" : answer;
 
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: answer },
-    ]);
+    setMessages((current) => [...current, { role: "user", text: answer }]);
 
     const updatedProfile = {
       ...profile,
       [currentQuestion.key]: safeAnswer,
       coachMemory: {
         detailLevel:
-          currentQuestion.key === "progressStyle" &&
-          answer === "Detailed tracking"
+          currentQuestion.key === "progressStyle" && answer === "Detailed tracking"
             ? "detailed"
             : profile.coachMemory?.detailLevel || "balanced",
         tone: "balanced",
@@ -253,6 +269,7 @@ export default function App() {
       ...updatedProfile,
       onboardingStage: "tour",
     }));
+
     setScreen("theme");
   }
 
@@ -269,6 +286,7 @@ export default function App() {
     localStorage.removeItem("christian-fitness-profile");
     localStorage.removeItem("christian-fitness-messages");
     localStorage.removeItem("christian-fitness-theme");
+
     setProfile({});
     setMessages([
       {
@@ -288,8 +306,7 @@ export default function App() {
 
   const appStyles = {
     minHeight: "100vh",
-    background:
-      "linear-gradient(180deg, #0b0b0d 0%, #17171c 35%, #f2f2f2 100%)",
+    background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
     color: "white",
     fontFamily: "Inter, Arial, sans-serif",
     display: "flex",
@@ -301,7 +318,7 @@ export default function App() {
     width: "100%",
     maxWidth: 390,
     minHeight: "95vh",
-    borderRadius: 32,
+    borderRadius: 34,
     background: "rgba(255,255,255,0.08)",
     backdropFilter: "blur(18px)",
     boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
@@ -317,12 +334,13 @@ export default function App() {
         <div style={phoneStyles}>
           <div style={welcomeWrap}>
             <div style={brandBlock}>
-              <h1 style={brandTitle}>Christian Fitness</h1>
+              <h1 style={brandTitle}>
+                <span>Christian</span>
+                <span>Fitness</span>
+              </h1>
+
               <div style={tickerViewport}>
-                <div
-                  key={verseIndex}
-                  style={tickerText}
-                >
+                <div key={verseIndex} style={tickerText}>
                   {VERSES[verseIndex]}
                 </div>
               </div>
@@ -332,7 +350,8 @@ export default function App() {
               <p style={welcomeEyebrow}>Mobile-first Christian wellness coach</p>
               <h2 style={welcomeHeading}>Build your body with purpose.</h2>
               <p style={welcomeCopy}>
-                Routine guidance, food support, real-life adjustments, and faith-centered encouragement.
+                Routine guidance, food support, real-life adjustments, and
+                faith-centered encouragement.
               </p>
 
               <button style={primaryButton} onClick={startOnboarding}>
@@ -483,7 +502,11 @@ export default function App() {
             color: selectedTheme.accent === "#ffffff" ? "#111" : "#fff",
           }}
         >
-          <h1 style={{ margin: 0 }}>Christian Fitness</h1>
+          <h1 style={{ margin: 0, lineHeight: 1 }}>
+            <span style={{ display: "block" }}>Christian</span>
+            <span style={{ display: "block" }}>Fitness</span>
+          </h1>
+
           <div style={tickerViewportHome}>
             <div key={verseIndex} style={tickerTextHome}>
               {VERSES[verseIndex]}
@@ -498,7 +521,8 @@ export default function App() {
               {profile.firstName ? `Good morning, ${profile.firstName}` : "Good morning"}
             </h2>
             <p style={bodyText}>
-              Show up with effort, keep it simple, and honor God in how you care for your body today.
+              Show up with effort, keep it simple, and honor God in how you care
+              for your body today.
             </p>
           </div>
 
@@ -522,9 +546,8 @@ export default function App() {
                   ? "detailed progress"
                   : "balanced guidance"}
               </strong>
-              , uses{" "}
-              <strong>{profile.measurementUnit || "chosen units"}</strong>, and wants a
-              <strong> faith-centered fitness plan</strong>.
+              , uses <strong>{profile.measurementUnit || "chosen units"}</strong>,
+              and wants a <strong>faith-centered fitness plan</strong>.
             </p>
           </div>
 
@@ -540,6 +563,7 @@ export default function App() {
           </div>
 
           <button style={primaryButton}>Simplify My Day</button>
+
           <button style={ghostButtonDark} onClick={resetApp}>
             Reset onboarding
           </button>
@@ -560,29 +584,43 @@ const welcomeWrap = {
 };
 
 const brandBlock = {
-  paddingTop: 28,
+  paddingTop: 30,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
 };
 
 const brandTitle = {
   margin: 0,
-  fontSize: 34,
+  fontSize: 56,
   fontWeight: 800,
-  letterSpacing: "-0.03em",
+  letterSpacing: "-0.05em",
+  lineHeight: 0.9,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 2,
 };
 
 const tickerViewport = {
-  marginTop: 14,
-  overflow: "hidden",
-  whiteSpace: "nowrap",
-  position: "relative",
-  minHeight: 24,
+  marginTop: 24,
+  minHeight: 110,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
+  width: "100%",
+  padding: "0 12px",
 };
 
 const tickerText = {
-  display: "inline-block",
-  color: "rgba(255,255,255,0.84)",
-  fontSize: 14,
+  color: "rgba(255,255,255,0.92)",
+  fontSize: 19,
   lineHeight: 1.5,
+  maxWidth: 720,
+  animation: "verseFade 0.45s ease",
 };
 
 const welcomeCard = {
@@ -745,16 +783,19 @@ const homeHeader = {
 };
 
 const tickerViewportHome = {
-  marginTop: 10,
-  overflow: "hidden",
-  whiteSpace: "nowrap",
-  minHeight: 22,
+  marginTop: 14,
+  minHeight: 70,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
 };
 
 const tickerTextHome = {
-  display: "inline-block",
-  fontSize: 13,
-  opacity: 0.9,
+  fontSize: 14,
+  lineHeight: 1.5,
+  opacity: 0.92,
+  animation: "verseFade 0.45s ease",
 };
 
 const homeBody = {
