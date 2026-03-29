@@ -1990,20 +1990,6 @@ const dangerButton = {
   cursor: "pointer",
   marginTop: 8,
 };
-const measurementInput = {
-  width: "100%",
-  minHeight: 120,
-  boxSizing: "border-box",
-  border: "1px solid rgba(0,0,0,0.08)",
-  background: "#ffffff",
-  color: "#111",
-  borderRadius: 18,
-  padding: "14px 16px",
-  outline: "none",
-  fontSize: 15,
-  resize: "vertical",
-  marginBottom: 12,
-};
 
 const choiceWrap = {
   display: "grid",
