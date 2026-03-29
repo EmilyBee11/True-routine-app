@@ -346,13 +346,11 @@ export default function App() {
               </div>
             </div>
 
-            <div style={welcomeCard}>
-              <p style={welcomeEyebrow}>Mobile-first Christian wellness coach</p>
-              <h2 style={welcomeHeading}>Build your body with purpose.</h2>
-              <p style={welcomeCopy}>
-                Routine guidance, food support, real-life adjustments, and
-                faith-centered encouragement.
-              </p>
+<h2 style={welcomeHeading}>Christian Wellness Coach</h2>
+
+<p style={welcomeCopy}>
+  Build your body with purpose.
+</p>
 
               <button style={primaryButton} onClick={startOnboarding}>
                 Start
@@ -574,6 +572,8 @@ export default function App() {
 }
 
 const welcomeWrap = {
+paddingTop: 40,
+paddingBottom: 40,
   minHeight: "100%",
   display: "flex",
   flexDirection: "column",
@@ -584,7 +584,7 @@ const welcomeWrap = {
 };
 
 const brandBlock = {
-  paddingTop: 30,
+  flex: 1,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
