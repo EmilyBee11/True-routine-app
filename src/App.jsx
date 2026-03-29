@@ -584,7 +584,7 @@ const welcomeWrap = {
   justifyContent: "space-between",
   padding: 22,
   paddingTop: 10,
-  paddingBottom: 40,
+  paddingBottom: 70,
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
 };
@@ -596,7 +596,7 @@ const brandBlock = {
   alignItems: "center",
   justifyContent: "flex-start",
   textAlign: "center",
-  paddingTop: 120,
+ paddingTop: 90,
 };
 
 const brandTitle = {
@@ -631,7 +631,8 @@ const tickerText = {
 };
 
 const welcomeCard = {
-  background: "rgba(255,255,255,0.1)",
+  background: "rgba(255,255,255,0.14)",
+  backdropFilter: "blur(12px)",
   border: "1px solid rgba(255,255,255,0.12)",
   borderRadius: 28,
   padding: 18,
