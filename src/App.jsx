@@ -81,7 +81,8 @@ const QUESTION_FLOW = [
   },
   {
     key: "foodPreferences",
-    label: "Any food preferences, dislikes, allergies, or eating habits I should know about?",
+    label:
+      "Any food preferences, dislikes, allergies, or eating habits I should know about?",
     type: "text",
   },
   {
@@ -119,6 +120,7 @@ export default function App() {
     const saved = localStorage.getItem("christian-fitness-profile");
     return saved ? JSON.parse(saved) : {};
   });
+
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-messages");
     return saved
@@ -134,6 +136,7 @@ export default function App() {
           },
         ];
   });
+
   const [selectedTheme, setSelectedTheme] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-theme");
     return saved ? JSON.parse(saved) : COLOR_OPTIONS[0];
@@ -207,6 +210,7 @@ export default function App() {
 
   function startOnboarding() {
     setScreen("onboarding");
+
     if (messages.length <= 2) {
       setMessages((current) => [
         ...current,
@@ -222,7 +226,9 @@ export default function App() {
     if (!answer) return;
 
     const safeAnswer =
-      answer.toLowerCase() === "skip" && currentQuestion.type === "text" ? "" : answer;
+      answer.toLowerCase() === "skip" && currentQuestion.type === "text"
+        ? ""
+        : answer;
 
     setMessages((current) => [...current, { role: "user", text: answer }]);
 
@@ -346,11 +352,9 @@ export default function App() {
               </div>
             </div>
 
-<h2 style={welcomeHeading}>Christian Wellness Coach</h2>
-
-<p style={welcomeCopy}>
-  Build your body with purpose.
-</p>
+            <div style={welcomeCard}>
+              <h2 style={welcomeHeading}>Christian Wellness Coach</h2>
+              <p style={welcomeCopy}>Build your body with purpose.</p>
 
               <button style={primaryButton} onClick={startOnboarding}>
                 Start
@@ -373,6 +377,7 @@ export default function App() {
                 Question {questionIndex + 1} of {QUESTION_FLOW.length}
               </p>
             </div>
+
             <button style={ghostButton} onClick={resetApp}>
               Reset
             </button>
@@ -464,6 +469,7 @@ export default function App() {
                       background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
                     }}
                   />
+
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontWeight: 700 }}>{option.name}</div>
                     <div style={subtleText}>Use this as your base style</div>
@@ -572,13 +578,13 @@ export default function App() {
 }
 
 const welcomeWrap = {
-paddingTop: 40,
-paddingBottom: 40,
   minHeight: "100%",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
   padding: 22,
+  paddingTop: 40,
+  paddingBottom: 40,
   background:
     "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
 };
@@ -631,24 +637,18 @@ const welcomeCard = {
   marginBottom: 18,
 };
 
-const welcomeEyebrow = {
-  margin: 0,
-  color: "rgba(255,255,255,0.72)",
-  fontSize: 12,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-};
-
 const welcomeHeading = {
-  margin: "10px 0 8px",
-  fontSize: 28,
-  lineHeight: 1.1,
+  margin: "0 0 6px",
+  fontSize: 26,
+  fontWeight: 700,
+  lineHeight: 1.2,
 };
 
 const welcomeCopy = {
-  margin: "0 0 18px",
-  color: "rgba(255,255,255,0.85)",
-  lineHeight: 1.55,
+  margin: "0 0 20px",
+  color: "rgba(255,255,255,0.75)",
+  fontSize: 15,
+  lineHeight: 1.4,
 };
 
 const primaryButton = {
