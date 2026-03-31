@@ -1514,35 +1514,80 @@ const phoneStyles = {
                 <p style={bodyTextLast}>{routineData.walking}</p>
               </div>
 
-              <div style={feedbackRow}>
-                <button
-                  style={{
-                    ...feedbackButton,
-                    background: routineFeedback === "up" ? "#dcfce7" : "#ffffff",
-                  }}
-                  onClick={() => setRoutineFeedback("up")}
-                >
-                  👍
-                </button>
-                <button
-                  style={{
-                    ...feedbackButton,
-                    background: routineFeedback === "down" ? "#fee2e2" : "#ffffff",
-                  }}
-                  onClick={() => setRoutineFeedback("down")}
-                >
-                  👎
-                </button>
-              </div>
+<div style={feedbackRow}>
+  <button
+    style={{
+      ...feedbackButton,
+      background: routineFeedback === "up" ? "#dcfce7" : "#ffffff",
+    }}
+    onClick={() => {
+      setRoutineFeedback("up");
+      setFeedbackReason("");
+      setProfile((current) => ({
+        ...current,
+        coachMemory: {
+          ...current.coachMemory,
+          lastRoutineFeedback: "up",
+        },
+      }));
+    }}
+  >
+    👍
+  </button>
 
-              {routineFeedback && (
-                <input
-                  style={textInputLight}
-                  placeholder="What felt off?"
-                  value={feedbackReason}
-                  onChange={(e) => setFeedbackReason(e.target.value)}
-                />
-              )}
+  <button
+    style={{
+      ...feedbackButton,
+      background: routineFeedback === "down" ? "#fee2e2" : "#ffffff",
+    }}
+    onClick={() => {
+      setRoutineFeedback("down");
+      setFeedbackReason("");
+      setProfile((current) => ({
+        ...current,
+        coachMemory: {
+          ...current.coachMemory,
+          lastRoutineFeedback: "down",
+        },
+      }));
+    }}
+  >
+    👎
+  </button>
+</div>
+
+{routineFeedback && (
+  <>
+    <p style={feedbackQuestion}>
+      {routineFeedback === "up"
+        ? "What did you like about this workout?"
+        : "What felt off or what should change?"}
+    </p>
+
+    <input
+      style={textInputLight}
+      placeholder={
+        routineFeedback === "up"
+          ? "Example: good pace, liked the exercises, felt strong"
+          : "Example: too hard, too long, painful, confusing"
+      }
+      value={feedbackReason}
+      onChange={(e) => {
+        const value = e.target.value;
+        setFeedbackReason(value);
+        setProfile((current) => ({
+          ...current,
+          coachMemory: {
+            ...current.coachMemory,
+            lastRoutineFeedback:
+              routineFeedback === "up" ? "up" : "down",
+            lastRoutineFeedbackReason: value,
+          },
+        }));
+      }}
+    />
+  </>
+)}
 
               <button style={secondaryButton} onClick={() => setActiveTab("home")}>
                 Back to Home
@@ -2267,6 +2312,13 @@ const feedbackButton = {
   padding: "14px 12px",
   fontWeight: 700,
   cursor: "pointer",
+};
+
+const feedbackQuestion = {
+  margin: "8px 0 6px",
+  fontSize: 14,
+  fontWeight: 700,
+  color: "#111",
 };
 
 const appChatHistory = {
