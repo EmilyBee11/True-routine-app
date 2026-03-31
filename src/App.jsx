@@ -709,63 +709,79 @@ if (shouldGoGentle || adjust.easier) return beginnerRoutine;
   if (goal.includes("weight")) return weightLossRoutine;
 
   return {
-const balancedRoutine = {
-const balancedRoutine = {
-  title: "Balanced Full-Body Day",
-  summary: "A moderate calisthenics session built to support strength, energy, and consistency.",
-  warmup: [
-    {
-      name: "Jumping Jacks",
-      reps: "45 sec",
-      time: "1 min",
-      video: "https://www.youtube-nocookie.com/embed/c4DAnQ6DtF8",
-    },
-    {
-      name: "Hip Circles",
-      reps: "30 sec each way",
-      time: "1 min",
-      video: "https://www.youtube-nocookie.com/embed/J4v8V2q5-OU",
-    },
-  ],
-  main: [
-    {
-      name: "Push-Ups",
-      reps: "3 x 10",
-      time: "5 min",
-      video: "https://www.youtube-nocookie.com/embed/IODxDxX7oi4",
-    },
-    {
-      name: "Bodyweight Squats",
-      reps: "3 x 15",
-      time: "5 min",
-      video: "https://www.youtube-nocookie.com/embed/YaXPRqUwItQ",
-    },
-    {
-      name: "Walking Lunges",
-      reps: "3 x 10 each leg",
-      time: "5 min",
-      video: "https://www.youtube-nocookie.com/embed/L8fvypPrzzs",
-    },
-  ],
-  cooldown: [
-    {
-      name: "Hamstring Stretch",
-      reps: "40 sec each side",
-      time: "2 min",
-      video: "https://www.youtube-nocookie.com/embed/0hTllAb4XGg",
-    },
-  ],
-  walking: "Optional 15-minute walk.",
-};
-
-if (adjust.shorter) {
-  return {
-    ...balancedRoutine,
-    main: balancedRoutine.main.slice(0, 2),
+  const balancedRoutine = {
+    title: "Balanced Full-Body Day",
+    summary: "A moderate calisthenics session built to support strength, energy, and consistency.",
+    warmup: [
+      {
+        name: "Jumping Jacks",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/c4DAnQ6DtF8",
+      },
+      {
+        name: "Hip Circles",
+        reps: "30 sec each way",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/J4v8V2q5-OU",
+      },
+    ],
+    main: [
+      {
+        name: "Push-Ups",
+        reps: "3 x 10",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/IODxDxX7oi4",
+        note: "Use a knee version if needed and keep your form strong.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "3 x 15",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/YaXPRqUwItQ",
+        note: "Drive through your whole foot.",
+      },
+      {
+        name: "Walking Lunges",
+        reps: "3 x 10 each leg",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/L8fvypPrzzs",
+        note: "Stay stable and avoid rushing.",
+      },
+      {
+        name: "Dead Bug",
+        reps: "3 x 10 each side",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/g_BYB0R-4Ws",
+        note: "Move with control and brace your core.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Hamstring Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/0hTllAb4XGg",
+      },
+      {
+        name: "Chest Stretch",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/SV7l1sfEmO0",
+      },
+    ],
+    walking: "Optional 15-minute walk for recovery and energy.",
   };
-}
 
-return balancedRoutine;
+  if (adjust.shorter) {
+    return {
+      ...balancedRoutine,
+      summary: "A shorter full-body session based on your last workout feedback.",
+      main: balancedRoutine.main.slice(0, 3),
+    };
+  }
+
+  return balancedRoutine;
 
 function getCoachMessage(profile) {
   const firstName = capitalizeName(profile.firstName) || "";
