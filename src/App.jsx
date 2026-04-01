@@ -146,12 +146,7 @@ const QUESTION_FLOW = [
     label: "What are you trying to improve right now with your body or health?",
     type: "text",
   },
-  {
-    key: "progressStyle",
-    label: "Do you want to keep progress pretty simple, or pay closer attention to it over time?",
-    type: "choice",
-    options: ["Keep it simple", "Track it closely"],
-  },
+
   {
     key: "bodyFocus",
     label: "What part of your body, routine, or fitness do you want to improve first?",
@@ -825,6 +820,7 @@ function getCoachMessage(profile) {
   if (whyStarted && whyStarted.length > 10) {
     action = `Remember why you started: ${whyStarted.slice(0, 55)}${whyStarted.length > 55 ? "..." : ""}`;
   }
+
   const lastUpdate = profile.coachMemory?.lastMeasurementUpdate;
   let measurementReminder = "";
 
@@ -840,15 +836,9 @@ function getCoachMessage(profile) {
     measurementReminder =
       " When you’re ready, adding your measurements will help us track your progress over time.";
   }
-  let weeklyNote = "";
 
-  if (profile.coachMemory?.weeklyCheckins?.length > 0) {
-    weeklyNote = " You’ve been showing up — keep that consistency going.";
-  }
-
-  focus += weeklyNote;
   message += measurementReminder;
-  
+
   return { speaker: coachName, message, focus, action };
 }
 
@@ -1119,7 +1109,41 @@ function ExerciseCard({ exercise }) {
     </div>
   );
 }
+function buildWeeklyReport(profile) {
+  const feedback = profile.coachMemory?.lastRoutineFeedback;
+  const feedbackReason = (
+    profile.coachMemory?.lastRoutineFeedbackReason || ""
+  ).toLowerCase();
 
+  let summary = "You kept showing up this week — and that consistency is what actually builds results.";
+  let nextStep = "Stay steady and complete your next planned workout.";
+  let wins = ["You stayed engaged.", "You kept moving forward."];
+
+  if (feedback === "up") {
+    summary =
+      "You had a strong week — you followed through and handled your routine well.";
+    nextStep = "Keep building on that momentum and stay consistent this week.";
+    wins = ["You responded well to your routine.", "You gave clear feedback about what worked."];
+  } else if (feedback === "down") {
+    summary =
+      "You stayed honest this week and learned what needs to change — that’s real progress.";
+    nextStep =
+      feedbackReason.includes("long")
+        ? "Keep your next workout a little shorter and easier to finish."
+        : feedbackReason.includes("hard") || feedbackReason.includes("pain")
+        ? "Scale the next workout down and keep it gentler."
+        : "Keep the next workout simple and manageable.";
+    wins = ["You paid attention to what felt off.", "You kept learning instead of quitting."];
+  }
+
+  return {
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    summary,
+    nextStep,
+    wins,
+  };
+}
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
   const [screen, setScreen] = useState("welcome");
@@ -1130,17 +1154,21 @@ export default function App() {
   const [feedbackReason, setFeedbackReason] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [tourStep, setTourStep] = useState(0);
-  const [showTour, setShowTour] = useState(false);
+const [showTour, setShowTour] = useState(false);
+const [weeklyReportDismissed, setWeeklyReportDismissed] = useState(false);
 const [editingSetup, setEditingSetup] = useState(false);
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
 return saved
+return saved
   ? normalizeProfile(JSON.parse(saved))
   : {
       measurements: {},
+      createdAt: null,
       coachMemory: {
         lastMeasurementUpdate: null,
+        lastWeeklyReport: null,
         weeklyCheckins: [],
       },
     };
@@ -1209,6 +1237,49 @@ return saved
   useEffect(() => {
     localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
   }, [selectedTheme]);
+  useEffect(() => {
+  if (!profile.onboardingComplete) return;
+
+  const now = new Date();
+  const lastWeeklyReport = profile.coachMemory?.lastWeeklyReport;
+  let shouldGenerate = false;
+
+  if (!lastWeeklyReport) {
+    const created = new Date(profile.createdAt || Date.now());
+    const daysSinceStart =
+      (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (daysSinceStart >= 3) {
+      shouldGenerate = true;
+    }
+  } else {
+    const daysSinceLast =
+      (now.getTime() - new Date(lastWeeklyReport).getTime()) /
+      (1000 * 60 * 60 * 24);
+
+    if (daysSinceLast >= 7) {
+      shouldGenerate = true;
+    }
+  }
+
+  if (!shouldGenerate) return;
+
+  setProfile((current) => {
+    const existing = current.coachMemory?.weeklyCheckins || [];
+    const newCheckin = buildWeeklyReport(current);
+
+    return {
+      ...current,
+      coachMemory: {
+        ...current.coachMemory,
+        weeklyCheckins: [...existing, newCheckin].slice(-8),
+        lastWeeklyReport: new Date().toISOString(),
+      },
+    };
+  });
+
+  setWeeklyReportDismissed(false);
+}, [profile.onboardingComplete, profile.createdAt, profile.coachMemory?.lastWeeklyReport]);
 
   useEffect(() => {
     if (activeTab === "chat" && chatMessages.length === 0 && profile.onboardingComplete) {
@@ -1235,6 +1306,10 @@ const canEditPreviousQuestion = questionIndex > 0;
   const coach = useMemo(() => getCoachMessage(profile), [profile]);
   const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
   const routineLength = useMemo(() => getRoutineLength(profile), [profile]);
+  const latestWeeklyReport = useMemo(() => {
+  const reports = profile.coachMemory?.weeklyCheckins || [];
+  return reports.length ? reports[reports.length - 1] : null;
+}, [profile]);
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
@@ -1396,17 +1471,18 @@ To make that accurate, try to remeasure about once a month — it helps us see w
   setScreen("theme");
 }
 
-  function finishThemeAndTour() {
-    setProfile((current) => ({
-      ...current,
-      onboardingComplete: true,
-      onboardingStage: "done",
-    }));
-    setScreen("home");
-    setActiveTab("home");
-    setShowTour(true);
-    setTourStep(0);
-  }
+function finishThemeAndTour() {
+  setProfile((current) => ({
+    ...current,
+    onboardingComplete: true,
+    onboardingStage: "done",
+    createdAt: current.createdAt || new Date().toISOString(),
+  }));
+  setScreen("home");
+  setActiveTab("home");
+  setShowTour(true);
+  setTourStep(0);
+}
 
   function nextTourStep() {
     if (tourStep >= tourSteps.length - 1) {
@@ -1429,7 +1505,15 @@ function resetApp() {
   localStorage.removeItem("christian-fitness-messages");
   localStorage.removeItem("christian-fitness-chat");
   localStorage.removeItem("christian-fitness-theme");
-  setProfile({ measurements: {} });
+  setProfile({
+    measurements: {},
+    createdAt: null,
+    coachMemory: {
+      lastMeasurementUpdate: null,
+      lastWeeklyReport: null,
+      weeklyCheckins: [],
+    },
+  });
   setMessages([
     {
       role: "ai",
@@ -1452,6 +1536,7 @@ function resetApp() {
   setShowTour(false);
   setTourStep(0);
   setEditingSetup(false);
+  setWeeklyReportDismissed(false);
 }
 
 function sendChatMessage(text) {
@@ -1719,6 +1804,27 @@ function sendChatMessage(text) {
                   <strong>Today’s action:</strong> {coach.action}
                 </p>
               </div>
+              {latestWeeklyReport && !weeklyReportDismissed && (
+  <div style={weeklyReportCard}>
+    <p style={sectionLabel}>Weekly Report</p>
+    <h3 style={cardTitle}>Your weekly check-in</h3>
+    <p style={bodyText}>{latestWeeklyReport.summary}</p>
+    {latestWeeklyReport.wins?.map((win, index) => (
+      <p key={index} style={bodyText}>
+        • {win}
+      </p>
+    ))}
+    <p style={bodyTextLast}>
+      <strong>Next step:</strong> {latestWeeklyReport.nextStep}
+    </p>
+    <button
+      style={secondaryButton}
+      onClick={() => setWeeklyReportDismissed(true)}
+    >
+      Close weekly report
+    </button>
+  </div>
+)}
 
               <div style={dailyCard}>
                 <p style={sectionLabel}>Today’s Routine</p>
@@ -2968,4 +3074,12 @@ const editAnswerButton = {
   padding: "10px 14px",
   fontWeight: 700,
   cursor: "pointer",
+};
+const weeklyReportCard = {
+  background: "rgba(255,255,255,0.92)",
+  backdropFilter: "blur(10px)",
+  borderRadius: 24,
+  padding: 18,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+  border: "1px solid rgba(0,0,0,0.06)",
 };
