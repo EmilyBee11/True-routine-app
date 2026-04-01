@@ -1144,6 +1144,15 @@ function buildWeeklyReport(profile) {
     wins,
   };
 }
+function buildMeasurementSnapshot(profile) {
+  return {
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    measurements: {
+      ...(profile.measurements || {}),
+    },
+  };
+}
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
   const [screen, setScreen] = useState("welcome");
@@ -1159,11 +1168,13 @@ const [weeklyReportDismissed, setWeeklyReportDismissed] = useState(false);
 const [editingSetup, setEditingSetup] = useState(false);
 
   const [profile, setProfile] = useState(() => {
+    });
     const saved = localStorage.getItem("christian-fitness-profile");
 return saved
   ? normalizeProfile(JSON.parse(saved))
   : {
       measurements: {},
+      measurementHistory: [],
       createdAt: null,
       coachMemory: {
         lastMeasurementUpdate: null,
@@ -1171,7 +1182,6 @@ return saved
         weeklyCheckins: [],
       },
     };
-  });
 
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-messages");
@@ -1504,15 +1514,16 @@ function resetApp() {
   localStorage.removeItem("christian-fitness-messages");
   localStorage.removeItem("christian-fitness-chat");
   localStorage.removeItem("christian-fitness-theme");
-  setProfile({
-    measurements: {},
-    createdAt: null,
-    coachMemory: {
-      lastMeasurementUpdate: null,
-      lastWeeklyReport: null,
-      weeklyCheckins: [],
-    },
-  });
+setProfile({
+  measurements: {},
+  measurementHistory: [],
+  createdAt: null,
+  coachMemory: {
+    lastMeasurementUpdate: null,
+    lastWeeklyReport: null,
+    weeklyCheckins: [],
+  },
+});
   setMessages([
     {
       role: "ai",
@@ -1557,6 +1568,41 @@ function sendChatMessage(text) {
 
   setChatMessages((prev) => [...prev, userMsg, aiMsg]);
   setChatInput("");
+}
+
+function saveMeasurementValue(fieldKey, value) {
+  setProfile((current) => {
+    const nextMeasurements = {
+      ...current.measurements,
+      [fieldKey]: value,
+    };
+
+    const now = new Date().toISOString();
+    const lastUpdate = current.coachMemory?.lastMeasurementUpdate;
+
+    const shouldCreateSnapshot =
+      !lastUpdate ||
+      new Date(now).getTime() - new Date(lastUpdate).getTime() >
+        1000 * 60 * 60 * 24;
+
+    return {
+      ...current,
+      measurements: nextMeasurements,
+      measurementHistory: shouldCreateSnapshot
+        ? [
+            ...(current.measurementHistory || []),
+            buildMeasurementSnapshot({
+              ...current,
+              measurements: nextMeasurements,
+            }),
+          ].slice(-24)
+        : current.measurementHistory || [],
+      coachMemory: {
+        ...current.coachMemory,
+        lastMeasurementUpdate: now,
+      },
+    };
+  });
 }
 
   const appStyles = {
@@ -2150,30 +2196,22 @@ function sendChatMessage(text) {
                       </div>
 
                       <div style={measurementInputRow}>
-                        <input
-                          style={measurementSmallInput}
-                          value={profile.measurements?.[field.key] || ""}
-                          onFocus={() =>
-                            setProfile((current) => ({
-                              ...current,
-                              activeMeasurementField: field.key,
-                            }))
-                          }
-onChange={(e) =>
-  setProfile((current) => ({
-    ...current,
-    measurements: {
-      ...current.measurements,
-      [field.key]: e.target.value,
-    },
-    coachMemory: {
-      ...current.coachMemory,
-      lastMeasurementUpdate: new Date().toISOString(),
-    },
-  }))
-}
-                          placeholder="0"
-                        />
+<input
+  style={measurementSmallInput}
+  value={profile.measurements?.[field.key] || ""}
+  onFocus={() =>
+    setProfile((current) => ({
+      ...current,
+      activeMeasurementField: field.key,
+    }))
+  }
+  onChange={(e) => saveMeasurementValue(field.key, e.target.value)}
+  placeholder="0"
+/>
+                        These save on this device automatically.
+                        <p style={bodyTextLast}>
+  Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
+</p>
                         <span style={measurementUnitText}>
                           {profile.measurementUnit === "Centimeters"
                             ? "cm"
