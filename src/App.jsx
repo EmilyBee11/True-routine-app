@@ -278,8 +278,7 @@ function getClarificationForQuestion(question) {
       "This includes injury, disability, chronic pain, pregnancy-related limits, or anything else that affects movement.",
     mainGoal:
       "You can answer in your own words, like losing weight, building strength, discipline, energy, or feeling better.",
-    progressStyle:
-      "Simple means basic check-ins. Track it closely means more detailed progress over time.",
+progressStyle: `${coachName}: Perfect. I can work with that.`,
     bodyFocus:
       "This can be a body area, a habit, or something like strength, stamina, or consistency.",
     foodPreferences:
@@ -356,9 +355,8 @@ if (feedback === "down" && reason.includes("long")) {
 }
   const goal = (profile.mainGoal || "").toLowerCase();
   const activity = profile.activityLevel || "";
-  const detailed = profile.progressStyle === "Track it closely";
 
-  if (activity === "Beginner") return detailed ? "25–30 min" : "18–24 min";
+  if (activity === "Beginner") return "18–24 min";
 
   if (activity === "Active") {
     if (goal.includes("muscle") || goal.includes("strength")) return "35–45 min";
@@ -783,7 +781,6 @@ function getCoachMessage(profile) {
   const coachName = capitalizeName(profile.coachName) || "Coach";
   const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
   const goal = (profile.mainGoal || "").toLowerCase();
-  const detail = profile.progressStyle || "";
   const activity = profile.activityLevel || "";
   const whyStarted = profile.whyStarted || "";
 
@@ -807,10 +804,6 @@ function getCoachMessage(profile) {
     message = `We’re aiming for strength and steadiness today${greetingName}.`;
     focus = "Movement should support your mind, not just your body.";
     action = "Finish the session, breathe slowly, and do not chase perfection.";
-  }
-
-  if (detail === "Track it closely") {
-    focus = `${focus} We’ll pay closer attention to progress over time.`;
   }
 
   if (activity === "Beginner") {
@@ -1167,21 +1160,21 @@ const [showTour, setShowTour] = useState(false);
 const [weeklyReportDismissed, setWeeklyReportDismissed] = useState(false);
 const [editingSetup, setEditingSetup] = useState(false);
 
-  const [profile, setProfile] = useState(() => {
-    });
-    const saved = localStorage.getItem("christian-fitness-profile");
-return saved
-  ? normalizeProfile(JSON.parse(saved))
-  : {
-      measurements: {},
-      measurementHistory: [],
-      createdAt: null,
-      coachMemory: {
-        lastMeasurementUpdate: null,
-        lastWeeklyReport: null,
-        weeklyCheckins: [],
-      },
-    };
+const [profile, setProfile] = useState(() => {
+  const saved = localStorage.getItem("christian-fitness-profile");
+  return saved
+    ? normalizeProfile(JSON.parse(saved))
+    : {
+        measurements: {},
+        measurementHistory: [],
+        createdAt: null,
+        coachMemory: {
+          lastMeasurementUpdate: null,
+          lastWeeklyReport: null,
+          weeklyCheckins: [],
+        },
+      };
+});
 
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-messages");
@@ -1423,11 +1416,9 @@ function submitAnswer(answerOverride) {
     coachMemory: {
       ...profile.coachMemory,
       detailLevel:
-        currentQuestion.key === "progressStyle" && answer === "Track it closely"
-          ? "detailed"
-          : profile.coachMemory?.detailLevel || "balanced",
-      tone: "balanced",
-      neutralUntilLearned: true,
+detailLevel: profile.coachMemory?.detailLevel || "balanced",
+tone: "balanced",
+neutralUntilLearned: true,
     },
   });
 
@@ -2195,31 +2186,27 @@ function saveMeasurementValue(fieldKey, value) {
                         <span style={measurementTip}>? {field.tip}</span>
                       </div>
 
-                      <div style={measurementInputRow}>
-<input
-  style={measurementSmallInput}
-  value={profile.measurements?.[field.key] || ""}
-  onFocus={() =>
-    setProfile((current) => ({
-      ...current,
-      activeMeasurementField: field.key,
-    }))
-  }
-  onChange={(e) => saveMeasurementValue(field.key, e.target.value)}
-  placeholder="0"
-/>
-                        These save on this device automatically.
-                        <p style={bodyTextLast}>
-  Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
-</p>
-                        <span style={measurementUnitText}>
-                          {profile.measurementUnit === "Centimeters"
-                            ? "cm"
-                            : field.key === "weight"
-                            ? "lb"
-                            : "in"}
-                        </span>
-                      </div>
+<div style={measurementInputRow}>
+  <input
+    style={measurementSmallInput}
+    value={profile.measurements?.[field.key] || ""}
+    onFocus={() =>
+      setProfile((current) => ({
+        ...current,
+        activeMeasurementField: field.key,
+      }))
+    }
+    onChange={(e) => saveMeasurementValue(field.key, e.target.value)}
+    placeholder="0"
+  />
+  <span style={measurementUnitText}>
+    {profile.measurementUnit === "Centimeters"
+      ? "cm"
+      : field.key === "weight"
+      ? "lb"
+      : "in"}
+  </span>
+</div>
                     </div>
                   ))}
                 </div>
@@ -2227,6 +2214,9 @@ function saveMeasurementValue(fieldKey, value) {
                 <p style={{ ...bodyText, marginTop: 12 }}>
                   These save on this device automatically.
                 </p>
+                <p style={bodyTextLast}>
+  Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
+</p>
               </div>
 
               <div style={routineSectionCard}>
