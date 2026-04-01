@@ -268,22 +268,49 @@ function getClarificationForQuestion(question) {
   const map = {
     coachName: "This is just what you want your Coach to be called inside the app.",
     firstName: "Just type the name you want your Coach to call you.",
-    relationshipStatus: "You can answer however you want here. It is open-ended.",
-    denomination: "You can be specific, broad, or just say none.",
-    whyStarted: "I mean what made you decide this is the right time to begin.",
-    lifeChange: "I mean what you hope improves in your life because of this journey.",
-    activityLevel:
-      "Beginner means not very active right now. Somewhat active means some movement. Active means you already move pretty regularly.",
-    hasLimitations:
-      "This includes injury, disability, chronic pain, pregnancy-related limits, or anything else that affects movement.",
-    mainGoal:
-      "You can answer in your own words, like losing weight, building strength, discipline, energy, or feeling better.",
-    bodyFocus:
-      "This can be a body area, a habit, or something like strength, stamina, or consistency.",
-    foodPreferences:
-      "This can include foods you avoid, allergies, dislikes, or how you usually eat.",
+    age: "Type your age as a number. This helps guide your routine safely.",
+    state: "Just type the state you live in.",
+    gender: "Choose the option that fits you.",
     pregnancyStatus:
-      "This helps the Coach guide you more safely and gently if needed.",
+      "This helps the Coach guide you safely if needed. Choose what applies to you.",
+    pregnancyTrimester:
+      "Pick which trimester you are currently in.",
+    pregnancyRestrictions:
+      "Anything your doctor told you to avoid. You can type skip if none.",
+    pregnancySymptoms:
+      "Any discomfort like pain, dizziness, or pressure you’ve noticed.",
+    postpartumTime:
+      "You can say something like 2 weeks, 3 months, etc.",
+    deliveryType:
+      "You can say vaginal, C-section, or skip.",
+    postpartumConcerns:
+      "Anything related to recovery like core, pelvic floor, pain, or bleeding.",
+    relationshipStatus:
+      "You can answer however you want here. It is open-ended.",
+    denomination:
+      "You can be specific, broad, or just say none.",
+    whyStarted:
+      "I mean what made you decide this is the right time to begin.",
+    lifeChange:
+      "I mean what you hope improves in your life because of this journey.",
+    activityLevel:
+      "Beginner means not very active. Somewhat active means occasional movement. Active means consistent movement.",
+    hasLimitations:
+      "This includes injuries, disabilities, chronic pain, or anything affecting movement.",
+    limitationType:
+      "You can describe if it’s injury, disability, pain, or something else.",
+    limitationName:
+      "Just describe what it is called or feels like.",
+    limitationDuration:
+      "How long you’ve had it (days, months, years).",
+    activityLimit:
+      "Describe what you can comfortably do right now.",
+    mainGoal:
+      "Example: lose weight, build strength, discipline, energy, or feel better.",
+    bodyFocus:
+      "This can be a body part, habit, or type of fitness.",
+    foodPreferences:
+      "Include allergies, dislikes, or how you usually eat.",
   };
 
   return (
@@ -1543,6 +1570,19 @@ function sendChatMessage(text) {
 
   const coachName = capitalizeName(profile.coachName) || "Coach";
 
+  setProfile((current) => ({
+    ...current,
+    coachMemory: {
+      ...current.coachMemory,
+      lastUserMessage: cleanText,
+      prefersShortWorkouts:
+        cleanText.toLowerCase().includes("short") ||
+        cleanText.toLowerCase().includes("too long")
+          ? true
+          : current.coachMemory?.prefersShortWorkouts || false,
+    },
+  }));
+
   const userMsg = {
     role: "user",
     text: cleanText,
@@ -1920,7 +1960,12 @@ function saveMeasurementValue(fieldKey, value) {
                 <button style={actionCard}>Budget</button>
               </div>
 
-              <button style={primaryDarkButton}>Simplify My Day</button>
+              <button
+  style={primaryDarkButton}
+  onClick={() => setActiveTab("chat")}
+>
+  Simplify My Day
+</button>
             </>
           )}
 
