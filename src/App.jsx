@@ -702,13 +702,12 @@ if (feedback === "up") {
     walking: "Aim for an easy 20-minute walk sometime today.",
   };
 
-if (shouldGoGentle || adjust.easier) return beginnerRoutine;
+  if (shouldGoGentle || adjust.easier) return beginnerRoutine;
   if (adjust.harder) return muscleRoutine;
   if (goal.includes("discipline")) return disciplineRoutine;
   if (goal.includes("muscle") || goal.includes("strength")) return muscleRoutine;
   if (goal.includes("weight")) return weightLossRoutine;
 
-  return {
   const balancedRoutine = {
     title: "Balanced Full-Body Day",
     summary: "A moderate calisthenics session built to support strength, energy, and consistency.",
