@@ -1962,7 +1962,10 @@ function saveMeasurementValue(fieldKey, value) {
 
               <button
   style={primaryDarkButton}
-  onClick={() => setActiveTab("chat")}
+  onClick={() => {
+    setActiveTab("chat");
+    sendChatMessage("Simplify my day");
+  }}
 >
   Simplify My Day
 </button>
