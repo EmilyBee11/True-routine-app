@@ -397,21 +397,62 @@ if (feedback === "down" && reason.includes("long")) {
 
 function getRoutineData(profile) {
   const feedback = profile.coachMemory?.lastRoutineFeedback;
-const feedbackReason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
+  const feedbackReason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
 
-let adjust = {
-  easier: false,
-  harder: false,
-  shorter: false,
-};
+  let adjust = {
+    easier: false,
+    harder: false,
+    shorter: false,
+  };
 
-if (feedback === "down") {
-  if (feedbackReason.includes("hard") || feedbackReason.includes("pain")) {
-    adjust.easier = true;
+  if (feedback === "down") {
+    if (feedbackReason.includes("hard") || feedbackReason.includes("pain")) {
+      adjust.easier = true;
+    }
+    if (feedbackReason.includes("long")) {
+      adjust.shorter = true;
+    }
   }
-  if (feedbackReason.includes("long")) {
-    adjust.shorter = true;
+
+  if (feedback === "up") {
+    if (feedbackReason.includes("easy")) {
+      adjust.harder = true;
+    }
   }
+
+  const goal = (profile.mainGoal || "").toLowerCase();
+  const activity = profile.activityLevel || "Somewhat active";
+
+  const baseRoutine = {
+    title: "Balanced Full-Body Day",
+    summary: "A moderate calisthenics session.",
+    warmup: [],
+    main: [
+      { name: "Push-Ups", reps: "3 x 10", time: "5 min" },
+      { name: "Squats", reps: "3 x 15", time: "5 min" },
+      { name: "Lunges", reps: "3 x 10 each", time: "5 min" },
+    ],
+    cooldown: [
+      { name: "Stretch", reps: "1 min", time: "1 min" },
+    ],
+    walking: "Optional walk",
+  };
+
+  const wantsShorter =
+    profile.coachMemory?.prefersShortWorkouts || adjust.shorter;
+
+  if (wantsShorter) {
+    return {
+      ...baseRoutine,
+      title: baseRoutine.title + " — Simplified",
+      summary: "Shorter version of today’s workout.",
+      main: baseRoutine.main.slice(0, 2),
+      cooldown: baseRoutine.cooldown.slice(0, 1),
+      walking: "Optional 5–10 min walk",
+    };
+  }
+
+  return baseRoutine;
 }
 
 if (feedback === "up") {
@@ -1574,10 +1615,9 @@ function sendChatMessage(text) {
     ...current,
     coachMemory: {
       ...current.coachMemory,
-      lastUserMessage: cleanText,
       prefersShortWorkouts:
         cleanText.toLowerCase().includes("short") ||
-        cleanText.toLowerCase().includes("too long")
+        cleanText.toLowerCase().includes("simplify")
           ? true
           : current.coachMemory?.prefersShortWorkouts || false,
     },
@@ -1591,7 +1631,7 @@ function sendChatMessage(text) {
   const aiMsg = {
     role: "ai",
     speaker: coachName,
-    text: getAIResponse(cleanText, profile),
+    text: "Got it — adjusting your plan.",
   };
 
   setChatMessages((prev) => [...prev, userMsg, aiMsg]);
@@ -1960,11 +2000,17 @@ function saveMeasurementValue(fieldKey, value) {
                 <button style={actionCard}>Budget</button>
               </div>
 
-              <button
+<button
   style={primaryDarkButton}
   onClick={() => {
-    setActiveTab("chat");
-    sendChatMessage("Simplify my day");
+    setProfile((current) => ({
+      ...current,
+      coachMemory: {
+        ...current.coachMemory,
+        prefersShortWorkouts: true,
+      },
+    }));
+    setActiveTab("routine");
   }}
 >
   Simplify My Day
