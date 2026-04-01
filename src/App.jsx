@@ -318,33 +318,33 @@ function getConversationalReply(profile, justAnsweredKey) {
   const coachName = capitalizeName(profile.coachName) || "Coach";
 
   const map = {
-    coachName: `${coachName}: ${coachName} it is.`,
+    coachName: `${coachName}: ${coachName} it is. I like that.`,
     firstName: `${coachName}: Nice to meet you, ${name}.`,
     age: `${coachName}: Got it, ${name}.`,
-    state: `${coachName}: Okay, ${name}.`,
-    gender: `${coachName}: Alright, ${name}.`,
+    state: `${coachName}: Okay, that helps.`,
+    gender: `${coachName}: Alright.`,
     pregnancyStatus:
       profile.pregnancyStatus === "Pregnant" || profile.pregnancyStatus === "Postpartum"
         ? getSupportMessage(profile)
-        : `${coachName}: Okay, ${name}.`,
-    pregnancyTrimester: `${coachName}: Got it, ${name}.`,
-    pregnancyRestrictions: `${coachName}: That helps.`,
-    pregnancySymptoms: `${coachName}: Okay, we’ll keep that in mind.`,
+        : `${coachName}: Okay, thank you for telling me that.`,
+    pregnancyTrimester: `${coachName}: Got it. That helps me guide you more carefully.`,
+    pregnancyRestrictions: `${coachName}: Good to know. I’ll keep that in mind.`,
+    pregnancySymptoms: `${coachName}: Thank you. We’ll keep things supportive and gentle where needed.`,
     postpartumTime: `${coachName}: Got it.`,
-    deliveryType: `${coachName}: Okay.`,
-    postpartumConcerns: `${coachName}: That helps.`,
-    relationshipStatus: `${coachName}: Okay, ${name}.`,
+    deliveryType: `${coachName}: Okay, thank you for sharing that.`,
+    postpartumConcerns: `${coachName}: That helps. We’ll build carefully around that.`,
+    relationshipStatus: `${coachName}: Okay.`,
     denomination: `${coachName}: Got it.`,
     whyStarted: `${coachName}: That makes sense.`,
-    lifeChange: `${coachName}: Okay, I see.`,
-    activityLevel: `${coachName}: Got it, ${name}.`,
+    lifeChange: `${coachName}: I can see why that matters to you.`,
+    activityLevel: `${coachName}: Got it. That gives me a better feel for your starting point.`,
     hasLimitations: `${coachName}: Okay.`,
     limitationType: `${coachName}: Got it.`,
-    limitationName: `${coachName}: That helps.`,
+    limitationName: `${coachName}: Thank you. That helps.`,
     limitationDuration: `${coachName}: Okay.`,
-    activityLimit: `${coachName}: Got it.`,
+    activityLimit: `${coachName}: That gives me a clearer picture.`,
     mainGoal: `${coachName}: That makes sense.`,
-    progressStyle: `${coachName}: Perfect.`,
+    progressStyle: `${coachName}: Perfect. I can work with that.`,
     bodyFocus: `${coachName}: Got it.`,
     foodPreferences: `${coachName}: Good to know.`,
   };
@@ -1108,6 +1108,7 @@ export default function App() {
   const [chatInput, setChatInput] = useState("");
   const [tourStep, setTourStep] = useState(0);
   const [showTour, setShowTour] = useState(false);
+const [editingSetup, setEditingSetup] = useState(false);
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
@@ -1197,6 +1198,7 @@ export default function App() {
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
   const currentQuestion = visibleQuestionFlow[questionIndex];
+const canEditPreviousQuestion = questionIndex > 0;
   const completedOnboarding = Boolean(profile.onboardingComplete);
   const routineData = useMemo(() => getRoutineData(profile), [profile]);
   const coach = useMemo(() => getCoachMessage(profile), [profile]);
@@ -1266,91 +1268,96 @@ export default function App() {
     }
   }
 
-  function submitAnswer(answerOverride) {
-    const answer =
-      typeof answerOverride === "string" ? answerOverride : inputValue.trim();
+function submitAnswer(answerOverride) {
+  const answer =
+    typeof answerOverride === "string" ? answerOverride : inputValue.trim();
 
-    if (!answer || !currentQuestion) return;
+  if (!currentQuestion) return;
 
-    if (typeof answer === "string" && isClarifyMessage(answer)) {
-      const coachName = capitalizeName(profile.coachName) || "Coach";
-      setMessages((current) => [
-        ...current,
-        { role: "user", text: answer },
-        {
-          role: "ai",
-          text: `${coachName}: ${getClarificationForQuestion(currentQuestion)}`,
-        },
-      ]);
-      setInputValue("");
-      return;
-    }
-
-    const safeAnswer =
-      answer.toLowerCase() === "skip" && currentQuestion.type === "text"
-        ? ""
-        : answer;
-
-    const nextProfile = normalizeProfile({
-      ...profile,
-      [currentQuestion.key]:
-        currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
-          ? capitalizeName(safeAnswer)
-          : safeAnswer,
-      coachMemory: {
-        ...profile.coachMemory,
-        detailLevel:
-          currentQuestion.key === "progressStyle" && answer === "Track it closely"
-            ? "detailed"
-            : profile.coachMemory?.detailLevel || "balanced",
-        tone: "balanced",
-        neutralUntilLearned: true,
+  if (typeof answer === "string" && isClarifyMessage(answer)) {
+    const coachName = capitalizeName(profile.coachName) || "Coach";
+    setMessages((current) => [
+      ...current,
+      { role: "user", text: answer },
+      {
+        role: "ai",
+        text: `${coachName}: ${getClarificationForQuestion(currentQuestion)}`,
       },
-    });
-
-    setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
-    setProfile(nextProfile);
+    ]);
     setInputValue("");
+    return;
+  }
 
-    const nextVisibleFlow = getVisibleQuestionFlow(nextProfile);
-    const nextIndex = questionIndex + 1;
+  if (!answer) return;
 
-    if (nextIndex < nextVisibleFlow.length) {
-      setQuestionIndex(nextIndex);
-      const reply = getConversationalReply(nextProfile, currentQuestion.key);
+  const safeAnswer =
+    typeof answer === "string" &&
+    answer.toLowerCase() === "skip" &&
+    currentQuestion.type === "text"
+      ? ""
+      : answer;
 
-      setTimeout(() => {
-        setMessages((current) => [
-          ...current,
-          {
-            role: "ai",
-            text: `${reply} ${nextVisibleFlow[nextIndex].label}`,
-          },
-        ]);
-      }, 250);
-      return;
-    }
+  const normalizedAnswer =
+    currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
+      ? capitalizeName(safeAnswer)
+      : safeAnswer;
+
+  const nextProfile = normalizeProfile({
+    ...profile,
+    [currentQuestion.key]: normalizedAnswer,
+    coachMemory: {
+      ...profile.coachMemory,
+      detailLevel:
+        currentQuestion.key === "progressStyle" && answer === "Track it closely"
+          ? "detailed"
+          : profile.coachMemory?.detailLevel || "balanced",
+      tone: "balanced",
+      neutralUntilLearned: true,
+    },
+  });
+
+  setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
+  setProfile(nextProfile);
+  setInputValue("");
+
+  const nextVisibleFlow = getVisibleQuestionFlow(nextProfile);
+  const nextIndex = questionIndex + 1;
+
+  if (nextIndex < nextVisibleFlow.length) {
+    setQuestionIndex(nextIndex);
+    const reply = getConversationalReply(nextProfile, currentQuestion.key);
 
     setTimeout(() => {
-      const coachName = capitalizeName(nextProfile.coachName) || "Coach";
       setMessages((current) => [
         ...current,
         {
           role: "ai",
-          text: `${coachName}: Perfect${
-            nextProfile.firstName ? `, ${nextProfile.firstName}` : ""
-          }. I’ve got your first setup saved. Next I’ll walk you through a quick tour.`,
+          text: `${reply} ${nextVisibleFlow[nextIndex].label}`,
         },
       ]);
     }, 250);
-
-    setProfile((current) => ({
-      ...current,
-      ...nextProfile,
-      onboardingStage: "tour",
-    }));
-    setScreen("theme");
+    return;
   }
+
+  setTimeout(() => {
+    const coachName = capitalizeName(nextProfile.coachName) || "Coach";
+    const firstName = capitalizeName(nextProfile.firstName);
+    setMessages((current) => [
+      ...current,
+      {
+        role: "ai",
+        text: `${coachName}: Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
+      },
+    ]);
+  }, 250);
+
+  setProfile((current) => ({
+    ...current,
+    ...nextProfile,
+    onboardingStage: "tour",
+  }));
+  setScreen("theme");
+}
 
   function finishThemeAndTour() {
     setProfile((current) => ({
@@ -1380,35 +1387,35 @@ export default function App() {
     if (next === 3) setActiveTab("progress");
   }
 
-  function resetApp() {
-    localStorage.removeItem("christian-fitness-profile");
-    localStorage.removeItem("christian-fitness-messages");
-    localStorage.removeItem("christian-fitness-chat");
-    localStorage.removeItem("christian-fitness-theme");
-
-    setProfile({ measurements: {} });
-    setMessages([
-      {
-        role: "ai",
-        text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
-      },
-      {
-        role: "ai",
-        text: "We’ll keep this simple and take it one step at a time.",
-      },
-    ]);
-    setChatMessages([]);
-    setSelectedTheme(COLOR_OPTIONS[0]);
-    setQuestionIndex(0);
-    setInputValue("");
-    setChatInput("");
-    setScreen("welcome");
-    setActiveTab("home");
-    setRoutineFeedback("");
-    setFeedbackReason("");
-    setShowTour(false);
-    setTourStep(0);
-  }
+function resetApp() {
+  localStorage.removeItem("christian-fitness-profile");
+  localStorage.removeItem("christian-fitness-messages");
+  localStorage.removeItem("christian-fitness-chat");
+  localStorage.removeItem("christian-fitness-theme");
+  setProfile({ measurements: {} });
+  setMessages([
+    {
+      role: "ai",
+      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+    },
+    {
+      role: "ai",
+      text: "We’ll keep this simple and take it one step at a time.",
+    },
+  ]);
+  setChatMessages([]);
+  setSelectedTheme(COLOR_OPTIONS[0]);
+  setQuestionIndex(0);
+  setInputValue("");
+  setChatInput("");
+  setScreen("welcome");
+  setActiveTab("home");
+  setRoutineFeedback("");
+  setFeedbackReason("");
+  setShowTour(false);
+  setTourStep(0);
+  setEditingSetup(false);
+}
 
 function sendChatMessage(text) {
   const cleanText = text.trim();
@@ -1521,34 +1528,58 @@ function sendChatMessage(text) {
             ))}
           </div>
 
-          <div style={inputArea}>
-            {currentQuestion?.type === "choice" ? (
-              <div style={choiceWrap}>
-                {currentQuestion.options.map((option) => (
-                  <button
-                    key={option}
-                    style={choiceButton}
-                    onClick={() => submitAnswer(option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <>
-                <input
-                  style={textInput}
-                  value={inputValue}
-                  type={currentQuestion?.type === "number" ? "number" : "text"}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your answer..."
-                />
-                <button style={primaryButton} onClick={() => submitAnswer()}>
-                  Send
-                </button>
-              </>
-            )}
-          </div>
+<div style={inputArea}>
+  {currentQuestion?.type === "choice" ? (
+    <div style={choiceWrap}>
+      {currentQuestion.options.map((option) => (
+        <button
+          key={option}
+          style={choiceButton}
+          onClick={() => submitAnswer(option)}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  ) : (
+    <>
+      <input
+        style={textInput}
+        value={inputValue}
+        type={currentQuestion?.type === "number" ? "number" : "text"}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Type your answer..."
+      />
+      <button style={primaryButton} onClick={() => submitAnswer()}>
+        Send
+      </button>
+    </>
+  )}
+
+  {canEditPreviousQuestion && (
+    <button
+      style={secondaryOnboardingButton}
+      onClick={() => {
+        const previousIndex = questionIndex - 1;
+        const previousQuestion = visibleQuestionFlow[previousIndex];
+        if (!previousQuestion) return;
+
+        setQuestionIndex(previousIndex);
+        setInputValue(profile[previousQuestion.key] || "");
+
+        setMessages((current) => [
+          ...current,
+          {
+            role: "ai",
+            text: `${capitalizeName(profile.coachName) || "Coach"}: No problem — let’s change that answer.`,
+          },
+        ]);
+      }}
+    >
+      Edit last answer
+    </button>
+  )}
+</div>
         </div>
       </div>
     );
@@ -2044,22 +2075,69 @@ function sendChatMessage(text) {
 
           {activeTab === "settings" && (
             <>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Settings</p>
-                <h2 style={cardTitle}>App settings</h2>
-                <p style={bodyText}>
-                  This is where reset and other settings live now.
-                </p>
-                <p style={bodyText}>
-                  Coach name: <strong>{capitalizeName(profile.coachName) || "Coach"}</strong>
-                </p>
-                <p style={bodyTextLast}>
-                  User name: <strong>{capitalizeName(profile.firstName) || "Not set"}</strong>
-                </p>
-                <button style={dangerButton} onClick={resetApp}>
-                  Reset App
-                </button>
-              </div>
+<div style={dailyCard}>
+  <p style={sectionLabel}>Settings</p>
+  <h2 style={cardTitle}>App settings</h2>
+  <p style={bodyText}>
+    Update your saved setup answers anytime.
+  </p>
+  <p style={bodyText}>
+    Coach name: <strong>{capitalizeName(profile.coachName) || "Coach"}</strong>
+  </p>
+  <p style={bodyText}>
+    User name: <strong>{capitalizeName(profile.firstName) || "Not set"}</strong>
+  </p>
+
+  <button
+    style={secondaryButton}
+    onClick={() => setEditingSetup((current) => !current)}
+  >
+    {editingSetup ? "Hide setup answers" : "Edit setup answers"}
+  </button>
+
+  {editingSetup && (
+    <div style={editAnswersWrap}>
+      {QUESTION_FLOW.filter(
+        (question) =>
+          question.key !== "measurementUnit" &&
+          (!question.showIf || question.showIf(profile))
+      ).map((question) => (
+        <div key={question.key} style={editAnswerCard}>
+          <div>
+            <p style={editAnswerLabel}>{question.label}</p>
+            <p style={editAnswerValue}>
+              {profile[question.key] ? String(profile[question.key]) : "Not answered"}
+            </p>
+          </div>
+          <button
+            style={editAnswerButton}
+            onClick={() => {
+              setScreen("onboarding");
+              setQuestionIndex(getVisibleQuestionFlow(profile).findIndex(
+                (item) => item.key === question.key
+              ));
+              setInputValue(profile[question.key] || "");
+              setEditingSetup(false);
+              setMessages((current) => [
+                ...current,
+                {
+                  role: "ai",
+                  text: `${capitalizeName(profile.coachName) || "Coach"}: Alright — let’s update that answer.`,
+                },
+              ]);
+            }}
+          >
+            Edit
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <button style={dangerButton} onClick={resetApp}>
+    Reset App
+  </button>
+</div>
             </>
           )}
         </div>
