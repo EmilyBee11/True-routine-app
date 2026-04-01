@@ -278,7 +278,6 @@ function getClarificationForQuestion(question) {
       "This includes injury, disability, chronic pain, pregnancy-related limits, or anything else that affects movement.",
     mainGoal:
       "You can answer in your own words, like losing weight, building strength, discipline, energy, or feeling better.",
-progressStyle: `${coachName}: Perfect. I can work with that.`,
     bodyFocus:
       "This can be a body area, a habit, or something like strength, stamina, or consistency.",
     foodPreferences:
@@ -286,6 +285,12 @@ progressStyle: `${coachName}: Perfect. I can work with that.`,
     pregnancyStatus:
       "This helps the Coach guide you more safely and gently if needed.",
   };
+
+  return (
+    map[question.key] ||
+    "Answer in the way that feels most true for you. It does not have to be perfect."
+  );
+}
 
   return (
     map[question.key] ||
@@ -338,7 +343,6 @@ function getConversationalReply(profile, justAnsweredKey) {
     limitationDuration: `${coachName}: Okay.`,
     activityLimit: `${coachName}: That gives me a clearer picture.`,
     mainGoal: `${coachName}: That makes sense.`,
-    progressStyle: `${coachName}: Perfect. I can work with that.`,
     bodyFocus: `${coachName}: Got it.`,
     foodPreferences: `${coachName}: Good to know.`,
   };
@@ -1413,13 +1417,12 @@ function submitAnswer(answerOverride) {
   const nextProfile = normalizeProfile({
     ...profile,
     [currentQuestion.key]: normalizedAnswer,
-    coachMemory: {
-      ...profile.coachMemory,
-      detailLevel:
-detailLevel: profile.coachMemory?.detailLevel || "balanced",
-tone: "balanced",
-neutralUntilLearned: true,
-    },
+coachMemory: {
+  ...profile.coachMemory,
+  detailLevel: profile.coachMemory?.detailLevel || "balanced",
+  tone: "balanced",
+  neutralUntilLearned: true,
+},
   });
 
   setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
