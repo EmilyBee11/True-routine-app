@@ -825,7 +825,30 @@ function getCoachMessage(profile) {
   if (whyStarted && whyStarted.length > 10) {
     action = `Remember why you started: ${whyStarted.slice(0, 55)}${whyStarted.length > 55 ? "..." : ""}`;
   }
+  const lastUpdate = profile.coachMemory?.lastMeasurementUpdate;
+  let measurementReminder = "";
 
+  if (lastUpdate) {
+    const daysSince =
+      (Date.now() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60 * 24);
+
+    if (daysSince > 25) {
+      measurementReminder =
+        " It’s a good time to remeasure and update your progress so we can build your monthly report.";
+    }
+  } else {
+    measurementReminder =
+      " When you’re ready, adding your measurements will help us track your progress over time.";
+  }
+  let weeklyNote = "";
+
+  if (profile.coachMemory?.weeklyCheckins?.length > 0) {
+    weeklyNote = " You’ve been showing up — keep that consistency going.";
+  }
+
+  focus += weeklyNote;
+  message += measurementReminder;
+  
   return { speaker: coachName, message, focus, action };
 }
 
@@ -1112,7 +1135,15 @@ const [editingSetup, setEditingSetup] = useState(false);
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
-    return saved ? normalizeProfile(JSON.parse(saved)) : { measurements: {} };
+return saved
+  ? normalizeProfile(JSON.parse(saved))
+  : {
+      measurements: {},
+      coachMemory: {
+        lastMeasurementUpdate: null,
+        weeklyCheckins: [],
+      },
+    };
   });
 
   const [messages, setMessages] = useState(() => {
@@ -1339,17 +1370,23 @@ function submitAnswer(answerOverride) {
     return;
   }
 
-  setTimeout(() => {
-    const coachName = capitalizeName(nextProfile.coachName) || "Coach";
-    const firstName = capitalizeName(nextProfile.firstName);
-    setMessages((current) => [
-      ...current,
-      {
-        role: "ai",
-        text: `${coachName}: Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
-      },
-    ]);
-  }, 250);
+setTimeout(() => {
+  const coachName = capitalizeName(nextProfile.coachName) || "Coach";
+  const firstName = capitalizeName(nextProfile.firstName);
+  setMessages((current) => [
+    ...current,
+    {
+      role: "ai",
+      text: `${coachName}: Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
+    },
+    {
+      role: "ai",
+      text: `${coachName}: As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month.
+
+To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.`,
+    },
+  ]);
+}, 250);
 
   setProfile((current) => ({
     ...current,
@@ -2017,15 +2054,19 @@ function sendChatMessage(text) {
                               activeMeasurementField: field.key,
                             }))
                           }
-                          onChange={(e) =>
-                            setProfile((current) => ({
-                              ...current,
-                              measurements: {
-                                ...current.measurements,
-                                [field.key]: e.target.value,
-                              },
-                            }))
-                          }
+onChange={(e) =>
+  setProfile((current) => ({
+    ...current,
+    measurements: {
+      ...current.measurements,
+      [field.key]: e.target.value,
+    },
+    coachMemory: {
+      ...current.coachMemory,
+      lastMeasurementUpdate: new Date().toISOString(),
+    },
+  }))
+}
                           placeholder="0"
                         />
                         <span style={measurementUnitText}>
