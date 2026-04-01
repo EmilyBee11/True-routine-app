@@ -2875,3 +2875,56 @@ const diagramLine = {
   margin: 0,
   lineHeight: 1.45,
 };
+const secondaryOnboardingButton = {
+  width: "100%",
+  border: "1px solid rgba(255,255,255,0.18)",
+  borderRadius: 18,
+  padding: "14px 16px",
+  background: "transparent",
+  color: "white",
+  fontWeight: 700,
+  fontSize: 15,
+  cursor: "pointer",
+};
+
+const editAnswersWrap = {
+  display: "grid",
+  gap: 10,
+  marginTop: 14,
+  marginBottom: 14,
+};
+
+const editAnswerCard = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  padding: 14,
+  borderRadius: 18,
+  background: "#f8fafc",
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const editAnswerLabel = {
+  margin: "0 0 6px",
+  fontSize: 13,
+  fontWeight: 700,
+  color: "#111",
+};
+
+const editAnswerValue = {
+  margin: 0,
+  fontSize: 14,
+  lineHeight: 1.4,
+  color: "#4b5563",
+};
+
+const editAnswerButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "#111111",
+  color: "white",
+  borderRadius: 14,
+  padding: "10px 14px",
+  fontWeight: 700,
+  cursor: "pointer",
+};
