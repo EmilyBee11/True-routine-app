@@ -2259,6 +2259,43 @@ function saveMeasurementValue(fieldKey, value) {
                 <p style={bodyTextLast}>
   Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
 </p>
+                {profile.measurementHistory?.length > 0 && (
+  <div style={routineSectionCard}>
+    <h3 style={routineSectionTitle}>Measurement History</h3>
+    {profile.measurementHistory
+      .slice()
+      .reverse()
+      .map((snapshot) => (
+        <div
+          key={snapshot.id}
+          style={{
+            background: "#ffffff",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 18,
+            padding: 12,
+            marginBottom: 10,
+          }}
+        >
+          <p style={{ ...bodyText, marginBottom: 8 }}>
+            <strong>Date:</strong>{" "}
+            {new Date(snapshot.createdAt).toLocaleDateString()}
+          </p>
+          <p style={{ ...bodyText, marginBottom: 6 }}>
+            <strong>Weight:</strong> {snapshot.measurements?.weight || "-"}
+          </p>
+          <p style={{ ...bodyText, marginBottom: 6 }}>
+            <strong>Waist:</strong> {snapshot.measurements?.waist || "-"}
+          </p>
+          <p style={{ ...bodyText, marginBottom: 6 }}>
+            <strong>Hip:</strong> {snapshot.measurements?.hip || "-"}
+          </p>
+          <p style={bodyTextLast}>
+            <strong>Chest:</strong> {snapshot.measurements?.chest || "-"}
+          </p>
+        </div>
+      ))}
+  </div>
+)}
               </div>
 
               <div style={routineSectionCard}>
