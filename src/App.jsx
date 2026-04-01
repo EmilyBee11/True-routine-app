@@ -2276,22 +2276,12 @@ function saveMeasurementValue(fieldKey, value) {
             marginBottom: 10,
           }}
         >
-          <p style={{ ...bodyText, marginBottom: 8 }}>
-            <strong>Date:</strong>{" "}
-            {new Date(snapshot.createdAt).toLocaleDateString()}
-          </p>
-          <p style={{ ...bodyText, marginBottom: 6 }}>
-            <strong>Weight:</strong> {snapshot.measurements?.weight || "-"}
-          </p>
-          <p style={{ ...bodyText, marginBottom: 6 }}>
-            <strong>Waist:</strong> {snapshot.measurements?.waist || "-"}
-          </p>
-          <p style={{ ...bodyText, marginBottom: 6 }}>
-            <strong>Hip:</strong> {snapshot.measurements?.hip || "-"}
-          </p>
-          <p style={bodyTextLast}>
-            <strong>Chest:</strong> {snapshot.measurements?.chest || "-"}
-          </p>
+{MEASUREMENT_FIELDS.map((field) => (
+  <p key={field.key} style={{ ...bodyText, marginBottom: 6 }}>
+    <strong>{field.label}:</strong>{" "}
+    {snapshot.measurements?.[field.key] || "-"}
+  </p>
+))}
         </div>
       ))}
   </div>
