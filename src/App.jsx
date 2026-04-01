@@ -850,33 +850,126 @@ function getFoodGuidance(profile) {
 }
 
 function getAIResponse(input, profile) {
-  const lower = input.toLowerCase();
+  const lower = input.toLowerCase().trim();
   const coachName = capitalizeName(profile.coachName) || "Coach";
+  const firstName = capitalizeName(profile.firstName) || "";
+  const namePart = firstName ? `, ${firstName}` : "";
+
+  const goal = (profile.mainGoal || "").toLowerCase();
+  const activity = (profile.activityLevel || "").toLowerCase();
+  const pregnancyStatus = profile.pregnancyStatus || "";
+  const foodPrefs = (profile.foodPreferences || "").toLowerCase();
+  const limitationText = [
+    profile.hasLimitations,
+    profile.limitationType,
+    profile.limitationName,
+    profile.activityLimit,
+    profile.pregnancyRestrictions,
+    profile.pregnancySymptoms,
+    profile.postpartumConcerns,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const isGentleMode =
+    pregnancyStatus === "Pregnant" ||
+    pregnancyStatus === "Postpartum" ||
+    profile.hasLimitations === "Yes" ||
+    activity.includes("beginner") ||
+    limitationText.includes("pain") ||
+    limitationText.includes("injury") ||
+    limitationText.includes("dizziness") ||
+    limitationText.includes("pelvic") ||
+    limitationText.includes("bleeding");
 
   if (
     lower.includes("measurement") ||
     lower.includes("measurements") ||
     lower.includes("where do i put")
   ) {
-    return `${coachName}: Put your measurements in the Progress tab, inside the measurement boxes. That is where your body tracking goes.`;
-  }
-  if (lower.includes("simplify")) {
-    return `${coachName}: Alright — let’s make today lighter. Focus on the warmup, your first two main movements, and one simple nourishing meal choice. That still counts.`;
-  }
-  if (lower.includes("discouraged")) {
-    return `${coachName}: That feeling is real, but it does not erase your progress. Let’s focus on one faithful next step instead of trying to fix everything at once.`;
-  }
-  if (lower.includes("food")) {
-    return `${coachName}: ${getFoodGuidance(profile)}`;
-  }
-  if (lower.includes("adjust")) {
-    return `${coachName}: We can adjust your plan. Tell me whether you want it shorter, easier, or just different today, and I’ll keep it simple.`;
-  }
-  if (lower.includes("pray")) {
-    return `${coachName}: God, please give strength, peace, and steady discipline today. Bring clarity, courage, and grace for the next right step. Amen.`;
+    return `${coachName}: Put them in the Progress tab${namePart}, inside the measurement boxes. You can also tap the body diagram to match each box more easily.`;
   }
 
-  return `${coachName}: Got it. Tell me a little more and I’ll guide you based on what you’re dealing with.`;
+  if (lower.includes("what do you mean") || lower.includes("clarify")) {
+    return `${coachName}: Absolutely${namePart}. Tell me which part you want me to explain, and I’ll make it simple.`;
+  }
+
+  if (lower.includes("simplify my day") || lower === "simplify") {
+    if (isGentleMode) {
+      return `${coachName}: Absolutely${namePart}. Today we keep it simple: warmup, 1 to 2 main movements, a short walk, and steady breathing. That is enough for today.`;
+    }
+    return `${coachName}: Absolutely${namePart}. Strip today down to the essentials: warmup, first 2 main exercises, one simple healthy meal choice, and done.`;
+  }
+
+  if (lower.includes("adjust my routine") || lower.includes("adjust")) {
+    if (isGentleMode) {
+      return `${coachName}: Yes${namePart}. I’d keep today lower-pressure and more controlled. We can make it shorter, gentler, or more recovery-focused. Tell me which one you want.`;
+    }
+    return `${coachName}: Yes${namePart}. I can make it shorter, easier, harder, or more focused. Tell me which direction you want and I’ll guide it.`;
+  }
+
+  if (lower.includes("help with food") || lower.includes("food")) {
+    if (foodPrefs.includes("allerg")) {
+      return `${coachName}: Let’s keep food simple today${namePart}. Stay with meals you already know work well for your body, and focus on enough protein, steady energy, and hydration.`;
+    }
+    if (goal.includes("muscle") || goal.includes("strength")) {
+      return `${coachName}: For today${namePart}, build meals around protein, carbs for energy, and water. Keep it simple and repeatable.`;
+    }
+    if (goal.includes("weight")) {
+      return `${coachName}: For today${namePart}, focus on protein, fiber, and meals that actually keep you full. Simple beats perfect.`;
+    }
+    return `${coachName}: Let’s keep food steady today${namePart} — protein, something filling, and enough water. Nothing extreme.`;
+  }
+
+  if (lower.includes("discouraged") || lower.includes("i feel discouraged")) {
+    return `${coachName}: I hear you${namePart}. Feeling discouraged does not erase your progress. We are not chasing perfect — we are practicing faithfulness. Let’s choose one good next step and do that well.`;
+  }
+
+  if (lower.includes("pray for me") || lower.includes("pray")) {
+    return `${coachName}: Of course. Lord, give ${firstName || "them"} peace, strength, wisdom, and steady courage today. Help them care for their body with humility, discipline, and grace. Amen.`;
+  }
+
+  if (lower.includes("pregnant")) {
+    return `${coachName}: You are in the right place${namePart}. We’ll keep this safe, calm, and strength-building with gentle calisthenics, walking, posture, breathing, and wise pacing.`;
+  }
+
+  if (lower.includes("postpartum")) {
+    return `${coachName}: You are in the right place${namePart}. We’ll rebuild gradually with gentle core awareness, posture, walking, controlled movement, and patience.`;
+  }
+
+  if (lower.includes("tired") || lower.includes("exhausted")) {
+    return `${coachName}: Then today needs wisdom, not guilt${namePart}. A shorter and gentler day still counts. Low-pressure consistency is still obedience.`;
+  }
+
+  if (
+    lower.includes("i missed") ||
+    lower.includes("fell off") ||
+    lower.includes("behind")
+  ) {
+    return `${coachName}: Then we restart simply${namePart}. No shame, no dramatic reset. Just the next right step today.`;
+  }
+
+  if (lower.includes("hard") || lower.includes("too hard")) {
+    return `${coachName}: Thank you for telling me${namePart}. That means we should scale the plan, not quit it. We can lower reps, shorten the session, or choose easier movements.`;
+  }
+
+  if (lower.includes("easy") || lower.includes("too easy")) {
+    return `${coachName}: That is helpful${namePart}. We can increase challenge gradually with more reps, slower tempo, or one more round.`;
+  }
+
+  if (goal.includes("discipline")) {
+    return `${coachName}: I’m with you${namePart}. Since your focus is discipline, I want you to keep today simple and follow through fully. Completion matters more than intensity right now.`;
+  }
+
+  if (goal.includes("muscle") || goal.includes("strength")) {
+    return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing. Strong and steady.`;
+  }
+
+  if (goal.includes("weight")) {
+    return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
+  }
+
+  return `${coachName}: I’m with you${namePart}. Tell me what kind of help you need right now — routine, food, motivation, recovery, or prayer.`;
 }
 
 function getMeasurementGuide(unit) {
@@ -1317,21 +1410,26 @@ export default function App() {
     setTourStep(0);
   }
 
-  function sendChatMessage(text) {
-    const cleanText = text.trim();
-    if (!cleanText) return;
+function sendChatMessage(text) {
+  const cleanText = text.trim();
+  if (!cleanText) return;
 
-    const coachName = capitalizeName(profile.coachName) || "Coach";
-    const userMsg = { role: "user", text: cleanText };
-    const aiMsg = {
-      role: "ai",
-      speaker: coachName,
-      text: getAIResponse(cleanText, profile),
-    };
+  const coachName = capitalizeName(profile.coachName) || "Coach";
 
-    setChatMessages((prev) => [...prev, userMsg, aiMsg]);
-    setChatInput("");
-  }
+  const userMsg = {
+    role: "user",
+    text: cleanText,
+  };
+
+  const aiMsg = {
+    role: "ai",
+    speaker: coachName,
+    text: getAIResponse(cleanText, profile),
+  };
+
+  setChatMessages((prev) => [...prev, userMsg, aiMsg]);
+  setChatInput("");
+}
 
   const appStyles = {
     minHeight: "100vh",
