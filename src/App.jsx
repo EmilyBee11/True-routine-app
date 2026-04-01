@@ -781,6 +781,7 @@ if (feedback === "up") {
   }
 
   return balancedRoutine;
+}
 
 function getCoachMessage(profile) {
   const firstName = capitalizeName(profile.firstName) || "";
