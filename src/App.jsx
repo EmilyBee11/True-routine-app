@@ -265,37 +265,7 @@ function isClarifyMessage(value) {
 }
 
 function getClarificationForQuestion(question) {
-  const map = {
-    coachName: "This is just what you want your Coach to be called inside the app.",
-    firstName: "Just type the name you want your Coach to call you.",
-    relationshipStatus: "You can answer however you want here. It is open-ended.",
-    denomination: "You can be specific, broad, or just say none.",
-    whyStarted: "I mean what made you decide this is the right time to begin.",
-    lifeChange: "I mean what you hope improves in your life because of this journey.",
-    activityLevel:
-      "Beginner means not very active right now. Somewhat active means some movement. Active means you already move pretty regularly.",
-    hasLimitations:
-      "This includes injury, disability, chronic pain, pregnancy-related limits, or anything else that affects movement.",
-    mainGoal:
-      "You can answer in your own words, like losing weight, building strength, discipline, energy, or feeling better.",
-    bodyFocus:
-      "This can be a body area, a habit, or something like strength, stamina, or consistency.",
-    foodPreferences:
-      "This can include foods you avoid, allergies, dislikes, or how you usually eat.",
-    pregnancyStatus:
-      "This helps the Coach guide you more safely and gently if needed.",
-  };
-
-  return (
-    map[question.key] ||
-    "Answer in the way that feels most true for you. It does not have to be perfect."
-  );
-}
-
-  return (
-    map[question.key] ||
-    "Answer in the way that feels most true for you. It does not have to be perfect."
-  );
+  ...
 }
 
 function getSupportMessage(profile) {
