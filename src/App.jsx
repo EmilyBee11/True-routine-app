@@ -1161,7 +1161,6 @@ const [editingSetup, setEditingSetup] = useState(false);
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
 return saved
-return saved
   ? normalizeProfile(JSON.parse(saved))
   : {
       measurements: {},
