@@ -671,84 +671,120 @@ function getMeasurementGuide(unit) {
 }
 
 function TourMeasurementDiagram({ gender, onSelectPart, activePart }) {
-  const isWoman = gender === "Woman";
-
-  const labelStyle = (key, baseColor) => ({
-    fontSize: "14",
-    fill: activePart === key ? "#111111" : baseColor,
-    fontWeight: "700",
-    cursor: "pointer",
-  });
+  const accent = gender === "Woman" ? "#7caf45" : "#4f8edc";
+  const labelFill = (key) => (activePart === key ? "#111111" : accent);
+  const boxFill = (key) => (activePart === key ? `${accent}22` : "#ffffff");
 
   return (
-    <div style={diagramWrap}>
-      <svg viewBox="0 0 320 300" style={diagramSvg}>
-        {isWoman ? (
-          <>
-            <circle cx="160" cy="42" r="20" fill="#f59e8b" opacity="0.9" />
-            <path
-              d="M160 64
-                 C145 78, 138 98, 140 120
-                 L132 185
-                 C130 202, 138 220, 150 236
-                 L155 278
-                 L165 278
-                 L170 236
-                 C182 220, 190 202, 188 185
-                 L180 120
-                 C182 98, 175 78, 160 64 Z"
-              fill="#f59e8b"
-              opacity="0.9"
-            />
-            <path d="M140 108 L108 168" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
-            <path d="M180 108 L212 168" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
-            <path d="M148 236 L142 292" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
-            <path d="M172 236 L178 292" stroke="#f59e8b" strokeWidth="12" strokeLinecap="round" />
+    <div
+      style={{
+        background: "#f4f5f7",
+        borderRadius: 26,
+        padding: 16,
+        border: "1px solid rgba(0,0,0,0.06)",
+      }}
+    >
+      <svg viewBox="0 0 360 520" style={{ width: "100%", height: "auto", display: "block" }}>
+        <text
+          x="180"
+          y="28"
+          textAnchor="middle"
+          style={{
+            fontSize: 18,
+            fontWeight: 800,
+            fill: "#111111",
+            letterSpacing: "0.04em",
+          }}
+        >
+          BODY MEASUREMENT TRACKER
+        </text>
 
-            <text x="10" y="122" style={labelStyle("chest", "#f59e8b")} onClick={() => onSelectPart?.("chest")}>Chest</text>
-            <text x="10" y="154" style={labelStyle("waist", "#f59e8b")} onClick={() => onSelectPart?.("waist")}>Waist</text>
-            <text x="10" y="180" style={labelStyle("highHip", "#f59e8b")} onClick={() => onSelectPart?.("highHip")}>High Hip</text>
-            <text x="10" y="204" style={labelStyle("hip", "#f59e8b")} onClick={() => onSelectPart?.("hip")}>Hip</text>
-            <text x="10" y="252" style={labelStyle("thigh", "#f59e8b")} onClick={() => onSelectPart?.("thigh")}>Thigh</text>
-            <text x="10" y="290" style={labelStyle("calf", "#f59e8b")} onClick={() => onSelectPart?.("calf")}>Calf</text>
-          </>
-        ) : (
-          <>
-            <circle cx="160" cy="42" r="20" fill="#7dd3fc" opacity="0.95" />
-            <path
-              d="M160 64
-                 C142 74, 132 92, 132 118
-                 L128 188
-                 C127 208, 138 224, 148 236
-                 L152 292
-                 L162 292
-                 L166 236
-                 C176 224, 188 208, 187 188
-                 L183 118
-                 C183 92, 178 74, 160 64 Z"
-              fill="#7dd3fc"
-              opacity="0.95"
-            />
-            <path d="M132 104 L96 174" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
-            <path d="M188 104 L224 174" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
-            <path d="M148 236 L144 296" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
-            <path d="M172 236 L176 296" stroke="#7dd3fc" strokeWidth="14" strokeLinecap="round" />
+        <rect x="18" y="46" width="110" height="20" rx="0" fill={accent} />
+        <rect x="232" y="46" width="110" height="20" rx="0" fill={accent} />
+        <text x="73" y="61" textAnchor="middle" style={{ fill: "white", fontSize: 12, fontWeight: 800 }}>
+          TRACK
+        </text>
+        <text x="287" y="61" textAnchor="middle" style={{ fill: "white", fontSize: 12, fontWeight: 800 }}>
+          GUIDE
+        </text>
 
-            <text x="10" y="126" style={labelStyle("chest", "#67c7dd")} onClick={() => onSelectPart?.("chest")}>Chest</text>
-            <text x="10" y="160" style={labelStyle("waist", "#67c7dd")} onClick={() => onSelectPart?.("waist")}>Waist</text>
-            <text x="10" y="188" style={labelStyle("highHip", "#67c7dd")} onClick={() => onSelectPart?.("highHip")}>High Hip</text>
-            <text x="10" y="212" style={labelStyle("hip", "#67c7dd")} onClick={() => onSelectPart?.("hip")}>Hip</text>
-            <text x="10" y="252" style={labelStyle("thigh", "#67c7dd")} onClick={() => onSelectPart?.("thigh")}>Thigh</text>
-            <text x="10" y="290" style={labelStyle("calf", "#67c7dd")} onClick={() => onSelectPart?.("calf")}>Calf</text>
-          </>
-        )}
+        {[
+          { key: "chest", label: "CHEST", y: 90 },
+          { key: "waist", label: "WAIST", y: 128 },
+          { key: "highHip", label: "HIGH HIP", y: 166 },
+          { key: "hip", label: "HIPS", y: 204 },
+          { key: "thigh", label: "THIGH", y: 242 },
+          { key: "calf", label: "CALF", y: 280 },
+        ].map((item) => (
+          <g key={item.key} onClick={() => onSelectPart?.(item.key)} style={{ cursor: "pointer" }}>
+            <rect
+              x="18"
+              y={item.y}
+              width="92"
+              height="26"
+              rx="6"
+              fill={boxFill(item.key)}
+              stroke={accent}
+              strokeWidth="2"
+            />
+            <text
+              x="64"
+              y={item.y + 17}
+              textAnchor="middle"
+              style={{ fill: labelFill(item.key), fontSize: 11, fontWeight: 800 }}
+            >
+              {item.label}
+            </text>
+          </g>
+        ))}
+
+        {[
+          { label: "HEAD", y: 90 },
+          { label: "CHEST", y: 128 },
+          { label: "WAIST", y: 166 },
+          { label: "HIPS", y: 204 },
+          { label: "THIGH", y: 242 },
+          { label: "CALF", y: 280 },
+        ].map((item) => (
+          <g key={item.label}>
+            <rect
+              x="250"
+              y={item.y}
+              width="92"
+              height="26"
+              rx="6"
+              fill="#ffffff"
+              stroke={accent}
+              strokeWidth="2"
+            />
+            <text
+              x="296"
+              y={item.y + 17}
+              textAnchor="middle"
+              style={{ fill: "#111111", fontSize: 11, fontWeight: 800 }}
+            >
+              {item.label}
+            </text>
+          </g>
+        ))}
+
+        <circle cx="180" cy="102" r="28" fill="none" stroke="#222" strokeWidth="2" />
+        <path d="M180 130 L180 300" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M138 170 L222 170" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M145 170 L132 244 L140 314" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M215 170 L228 244 L220 314" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M160 300 L154 414 L166 458" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M200 300 L206 414 L194 458" stroke="#222" strokeWidth="2" fill="none" />
+
+        <line x1="135" y1="170" x2="225" y2="170" stroke="#777" strokeDasharray="5 4" />
+        <line x1="142" y1="224" x2="218" y2="224" stroke="#777" strokeDasharray="5 4" />
+        <line x1="138" y1="262" x2="222" y2="262" stroke="#777" strokeDasharray="5 4" />
+        <line x1="148" y1="350" x2="212" y2="350" stroke="#777" strokeDasharray="5 4" />
+
+        <text x="180" y="495" textAnchor="middle" style={{ fill: "#111111", fontSize: 13, fontWeight: 700 }}>
+          Tap a label on the left to highlight its box below
+        </text>
       </svg>
-
-      <div style={diagramText}>
-        <p style={diagramLine}>
-          <strong>Tap a body part</strong> to highlight its measurement box below.
-        </p>
-      </div>
     </div>
   );
 }
@@ -1359,25 +1395,41 @@ function saveMeasurementValue(fieldKey, value) {
           </div>
 
           <div style={onboardingChatArea}>
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                style={{
-                  display: "flex",
-                  justifyContent:
-                    message.role === "ai" ? "flex-start" : "flex-end",
-                }}
-              >
-                <div
-                  style={{
-                    ...bubbleBase,
-                    ...(message.role === "ai" ? aiBubble : userBubble),
-                  }}
-                >
-                  {message.text}
-                </div>
-              </div>
-            ))}
+{messages.map((message, index) => (
+  <div
+    key={`${message.role}-${index}`}
+    style={{
+      display: "flex",
+      justifyContent:
+        message.role === "ai" ? "flex-start" : "flex-end",
+    }}
+  >
+    <div style={{ maxWidth: "82%" }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          opacity: 0.75,
+          marginBottom: 6,
+          color: "white",
+          textAlign: message.role === "ai" ? "left" : "right",
+        }}
+      >
+        {message.role === "ai"
+          ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
+          : capitalizeName(profile.firstName) || "You"}
+      </div>
+      <div
+        style={{
+          ...bubbleBase,
+          ...(message.role === "ai" ? aiBubble : userBubble),
+        }}
+      >
+        {message.text}
+      </div>
+    </div>
+  </div>
+))}
           </div>
 
 <div style={inputArea}>
@@ -1437,60 +1489,170 @@ function saveMeasurementValue(fieldKey, value) {
     );
   }
 
-  if (!completedOnboarding && screen === "theme") {
-    return (
-      <div style={appStyles}>
-        <div style={phoneStyles}>
-          <div style={themeWrap}>
-            <h2 style={{ marginBottom: 6 }}>Choose your style</h2>
-            <p style={subtleText}>Pick a granite-style base with one accent color.</p>
+if (!completedOnboarding && screen === "theme") {
+  return (
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div style={themeWrap}>
+          <h2 style={{ marginBottom: 6 }}>Choose your style</h2>
+          <p style={subtleText}>
+            Pick a granite-style base and compare the color differences below.
+          </p>
 
-            <div style={{ display: "grid", gap: 12, width: "100%" }}>
-              {COLOR_OPTIONS.map((option) => (
+          <div style={{ display: "grid", gap: 14, width: "100%" }}>
+            {COLOR_OPTIONS.map((option) => {
+              const selected = selectedTheme.name === option.name;
+              return (
                 <button
                   key={option.name}
                   onClick={() => setSelectedTheme(option)}
                   style={{
-                    ...themeCard,
-                    border:
-                      selectedTheme.name === option.name
-                        ? `2px solid ${option.accent}`
-                        : "1px solid rgba(255,255,255,0.18)",
-                    background: `linear-gradient(135deg, ${option.primary}, ${option.tint})`,
+                    width: "100%",
+                    borderRadius: 24,
+                    border: selected
+                      ? `3px solid ${option.accent}`
+                      : "1px solid rgba(255,255,255,0.16)",
+                    background: "#16181d",
+                    padding: 16,
+                    color: "white",
+                    cursor: "pointer",
+                    boxShadow: selected
+                      ? `0 0 0 2px rgba(255,255,255,0.08), 0 10px 30px ${option.accent}33`
+                      : "0 10px 24px rgba(0,0,0,0.18)",
                   }}
                 >
                   <div
                     style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 16,
-                      background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
+                      display: "grid",
+                      gridTemplateColumns: "72px 1fr",
+                      gap: 14,
+                      alignItems: "center",
                     }}
-                  />
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontWeight: 700 }}>{option.name}</div>
-                    <div style={subtleText}>Use this as your base style</div>
+                  >
+                    <div
+                      style={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: 22,
+                        background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                      }}
+                    />
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 18, fontWeight: 800 }}>
+                        {option.name}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          display: "flex",
+                          gap: 8,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 999,
+                            background: option.primary,
+                            border: "1px solid rgba(255,255,255,0.18)",
+                          }}
+                        />
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 999,
+                            background: option.accent,
+                            border: "1px solid rgba(255,255,255,0.18)",
+                          }}
+                        />
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 999,
+                            background: option.tint,
+                            border: "1px solid rgba(255,255,255,0.18)",
+                          }}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          borderRadius: 16,
+                          overflow: "hidden",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
+                            padding: "8px 12px",
+                            fontWeight: 700,
+                            fontSize: 13,
+                          }}
+                        >
+                          Preview header
+                        </div>
+                        <div
+                          style={{
+                            background: `linear-gradient(180deg, #f7f7f8 0%, ${option.tint} 100%)`,
+                            padding: 12,
+                            display: "grid",
+                            gap: 8,
+                          }}
+                        >
+                          <div
+                            style={{
+                              background: "#ffffff",
+                              color: "#111",
+                              borderRadius: 14,
+                              padding: "10px 12px",
+                              fontSize: 13,
+                              fontWeight: 700,
+                            }}
+                          >
+                            Card preview
+                          </div>
+                          <div
+                            style={{
+                              background: "#111111",
+                              color: "white",
+                              borderRadius: 14,
+                              padding: "10px 12px",
+                              fontSize: 13,
+                              fontWeight: 700,
+                            }}
+                          >
+                            Coach preview
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </button>
-              ))}
-            </div>
-
-            <div style={tourCard}>
-              <h3 style={{ marginTop: 0 }}>Quick tour</h3>
-              <p style={tourLine}>Home shows what matters today.</p>
-              <p style={tourLine}>Today’s Routine gives your movement plan.</p>
-              <p style={tourLine}>Chat lets you talk to your Coach anytime.</p>
-              <p style={tourLine}>Progress is where tracking will live.</p>
-            </div>
-
-            <button style={primaryButton} onClick={finishThemeAndTour}>
-              Finish setup
-            </button>
+              );
+            })}
           </div>
+
+          <div style={tourCard}>
+            <h3 style={{ marginTop: 0 }}>Quick tour</h3>
+            <p style={tourLine}>Home shows what matters today.</p>
+            <p style={tourLine}>Today’s Routine gives your movement plan.</p>
+            <p style={tourLine}>Chat lets you talk to your Coach anytime.</p>
+            <p style={tourLine}>Progress is where tracking will live.</p>
+          </div>
+
+          <button style={primaryButton} onClick={finishThemeAndTour}>
+            Finish setup
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const headerTextColor = "#ffffff";
   const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
@@ -1782,29 +1944,40 @@ function saveMeasurementValue(fieldKey, value) {
               </div>
 
               <div style={appChatHistory}>
-                {chatMessages.map((msg, index) => (
-                  <div
-                    key={`${msg.role}-${index}`}
-                    style={{
-                      display: "flex",
-                      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
-                    }}
-                  >
-                    <div
-                      style={{
-                        ...bubbleBase,
-                        ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight),
-                      }}
-                    >
-                      {msg.role === "ai" && (
-                        <div style={chatSpeaker}>
-                          {capitalizeName(msg.speaker) || "Coach"}
-                        </div>
-                      )}
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
+{chatMessages.map((msg, index) => (
+  <div
+    key={`${msg.role}-${index}`}
+    style={{
+      display: "flex",
+      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
+    }}
+  >
+    <div style={{ maxWidth: "82%" }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          opacity: 0.78,
+          marginBottom: 6,
+          color: "#111",
+          textAlign: msg.role === "ai" ? "left" : "right",
+        }}
+      >
+        {msg.role === "ai"
+          ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
+          : capitalizeName(profile.firstName) || "You"}
+      </div>
+      <div
+        style={{
+          ...bubbleBase,
+          ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight),
+        }}
+      >
+        {msg.text}
+      </div>
+    </div>
+  </div>
+))}
               </div>
 
               <div style={quickReplyWrap}>
