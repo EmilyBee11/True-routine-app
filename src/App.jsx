@@ -1218,23 +1218,27 @@ setProfile({
   setWeeklyReportDismissed(false);
 }
 
-function sendChatMessage(text) {
+  function sendChatMessage(text) {
   const cleanText = text.trim();
   if (!cleanText) return;
 
   const coachName = capitalizeName(profile.coachName) || "Coach";
+  const lower = cleanText.toLowerCase();
 
-  setProfile((current) => ({
-    ...current,
+  const nextProfile = {
+    ...profile,
     coachMemory: {
-      ...current.coachMemory,
+      ...profile.coachMemory,
       prefersShortWorkouts:
-        cleanText.toLowerCase().includes("short") ||
-        cleanText.toLowerCase().includes("simplify")
+        lower.includes("short") ||
+        lower.includes("simplify") ||
+        lower.includes("too long")
           ? true
-          : current.coachMemory?.prefersShortWorkouts || false,
+          : profile.coachMemory?.prefersShortWorkouts || false,
     },
-  }));
+  };
+
+  setProfile(nextProfile);
 
   const userMsg = {
     role: "user",
@@ -1244,7 +1248,7 @@ function sendChatMessage(text) {
   const aiMsg = {
     role: "ai",
     speaker: coachName,
-    text: "Got it — adjusting your plan.",
+    text: getAIResponse(cleanText, nextProfile),
   };
 
   setChatMessages((prev) => [...prev, userMsg, aiMsg]);
@@ -1616,13 +1620,22 @@ function saveMeasurementValue(fieldKey, value) {
 <button
   style={primaryDarkButton}
   onClick={() => {
-    setProfile((current) => ({
-      ...current,
+    const nextProfile = {
+      ...profile,
       coachMemory: {
-        ...current.coachMemory,
+        ...profile.coachMemory,
         prefersShortWorkouts: true,
       },
-    }));
+    };
+    setProfile(nextProfile);
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        role: "ai",
+        speaker: capitalizeName(profile.coachName) || "Coach",
+        text: getAIResponse("simplify my day", nextProfile),
+      },
+    ]);
     setActiveTab("routine");
   }}
 >
