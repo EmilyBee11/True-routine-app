@@ -2169,7 +2169,199 @@ function sendChatMessage(text) {
   if (!cleanText) return;
 
   const coachName = capitalizeName(profile.coachName) || "Coach";
-  const nextProfile = updateCoachMemoryFromMessage(profile, cleanText);
+  const lower = cleanText.toLowerCase();
+
+  const addUnique = (arr = [], value) => {
+    if (!value) return arr || [];
+    return arr.includes(value) ? arr : [...arr, value];
+  };
+
+  let lastChatTopic =
+    lower.includes("food") || lower.includes("meal") || lower.includes("eat")
+      ? "food"
+      : lower.includes("pray") || lower.includes("prayer")
+      ? "prayer"
+      : lower.includes("measurement") ||
+        lower.includes("weight") ||
+        lower.includes("waist")
+      ? "progress"
+      : lower.includes("routine") ||
+        lower.includes("workout") ||
+        lower.includes("exercise")
+      ? "routine"
+      : lower.includes("discouraged") ||
+        lower.includes("tired") ||
+        lower.includes("behind")
+      ? "motivation"
+      : "general";
+
+  let recurringTopics = [...(profile.coachMemory?.recurringTopics || [])];
+  let commonStruggles = [...(profile.coachMemory?.commonStruggles || [])];
+  let victories = [...(profile.coachMemory?.victories || [])];
+  let preferredFoods = [...(profile.coachMemory?.preferredFoods || [])];
+  let avoidedFoods = [...(profile.coachMemory?.avoidedFoods || [])];
+  let allergies = [...(profile.coachMemory?.allergies || [])];
+  let learnedInjuries = [...(profile.coachMemory?.learnedInjuries || [])];
+  let learnedLimits = [...(profile.coachMemory?.learnedLimits || [])];
+  let motivationStyle = profile.coachMemory?.motivationStyle || "";
+  let faithFocus = profile.coachMemory?.faithFocus || "";
+
+  recurringTopics = addUnique(recurringTopics, lastChatTopic);
+
+  if (
+    lower.includes("discouraged") ||
+    lower.includes("unmotivated") ||
+    lower.includes("behind") ||
+    lower.includes("fell off")
+  ) {
+    commonStruggles = addUnique(commonStruggles, "discouragement");
+  }
+
+  if (
+    lower.includes("tired") ||
+    lower.includes("exhausted") ||
+    lower.includes("no energy")
+  ) {
+    commonStruggles = addUnique(commonStruggles, "low energy");
+  }
+
+  if (
+    lower.includes("too hard") ||
+    lower.includes("hard") ||
+    lower.includes("pain")
+  ) {
+    commonStruggles = addUnique(commonStruggles, "routine difficulty");
+  }
+
+  if (
+    lower.includes("too long") ||
+    lower.includes("long workout") ||
+    lower.includes("short workout")
+  ) {
+    learnedLimits = addUnique(learnedLimits, "prefers shorter workouts");
+  }
+
+  if (
+    lower.includes("i did it") ||
+    lower.includes("finished") ||
+    lower.includes("completed") ||
+    lower.includes("i worked out") ||
+    lower.includes("i did my workout")
+  ) {
+    victories = addUnique(victories, "followed through");
+  }
+
+  if (
+    lower.includes("protein") ||
+    lower.includes("chicken") ||
+    lower.includes("eggs") ||
+    lower.includes("fruit") ||
+    lower.includes("rice")
+  ) {
+    if (lower.includes("protein")) preferredFoods = addUnique(preferredFoods, "protein");
+    if (lower.includes("chicken")) preferredFoods = addUnique(preferredFoods, "chicken");
+    if (lower.includes("eggs")) preferredFoods = addUnique(preferredFoods, "eggs");
+    if (lower.includes("fruit")) preferredFoods = addUnique(preferredFoods, "fruit");
+    if (lower.includes("rice")) preferredFoods = addUnique(preferredFoods, "rice");
+  }
+
+  if (
+    lower.includes("dont like") ||
+    lower.includes("don't like") ||
+    lower.includes("hate ")
+  ) {
+    if (lower.includes("broccoli")) avoidedFoods = addUnique(avoidedFoods, "broccoli");
+    if (lower.includes("fish")) avoidedFoods = addUnique(avoidedFoods, "fish");
+    if (lower.includes("eggs")) avoidedFoods = addUnique(avoidedFoods, "eggs");
+  }
+
+  if (lower.includes("allergic")) {
+    if (lower.includes("dairy")) allergies = addUnique(allergies, "dairy");
+    if (lower.includes("gluten")) allergies = addUnique(allergies, "gluten");
+    if (lower.includes("peanut")) allergies = addUnique(allergies, "peanuts");
+    if (lower.includes("nuts")) allergies = addUnique(allergies, "nuts");
+    if (lower.includes("egg")) allergies = addUnique(allergies, "eggs");
+  }
+
+  if (
+    lower.includes("injury") ||
+    lower.includes("hurt") ||
+    lower.includes("bad knee") ||
+    lower.includes("knee pain") ||
+    lower.includes("back pain") ||
+    lower.includes("shoulder pain")
+  ) {
+    if (lower.includes("knee")) learnedInjuries = addUnique(learnedInjuries, "knee issue");
+    if (lower.includes("back")) learnedInjuries = addUnique(learnedInjuries, "back issue");
+    if (lower.includes("shoulder")) learnedInjuries = addUnique(learnedInjuries, "shoulder issue");
+    if (
+      !lower.includes("knee") &&
+      !lower.includes("back") &&
+      !lower.includes("shoulder")
+    ) {
+      learnedInjuries = addUnique(learnedInjuries, "general injury");
+    }
+  }
+
+  if (
+    lower.includes("gentle") ||
+    lower.includes("easy on me") ||
+    lower.includes("lower pressure")
+  ) {
+    learnedLimits = addUnique(learnedLimits, "needs gentler coaching sometimes");
+  }
+
+  if (
+    lower.includes("be direct") ||
+    lower.includes("push me") ||
+    lower.includes("hold me accountable")
+  ) {
+    motivationStyle = "direct";
+  } else if (
+    lower.includes("be gentle") ||
+    lower.includes("encourage me") ||
+    lower.includes("be kind")
+  ) {
+    motivationStyle = "gentle";
+  } else if (!motivationStyle) {
+    motivationStyle = "balanced";
+  }
+
+  if (
+    lower.includes("pray") ||
+    lower.includes("god") ||
+    lower.includes("jesus") ||
+    lower.includes("bible") ||
+    lower.includes("verse")
+  ) {
+    faithFocus = "strong";
+  } else if (!faithFocus) {
+    faithFocus = "growing";
+  }
+
+  const nextProfile = {
+    ...profile,
+    coachMemory: {
+      ...profile.coachMemory,
+      prefersShortWorkouts:
+        lower.includes("short") ||
+        lower.includes("simplify") ||
+        lower.includes("too long")
+          ? true
+          : profile.coachMemory?.prefersShortWorkouts || false,
+      lastChatTopic,
+      recurringTopics,
+      commonStruggles,
+      victories,
+      preferredFoods,
+      avoidedFoods,
+      allergies,
+      learnedInjuries,
+      learnedLimits,
+      motivationStyle,
+      faithFocus,
+    },
+  };
 
   setProfile(nextProfile);
 
