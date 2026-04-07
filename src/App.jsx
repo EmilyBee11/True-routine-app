@@ -322,7 +322,7 @@ function getClarificationForQuestion(question) {
     coachName: "This is just what you want your Coach to be called inside the app.",
     firstName: "Just type the name you want your Coach to call you.",
     age: "Type your age as a number. This helps guide your routine safely.",
-    state: "Choose the state you live in from the list. After you answer, I’ll also share a quick fun fact about it.",
+    state: "Choose the state you live in from the list.",
     gender: "Choose the option that fits you.",
     pregnancyStatus:
       "This helps the Coach guide you safely if needed. Choose what applies to you.",
@@ -1629,21 +1629,19 @@ const [profile, setProfile] = useState(() => {
   }, [activeTab, chatMessages.length, profile]);
 
   useEffect(() => {
-    if (onboardingChatRef.current) {
-      onboardingChatRef.current.scrollTo({
-        top: onboardingChatRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [messages]);
+    const el = onboardingChatRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [messages, questionIndex]);
 
   useEffect(() => {
-    if (appChatRef.current) {
-      appChatRef.current.scrollTo({
-        top: appChatRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
+    const el = appChatRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
   }, [chatMessages]);
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
@@ -2128,7 +2126,11 @@ function saveMeasurementValue(fieldKey, value) {
           </option>
         ))}
       </select>
-      <button style={primaryButton} onClick={() => submitAnswer()}>
+      <button
+        style={primaryButton}
+        onClick={() => submitAnswer()}
+        disabled={!inputValue}
+      >
         Send
       </button>
     </>
@@ -3121,6 +3123,8 @@ const onboardingChatArea = {
   display: "flex",
   flexDirection: "column",
   gap: 12,
+  minHeight: 0,
+  scrollBehavior: "smooth",
 };
 
 const bubbleBase = {
@@ -3562,12 +3566,15 @@ const selectInput = {
   width: "100%",
   boxSizing: "border-box",
   border: "1px solid rgba(255,255,255,0.15)",
-  background: "#1f1f22",
-  color: "white",
+  background: "#ffffff",
+  color: "#111111",
   borderRadius: 18,
   padding: "14px 16px",
   outline: "none",
   fontSize: 15,
+  appearance: "auto",
+  WebkitAppearance: "menulist",
+  MozAppearance: "menulist",
 };
 
 const measurementUnitText = {
@@ -3588,6 +3595,8 @@ const appChatHistory = {
   gap: 12,
   maxHeight: 340,
   overflowY: "auto",
+  minHeight: 0,
+  scrollBehavior: "smooth",
 };
 
 const chatSpeaker = {
