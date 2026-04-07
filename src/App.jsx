@@ -3418,6 +3418,7 @@ if (!completedOnboarding && screen === "theme") {
         )}
       </div>
     </div>
+  </div>
   );
 }
 
