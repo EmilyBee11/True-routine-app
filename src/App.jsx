@@ -336,43 +336,7 @@ function getSupportMessage(profile) {
 function getConversationalReply(profile, justAnsweredKey) {
   const name = capitalizeName(profile.firstName) || "";
   const map = {
-    coachName: `${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
-    firstName: `Nice to meet you, ${name}.`,
-    age: `Got it, ${name}.`,
-    state: "Okay, that helps.",
-    gender: "Alright.",
-    pregnancyStatus:
-      profile.pregnancyStatus === "Pregnant" || profile.pregnancyStatus === "Postpartum"
-        ? cleanCoachBubbleText(getSupportMessage(profile), profile.coachName)
-        : "Okay, thank you for telling me that.",
-    pregnancyTrimester: "Got it. That helps me guide you more carefully.",
-    pregnancyRestrictions: "Good to know. I’ll keep that in mind.",
-    pregnancySymptoms: "Thank you. We’ll keep things supportive and gentle where needed.",
-    postpartumTime: "Got it.",
-    deliveryType: "Okay, thank you for sharing that.",
-    postpartumConcerns: "That helps. We’ll build carefully around that.",
-    relationshipStatus: "Okay.",
-    denomination: "Got it.",
-    whyStarted: "That makes sense.",
-    lifeChange: "I can see why that matters to you.",
-    activityLevel: "Got it. That gives me a better feel for your starting point.",
-    hasLimitations: "Okay.",
-    limitationType: "Got it.",
-    limitationName: "Thank you. That helps.",
-    limitationDuration: "Okay.",
-    activityLimit: "That gives me a clearer picture.",
-    mainGoal: "That makes sense.",
-    bodyFocus: "Got it.",
-    foodPreferences: "Good to know.",
-  };
-
-  return map[justAnsweredKey] || "Got it.";
-}
-
-function getConversationalReply(profile, justAnsweredKey) {
-  const name = capitalizeName(profile.firstName) || "";
-  const map = {
-    coachName: `${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
+    coachName: `Got it — ${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
     firstName: `Nice to meet you, ${name}.`,
     age: `Got it, ${name}.`,
     state: "Okay, that helps.",
@@ -415,12 +379,13 @@ function cleanCoachBubbleText(text, coachName = "Coach") {
 }
 
 function getRoutineLength(profile) {
+function getRoutineLength(profile) {
   const feedback = profile.coachMemory?.lastRoutineFeedback;
-const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
+  const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
 
-if (feedback === "down" && reason.includes("long")) {
-  return "15–20 min";
-}
+  if (feedback === "down" && reason.includes("long")) {
+    return "15–20 min";
+  }
   const goal = (profile.mainGoal || "").toLowerCase();
   const activity = profile.activityLevel || "";
 
