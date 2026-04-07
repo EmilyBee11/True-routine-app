@@ -3353,7 +3353,7 @@ if (!completedOnboarding && screen === "theme") {
             </>
           )}
 
-    {activeTab === "settings" && (
+   {activeTab === "settings" && (
   <>
     <div style={dailyCard}>
       <p style={sectionLabel}>Settings</p>
@@ -3536,6 +3536,7 @@ if (!completedOnboarding && screen === "theme") {
             </div>
           ))}
         </div>
+      )}
 
       <button
         style={secondaryButton}
@@ -3568,7 +3569,6 @@ if (!completedOnboarding && screen === "theme") {
     </div>
   </>
 )}
-
         <div style={bottomNav}>
           <button
             style={activeTab === "home" ? navButtonActive : navButton}
