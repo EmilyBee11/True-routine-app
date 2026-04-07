@@ -1317,7 +1317,17 @@ function getAIResponse(input, profile) {
   const foodPrefs = (profile.foodPreferences || "").toLowerCase();
   const pregnancyStatus = profile.pregnancyStatus || "";
   const routine = getRoutineData(profile);
-  const memoryPrefix = getMemoryPrefix(profile);
+
+  const memory = profile.coachMemory || {};
+  const preferredFoods = memory.preferredFoods || [];
+  const avoidedFoods = memory.avoidedFoods || [];
+  const allergies = memory.allergies || [];
+  const learnedInjuries = memory.learnedInjuries || [];
+  const learnedLimits = memory.learnedLimits || [];
+  const commonStruggles = memory.commonStruggles || [];
+  const victories = memory.victories || [];
+  const motivationStyle = memory.motivationStyle || "balanced";
+  const faithFocus = memory.faithFocus || "growing";
 
   const limitationText = [
     profile.hasLimitations,
@@ -1327,6 +1337,8 @@ function getAIResponse(input, profile) {
     profile.pregnancyRestrictions,
     profile.pregnancySymptoms,
     profile.postpartumConcerns,
+    ...learnedInjuries,
+    ...learnedLimits,
   ]
     .join(" ")
     .toLowerCase();
@@ -1340,7 +1352,16 @@ function getAIResponse(input, profile) {
     limitationText.includes("injury") ||
     limitationText.includes("dizziness") ||
     limitationText.includes("pelvic") ||
-    limitationText.includes("bleeding");
+    limitationText.includes("bleeding") ||
+    limitationText.includes("gentler");
+
+  const shortWorkoutPreference =
+    memory.prefersShortWorkouts ||
+    learnedLimits.includes("prefers shorter workouts");
+
+  const hasKneeIssue = learnedInjuries.includes("knee issue");
+  const hasBackIssue = learnedInjuries.includes("back issue");
+  const hasShoulderIssue = learnedInjuries.includes("shoulder issue");
 
   const wantsPrayer =
     lower.includes("pray") ||
@@ -1410,97 +1431,152 @@ function getAIResponse(input, profile) {
   const asksPregnancy =
     lower.includes("pregnant") || lower.includes("postpartum");
 
-  const prefersSimple =
-    profile.coachMemory?.preferredHelpStyle === "simple" ||
-    profile.coachMemory?.prefersShortWorkouts;
+  const gentlePrefix =
+    motivationStyle === "gentle"
+      ? `I’m with you${namePart}. `
+      : motivationStyle === "direct"
+      ? `Alright${namePart}. `
+      : "";
 
   if (wantsPrayer) {
-    return `${coachName}: ${memoryPrefix}Of course. Lord, give ${firstName || "them"} peace, wisdom, endurance, and steady faith today. Help them take the next right step with strength and grace. Amen.`;
+    if (faithFocus === "strong") {
+      return `${coachName}: Of course. Lord, give ${firstName || "them"} peace, wisdom, endurance, and steady faith today. Help them take the next right step with strength and grace. Amen.`;
+    }
+    return `${coachName}: Of course. I’m praying for peace, strength, and steady courage over you today${namePart}.`;
   }
 
   if (wantsMeasurementHelp) {
-    return `${coachName}: ${memoryPrefix}Put them in the Progress tab${namePart}, inside the measurement boxes. Tap the body diagram too — it helps match each measurement to the right place.`;
+    return `${coachName}: Put them in the Progress tab${namePart}, inside the measurement boxes. Tap the body diagram too — it helps match each measurement to the right place.`;
   }
 
   if (wantsFoodHelp) {
+    let memoryFoodLine = "";
+
+    if (allergies.length > 0) {
+      memoryFoodLine = ` I remember you need to avoid ${allergies.join(", ")}.`;
+    } else if (avoidedFoods.length > 0) {
+      memoryFoodLine = ` I remember you do not enjoy ${avoidedFoods.join(", ")}.`;
+    } else if (preferredFoods.length > 0) {
+      memoryFoodLine = ` I remember foods like ${preferredFoods.join(", ")} work well for you.`;
+    }
+
     if (foodPrefs.includes("allerg")) {
-      return `${coachName}: ${memoryPrefix}Let’s keep food simple today${namePart}. Stay with foods you already know work well for your body, and focus on protein, steady energy, and water.`;
+      return `${coachName}: Let’s keep food simple today${namePart}. Stay with foods you already know work well for your body, and focus on protein, steady energy, and water.${memoryFoodLine}`;
     }
     if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: ${memoryPrefix}For today${namePart}, build meals around protein, enough carbs for energy, and water.`;
+      return `${coachName}: For today${namePart}, build meals around protein, enough carbs for energy, and water. Simple and repeatable is the goal.${memoryFoodLine}`;
     }
     if (goal.includes("weight")) {
-      return `${coachName}: ${memoryPrefix}For today${namePart}, focus on protein, fiber, and meals that keep you full. Keep it simple, not extreme.`;
+      return `${coachName}: For today${namePart}, focus on protein, fiber, and meals that keep you full. Keep it simple, not extreme.${memoryFoodLine}`;
     }
-    return `${coachName}: ${memoryPrefix}Keep food steady today${namePart} — protein, something filling, and enough water.`;
+    return `${coachName}: Keep food steady today${namePart} — protein, something filling, and enough water.${memoryFoodLine}`;
   }
 
   if (asksPregnancy) {
     if (pregnancyStatus === "Pregnant") {
-      return `${coachName}: ${memoryPrefix}Since you’re pregnant${namePart}, we’ll keep things gentler, safer, and more controlled with walking, posture, breathing, and simple calisthenics.`;
+      return `${coachName}: Since you’re pregnant${namePart}, we’ll keep things gentler, safer, and more controlled with walking, posture, breathing, and simple calisthenics.`;
     }
     if (pregnancyStatus === "Postpartum") {
-      return `${coachName}: ${memoryPrefix}Since you’re postpartum${namePart}, we’ll rebuild patiently with controlled movement, walking, posture, and core awareness.`;
+      return `${coachName}: Since you’re postpartum${namePart}, we’ll rebuild patiently with controlled movement, walking, posture, and core awareness.`;
     }
-    return `${coachName}: ${memoryPrefix}If pregnancy or postpartum ever becomes relevant${namePart}, I can adjust your routine to be much more gentle and supportive.`;
+    return `${coachName}: If pregnancy or postpartum ever becomes relevant${namePart}, I can adjust your routine to be much more gentle and supportive.`;
   }
 
   if (feelsDiscouraged) {
-    return `${coachName}: ${memoryPrefix}A rough day does not erase your progress. We are not chasing perfect — just the next faithful step.`;
+    const struggleLine = commonStruggles.includes("discouragement")
+      ? " I remember this is one of the places you need the most support, so we’re going to answer it with consistency, not shame."
+      : "";
+    const victoryLine = victories.includes("followed through")
+      ? " You have followed through before, and you can do it again."
+      : "";
+    return `${coachName}: ${gentlePrefix}A rough day does not erase your progress.${struggleLine}${victoryLine}`;
   }
 
   if (feelsTired) {
-    return `${coachName}: ${memoryPrefix}Then today should be wiser, not harder${namePart}. A shorter and gentler day still counts.`;
+    return `${coachName}: ${gentlePrefix}Then today should be wiser, not harder${namePart}. A shorter and gentler day still counts.`;
   }
 
   if (wantsAdjustment) {
     if (lower.includes("hard")) {
-      return `${coachName}: ${memoryPrefix}Then let’s scale it down${namePart}. Reduce reps, slow the pace, and stop short of pain.`;
+      if (hasKneeIssue || hasBackIssue || hasShoulderIssue) {
+        return `${coachName}: Then let’s scale it down${namePart}. I remember your ${hasKneeIssue ? "knee" : hasBackIssue ? "back" : "shoulder"} has been bothering you, so we’ll lower the reps, slow the pace, and protect that area.`;
+      }
+      return `${coachName}: Then let’s scale it down${namePart}. Reduce reps, slow the pace, and stop short of pain.`;
     }
     if (lower.includes("easy")) {
-      return `${coachName}: ${memoryPrefix}Then we can raise the challenge a little${namePart} — more reps, slower tempo, or one extra round.`;
+      return `${coachName}: Then we can raise the challenge a little${namePart} — more reps, slower tempo, or one extra round.`;
     }
-    if (lower.includes("short") || lower.includes("long") || prefersSimple) {
-      return `${coachName}: ${memoryPrefix}Yes${namePart}. We can keep today shorter and more manageable while still moving forward.`;
+    if (lower.includes("short") || lower.includes("long") || shortWorkoutPreference) {
+      return `${coachName}: Yes${namePart}. I remember shorter workouts help you more, so we can keep today tight and manageable while still making it count.`;
     }
     if (isGentleMode) {
-      return `${coachName}: ${memoryPrefix}Yes${namePart}. I’d keep today gentle, lower-pressure, and more recovery-focused.`;
+      return `${coachName}: Yes${namePart}. I’d keep today gentle, lower-pressure, and more recovery-focused.`;
     }
-    return `${coachName}: ${memoryPrefix}Yes${namePart}. I can help make it easier, harder, shorter, or more focused.`;
+    return `${coachName}: Yes${namePart}. I can help make it easier, harder, shorter, or more focused.`;
   }
 
   if (wantsRoutineHelp) {
     if (lower.includes("video")) {
-      return `${coachName}: ${memoryPrefix}Your workout videos${namePart} are in the Routine tab.`;
+      return `${coachName}: Your workout videos${namePart} are in the Routine tab.`;
     }
+
     if (lower.includes("what is my routine") || lower.includes("today's routine")) {
-      return `${coachName}: ${memoryPrefix}Your routine today${namePart} is ${routine.title}. Main exercises: ${routine.main
+      let routineNote = "";
+      if (shortWorkoutPreference) {
+        routineNote = " I’m also keeping it mindful of your preference for shorter workouts.";
+      } else if (hasKneeIssue) {
+        routineNote = " I’m also keeping your knee in mind.";
+      } else if (hasBackIssue) {
+        routineNote = " I’m also keeping your back in mind.";
+      } else if (hasShoulderIssue) {
+        routineNote = " I’m also keeping your shoulder in mind.";
+      }
+
+      return `${coachName}: Your routine today${namePart} is ${routine.title}. Main exercises: ${routine.main
         .map((e) => e.name)
-        .join(", ")}.`;
+        .join(", ")}.${routineNote}`;
     }
-    if (lower.includes("simplify") || prefersSimple) {
-      return `${coachName}: ${memoryPrefix}Keep it simple${namePart}: warmup, first 2 exercises, done.`;
+
+    if (lower.includes("simplify")) {
+      if (shortWorkoutPreference) {
+        return `${coachName}: Keep it simple${namePart}: warmup, first 2 exercises, done. That fits the shorter workout style you respond best to.`;
+      }
+      return `${coachName}: Keep it simple${namePart}: warmup, first 2 exercises, done.`;
     }
+
     if (isGentleMode) {
-      return `${coachName}: ${memoryPrefix}For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.`;
+      let supportLine = "";
+      if (hasKneeIssue) supportLine = " We’ll be mindful of your knee.";
+      if (hasBackIssue) supportLine = " We’ll be mindful of your back.";
+      if (hasShoulderIssue) supportLine = " We’ll be mindful of your shoulder.";
+      return `${coachName}: For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.${supportLine}`;
     }
+
     if (goal.includes("discipline")) {
-      return `${coachName}: ${memoryPrefix}Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
+      return `${coachName}: Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
     }
     if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: ${memoryPrefix}Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
+      return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
     }
     if (goal.includes("weight")) {
-      return `${coachName}: ${memoryPrefix}Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
+      return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
     }
-    return `${coachName}: ${memoryPrefix}Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
+    return `${coachName}: Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
   }
 
   if (asksWhy) {
-    return `${coachName}: ${memoryPrefix}Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer clearly.`;
+    return `${coachName}: I’m here${namePart}. Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer more clearly.`;
   }
 
-  return `${coachName}: ${memoryPrefix}I’m with you${namePart}. Tell me what you want help with right now — routine, food, progress, motivation, or prayer.`;
+  if (motivationStyle === "direct") {
+    return `${coachName}: I’m with you${namePart}. Be specific — tell me whether you want help with routine, food, progress, motivation, or prayer.`;
+  }
+
+  if (motivationStyle === "gentle") {
+    return `${coachName}: I’m with you${namePart}. Tell me what kind of support you need right now — routine, food, progress, motivation, or prayer.`;
+  }
+
+  return `${coachName}: I’m with you${namePart}. Tell me what you want help with right now — routine, food, progress, motivation, or prayer.`;
 }
 
 function getMeasurementGuide(unit) {
@@ -3277,68 +3353,141 @@ if (!completedOnboarding && screen === "theme") {
             </>
           )}
 
-          {activeTab === "settings" && (
-            <>
-<div style={dailyCard}>
-  <p style={sectionLabel}>Settings</p>
-  <h2 style={cardTitle}>App settings</h2>
-  <p style={bodyText}>
-    Update your saved setup answers anytime.
-  </p>
-  <p style={bodyText}>
-    Coach name: <strong>{capitalizeName(profile.coachName) || "Coach"}</strong>
-  </p>
-  <p style={bodyText}>
-    User name: <strong>{capitalizeName(profile.firstName) || "Not set"}</strong>
-  </p>
-
-  <button
-    style={secondaryButton}
-    onClick={() => setEditingSetup((current) => !current)}
-  >
-    {editingSetup ? "Hide setup answers" : "Edit setup answers"}
-  </button>
-
-  {editingSetup && (
-    <div style={editAnswersWrap}>
-      {QUESTION_FLOW.filter(
-        (question) =>
-          question.key !== "measurementUnit" &&
-          (!question.showIf || question.showIf(profile))
-      ).map((question) => (
-        <div key={question.key} style={editAnswerCard}>
-          <div>
-            <p style={editAnswerLabel}>{question.label}</p>
-            <p style={editAnswerValue}>
-              {profile[question.key] ? String(profile[question.key]) : "Not answered"}
-            </p>
-          </div>
-          <button
-            style={editAnswerButton}
-            onClick={() => {
-              setScreen("onboarding");
-              setQuestionIndex(
-                getVisibleQuestionFlow(profile).findIndex(
-                  (item) => item.key === question.key
-                )
-              );
-              setInputValue(profile[question.key] || "");
-              setEditingSetup(false);
-              setMessages((current) => [
-                ...current,
-                {
-                  role: "ai",
-                  text: `${capitalizeName(profile.coachName) || "Coach"}: Alright — let’s update that answer.`,
-                },
-              ]);
-            }}
-          >
-            Edit
-          </button>
-        </div>
-      ))}
+{activeTab === "settings" && (
+  <>
+    <div style={dailyCard}>
+      <p style={sectionLabel}>Settings</p>
+      <h2 style={cardTitle}>App settings</h2>
+      <p style={bodyText}>
+        Update your saved setup answers anytime.
+      </p>
+      <p style={bodyText}>
+        Coach name: <strong>{capitalizeName(profile.coachName) || "Coach"}</strong>
+      </p>
+      <p style={bodyTextLast}>
+        User name: <strong>{capitalizeName(profile.firstName) || "Not set"}</strong>
+      </p>
     </div>
-  )}
+
+    <div style={routineSectionCard}>
+      <p style={sectionLabel}>Coach memory</p>
+      <h3 style={cardTitle}>What the coach has learned</h3>
+
+      <p style={bodyText}>
+        <strong>Motivation style:</strong>{" "}
+        {profile.coachMemory?.motivationStyle || "balanced"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Faith focus:</strong>{" "}
+        {profile.coachMemory?.faithFocus || "growing"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Preferred foods:</strong>{" "}
+        {profile.coachMemory?.preferredFoods?.length
+          ? profile.coachMemory.preferredFoods.join(", ")
+          : "None saved yet"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Avoided foods:</strong>{" "}
+        {profile.coachMemory?.avoidedFoods?.length
+          ? profile.coachMemory.avoidedFoods.join(", ")
+          : "None saved yet"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Allergies:</strong>{" "}
+        {profile.coachMemory?.allergies?.length
+          ? profile.coachMemory.allergies.join(", ")
+          : "None saved yet"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Injuries or pain:</strong>{" "}
+        {profile.coachMemory?.learnedInjuries?.length
+          ? profile.coachMemory.learnedInjuries.join(", ")
+          : "None saved yet"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Limits or preferences:</strong>{" "}
+        {profile.coachMemory?.learnedLimits?.length
+          ? profile.coachMemory.learnedLimits.join(", ")
+          : "None saved yet"}
+      </p>
+
+      <p style={bodyText}>
+        <strong>Common struggles:</strong>{" "}
+        {profile.coachMemory?.commonStruggles?.length
+          ? profile.coachMemory.commonStruggles.join(", ")
+          : "None saved yet"}
+      </p>
+
+      <p style={bodyTextLast}>
+        <strong>Victories:</strong>{" "}
+        {profile.coachMemory?.victories?.length
+          ? profile.coachMemory.victories.join(", ")
+          : "None saved yet"}
+      </p>
+    </div>
+
+    <div style={dailyCard}>
+      <button
+        style={secondaryButton}
+        onClick={() => setEditingSetup((current) => !current)}
+      >
+        {editingSetup ? "Hide setup answers" : "Edit setup answers"}
+      </button>
+
+      {editingSetup && (
+        <div style={editAnswersWrap}>
+          {QUESTION_FLOW.filter(
+            (question) =>
+              question.key !== "measurementUnit" &&
+              (!question.showIf || question.showIf(profile))
+          ).map((question) => (
+            <div key={question.key} style={editAnswerCard}>
+              <div>
+                <p style={editAnswerLabel}>{question.label}</p>
+                <p style={editAnswerValue}>
+                  {profile[question.key] ? String(profile[question.key]) : "Not answered"}
+                </p>
+              </div>
+              <button
+                style={editAnswerButton}
+                onClick={() => {
+                  setScreen("onboarding");
+                  setQuestionIndex(
+                    getVisibleQuestionFlow(profile).findIndex(
+                      (item) => item.key === question.key
+                    )
+                  );
+                  setInputValue(profile[question.key] || "");
+                  setEditingSetup(false);
+                  setMessages((current) => [
+                    ...current,
+                    {
+                      role: "ai",
+                      text: `${capitalizeName(profile.coachName) || "Coach"}: Alright — let’s update that answer.`,
+                    },
+                  ]);
+                }}
+              >
+                Edit
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button style={dangerButton} onClick={resetApp}>
+        Reset App
+      </button>
+    </div>
+  </>
+)}
 
   <div style={memoryCard}>
     <p style={sectionLabel}>Coach Memory</p>
