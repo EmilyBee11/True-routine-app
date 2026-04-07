@@ -379,7 +379,6 @@ function cleanCoachBubbleText(text, coachName = "Coach") {
 }
 
 function getRoutineLength(profile) {
-function getRoutineLength(profile) {
   const feedback = profile.coachMemory?.lastRoutineFeedback;
   const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
 
