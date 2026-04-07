@@ -413,26 +413,26 @@ function getStateFunFact(state) {
     Montana: "Fun fact: Montana is known for wide-open spaces and Glacier National Park.",
     Nebraska: "Fun fact: Nebraska is the only state with a unicameral legislature.",
     Nevada: "Fun fact: Nevada is home to Las Vegas and vast desert landscapes.",
-    New Hampshire: "Fun fact: New Hampshire’s state motto is 'Live Free or Die.'",
-    New Jersey: "Fun fact: New Jersey has more diners than any other state.",
-    New Mexico: "Fun fact: New Mexico is known for its desert beauty and rich Native and Hispanic heritage.",
-    New York: "Fun fact: New York is home to the Statue of Liberty and Niagara Falls.",
-    North Carolina: "Fun fact: North Carolina is where the Wright brothers made their first powered flight.",
-    North Dakota: "Fun fact: North Dakota is known for its plains and strong farming roots.",
+    "New Hampshire": "Fun fact: New Hampshire’s state motto is 'Live Free or Die.'",
+    "New Jersey": "Fun fact: New Jersey has more diners than any other state.",
+    "New Mexico": "Fun fact: New Mexico is known for its desert beauty and rich Native and Hispanic heritage.",
+    "New York": "Fun fact: New York is home to the Statue of Liberty and Niagara Falls.",
+    "North Carolina": "Fun fact: North Carolina is where the Wright brothers made their first powered flight.",
+    "North Dakota": "Fun fact: North Dakota is known for its plains and strong farming roots.",
     Ohio: "Fun fact: Ohio has produced many U.S. presidents and astronauts.",
     Oklahoma: "Fun fact: Oklahoma has a deep Native American history and heritage.",
     Oregon: "Fun fact: Oregon is known for its forests, coastline, and Crater Lake.",
     Pennsylvania: "Fun fact: Pennsylvania is home to Independence Hall and the Liberty Bell.",
-    Rhode Island: "Fun fact: Rhode Island is the smallest U.S. state.",
-    South Carolina: "Fun fact: South Carolina is known for its coastal cities and historic charm.",
-    South Dakota: "Fun fact: South Dakota is home to Mount Rushmore.",
+    "Rhode Island": "Fun fact: Rhode Island is the smallest U.S. state.",
+    "South Carolina": "Fun fact: South Carolina is known for its coastal cities and historic charm.",
+    "South Dakota": "Fun fact: South Dakota is home to Mount Rushmore.",
     Tennessee: "Fun fact: Tennessee is known for Nashville, Memphis, and a rich music history.",
     Texas: "Fun fact: Texas is the second-largest U.S. state by both area and population.",
     Utah: "Fun fact: Utah is known for its red rock landscapes and five national parks.",
     Vermont: "Fun fact: Vermont is famous for maple syrup and beautiful fall color.",
     Virginia: "Fun fact: Virginia is home to many important early American landmarks.",
     Washington: "Fun fact: Washington is known for coffee, mountains, and evergreen forests.",
-    West Virginia: "Fun fact: West Virginia is known for its mountains and outdoor beauty.",
+    "West Virginia": "Fun fact: West Virginia is known for its mountains and outdoor beauty.",
     Wisconsin: "Fun fact: Wisconsin is famous for cheese and dairy farming.",
     Wyoming: "Fun fact: Wyoming is home to Yellowstone National Park.",
   };
@@ -508,6 +508,7 @@ function getBibleLinkForName(firstName) {
 function getConversationalReply(profile, justAnsweredKey) {
   const name = capitalizeName(profile.firstName) || "";
   const state = profile.state || "";
+
   const map = {
     coachName: `Got it — ${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
     firstName: `Nice to meet you, ${name}. ${getBibleLinkForName(name)}`,
@@ -538,6 +539,7 @@ function getConversationalReply(profile, justAnsweredKey) {
     bodyFocus: "Got it.",
     foodPreferences: "Good to know.",
   };
+
   return map[justAnsweredKey] || "Got it.";
 }
 
