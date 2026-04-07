@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const VERSES = [
   "Colossians 3:23 — Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.",
@@ -23,11 +23,63 @@ const QUESTION_FLOW = [
     label: "How old are you?",
     type: "number",
   },
-  {
-    key: "state",
-    label: "What state do you live in?",
-    type: "text",
-  },
+{
+  key: "state",
+  label: "What state do you live in?",
+  type: "choice",
+  options: [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+  ],
+},
   {
     key: "gender",
     label: "Are you a man or a woman?",
@@ -1313,6 +1365,8 @@ export default function App() {
 const [showTour, setShowTour] = useState(false);
 const [weeklyReportDismissed, setWeeklyReportDismissed] = useState(false);
 const [editingSetup, setEditingSetup] = useState(false);
+  const onboardingChatRef = useRef(null);
+const appChatRef = useRef(null);
 
 const [profile, setProfile] = useState(() => {
   const saved = localStorage.getItem("christian-fitness-profile");
@@ -1443,7 +1497,17 @@ const [profile, setProfile] = useState(() => {
       const firstName = capitalizeName(profile.firstName)
         ? `, ${capitalizeName(profile.firstName)}`
         : "";
+useEffect(() => {
+  if (onboardingChatRef.current) {
+    onboardingChatRef.current.scrollTop = onboardingChatRef.current.scrollHeight;
+  }
+}, [messages]);
 
+useEffect(() => {
+  if (appChatRef.current) {
+    appChatRef.current.scrollTop = appChatRef.current.scrollHeight;
+  }
+}, [chatMessages]);
       setChatMessages([
         {
           role: "ai",
@@ -1869,7 +1933,7 @@ function saveMeasurementValue(fieldKey, value) {
             </div>
           </div>
 
-          <div style={onboardingChatArea}>
+         <div ref={onboardingChatRef} style={onboardingChatArea}>
 {messages.map((message, index) => (
   <div
     key={`${message.role}-${index}`}
@@ -2420,7 +2484,7 @@ if (!completedOnboarding && screen === "theme") {
                 <p style={bodyTextWhite}>Let’s stay steady today.</p>
               </div>
 
-              <div style={appChatHistory}>
+              <div ref={appChatRef} style={appChatHistory}>
 {chatMessages.map((msg, index) => (
   <div
     key={`${msg.role}-${index}`}
