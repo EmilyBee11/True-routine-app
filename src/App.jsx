@@ -3125,9 +3125,11 @@ if (!completedOnboarding && screen === "theme") {
             style={editAnswerButton}
             onClick={() => {
               setScreen("onboarding");
-              setQuestionIndex(getVisibleQuestionFlow(profile).findIndex(
-                (item) => item.key === question.key
-              ));
+              setQuestionIndex(
+                getVisibleQuestionFlow(profile).findIndex(
+                  (item) => item.key === question.key
+                )
+              );
               setInputValue(profile[question.key] || "");
               setEditingSetup(false);
               setMessages((current) => [
@@ -3145,6 +3147,107 @@ if (!completedOnboarding && screen === "theme") {
       ))}
     </div>
   )}
+
+  <div style={memoryCard}>
+    <p style={sectionLabel}>Coach Memory</p>
+    <h3 style={cardTitle}>What the coach has learned</h3>
+
+    <p style={bodyText}>
+      <strong>Last chat topic:</strong>{" "}
+      {profile.coachMemory?.lastChatTopic || "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Recurring topics:</strong>{" "}
+      {profile.coachMemory?.recurringTopics?.length
+        ? profile.coachMemory.recurringTopics.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Common struggles:</strong>{" "}
+      {profile.coachMemory?.commonStruggles?.length
+        ? profile.coachMemory.commonStruggles.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Victories:</strong>{" "}
+      {profile.coachMemory?.victories?.length
+        ? profile.coachMemory.victories.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Preferred foods:</strong>{" "}
+      {profile.coachMemory?.preferredFoods?.length
+        ? profile.coachMemory.preferredFoods.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Avoided foods:</strong>{" "}
+      {profile.coachMemory?.avoidedFoods?.length
+        ? profile.coachMemory.avoidedFoods.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Allergies:</strong>{" "}
+      {profile.coachMemory?.allergies?.length
+        ? profile.coachMemory.allergies.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Learned injuries:</strong>{" "}
+      {profile.coachMemory?.learnedInjuries?.length
+        ? profile.coachMemory.learnedInjuries.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Learned limits:</strong>{" "}
+      {profile.coachMemory?.learnedLimits?.length
+        ? profile.coachMemory.learnedLimits.join(", ")
+        : "None yet"}
+    </p>
+
+    <p style={bodyText}>
+      <strong>Motivation style:</strong>{" "}
+      {profile.coachMemory?.motivationStyle || "Not learned yet"}
+    </p>
+
+    <p style={bodyTextLast}>
+      <strong>Faith focus:</strong>{" "}
+      {profile.coachMemory?.faithFocus || "Not learned yet"}
+    </p>
+  </div>
+
+  <button
+    style={secondaryButton}
+    onClick={() =>
+      setProfile((current) => ({
+        ...current,
+        coachMemory: {
+          ...current.coachMemory,
+          recurringTopics: [],
+          commonStruggles: [],
+          victories: [],
+          preferredFoods: [],
+          avoidedFoods: [],
+          allergies: [],
+          learnedInjuries: [],
+          learnedLimits: [],
+          motivationStyle: "",
+          faithFocus: "",
+          lastChatTopic: "",
+        },
+      }))
+    }
+  >
+    Clear coach memory
+  </button>
 
   <button style={dangerButton} onClick={resetApp}>
     Reset App
@@ -3933,6 +4036,14 @@ const editAnswerCard = {
   padding: 14,
   borderRadius: 18,
   background: "#f8fafc",
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const memoryCard = {
+  background: "#ffffff",
+  borderRadius: 20,
+  padding: 16,
+  marginTop: 14,
   border: "1px solid rgba(0,0,0,0.08)",
 };
 
