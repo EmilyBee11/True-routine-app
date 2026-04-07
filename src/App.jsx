@@ -3353,37 +3353,6 @@ if (!completedOnboarding && screen === "theme") {
             </>
           )}
 
-      <button
-        style={secondaryButton}
-        onClick={() =>
-          setProfile((current) => ({
-            ...current,
-            coachMemory: {
-              ...current.coachMemory,
-              recurringTopics: [],
-              commonStruggles: [],
-              victories: [],
-              preferredFoods: [],
-              avoidedFoods: [],
-              allergies: [],
-              learnedInjuries: [],
-              learnedLimits: [],
-              motivationStyle: "",
-              faithFocus: "",
-              lastChatTopic: "",
-            },
-          }))
-        }
-      >
-        Clear coach memory
-      </button>
-
-      <button style={dangerButton} onClick={resetApp}>
-        Reset App
-      </button>
-    </div>
-  </>
-)}
         <div style={bottomNav}>
           <button
             style={activeTab === "home" ? navButtonActive : navButton}
