@@ -7,6 +7,59 @@ const VERSES = [
   "1 Timothy 4:8 — For physical training is of some value, but godliness has value for all things, holding promise for both the present life and the life to come.",
 ];
 
+const ALL_STATES = [
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticut",
+  "Delaware",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming",
+];
+
 const QUESTION_FLOW = [
   {
     key: "coachName",
@@ -27,58 +80,7 @@ const QUESTION_FLOW = [
   key: "state",
   label: "What state do you live in?",
   type: "select",
-  options: [
-    "Alabama",
-    "Alaska",
-    "Arizona",
-    "Arkansas",
-    "California",
-    "Colorado",
-    "Connecticut",
-    "Delaware",
-    "Florida",
-    "Georgia",
-    "Hawaii",
-    "Idaho",
-    "Illinois",
-    "Indiana",
-    "Iowa",
-    "Kansas",
-    "Kentucky",
-    "Louisiana",
-    "Maine",
-    "Maryland",
-    "Massachusetts",
-    "Michigan",
-    "Minnesota",
-    "Mississippi",
-    "Missouri",
-    "Montana",
-    "Nebraska",
-    "Nevada",
-    "New Hampshire",
-    "New Jersey",
-    "New Mexico",
-    "New York",
-    "North Carolina",
-    "North Dakota",
-    "Ohio",
-    "Oklahoma",
-    "Oregon",
-    "Pennsylvania",
-    "Rhode Island",
-    "South Carolina",
-    "South Dakota",
-    "Tennessee",
-    "Texas",
-    "Utah",
-    "Vermont",
-    "Virginia",
-    "Washington",
-    "West Virginia",
-    "Wisconsin",
-    "Wyoming",
-  ],
+  options: ALL_STATES,
 },
   {
     key: "gender",
@@ -198,7 +200,6 @@ const QUESTION_FLOW = [
     label: "What are you trying to improve right now with your body or health?",
     type: "text",
   },
-
   {
     key: "bodyFocus",
     label: "What part of your body, routine, or fitness do you want to improve first?",
@@ -321,7 +322,7 @@ function getClarificationForQuestion(question) {
     coachName: "This is just what you want your Coach to be called inside the app.",
     firstName: "Just type the name you want your Coach to call you.",
     age: "Type your age as a number. This helps guide your routine safely.",
-    state: "Just type the state you live in.",
+    state: "Choose the state you live in from the list.",
     gender: "Choose the option that fits you.",
     pregnancyStatus:
       "This helps the Coach guide you safely if needed. Choose what applies to you.",
@@ -1497,17 +1498,7 @@ const [profile, setProfile] = useState(() => {
       const firstName = capitalizeName(profile.firstName)
         ? `, ${capitalizeName(profile.firstName)}`
         : "";
-useEffect(() => {
-  if (onboardingChatRef.current) {
-    onboardingChatRef.current.scrollTop = onboardingChatRef.current.scrollHeight;
-  }
-}, [messages]);
 
-useEffect(() => {
-  if (appChatRef.current) {
-    appChatRef.current.scrollTop = appChatRef.current.scrollHeight;
-  }
-}, [chatMessages]);
       setChatMessages([
         {
           role: "ai",
@@ -1517,6 +1508,24 @@ useEffect(() => {
       ]);
     }
   }, [activeTab, chatMessages.length, profile]);
+
+  useEffect(() => {
+    if (onboardingChatRef.current) {
+      onboardingChatRef.current.scrollTo({
+        top: onboardingChatRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (appChatRef.current) {
+      appChatRef.current.scrollTo({
+        top: appChatRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [chatMessages]);
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
   const currentQuestion = visibleQuestionFlow[questionIndex];
@@ -1974,50 +1983,50 @@ function saveMeasurementValue(fieldKey, value) {
           </div>
 
 <div style={inputArea}>
-{currentQuestion?.type === "choice" ? (
-  <div style={choiceWrap}>
-    {currentQuestion.options.map((option) => (
-      <button
-        key={option}
-        style={choiceButton}
-        onClick={() => submitAnswer(option)}
-      >
-        {option}
-      </button>
-    ))}
-  </div>
-) : currentQuestion?.type === "select" ? (
-  <>
-    <select
-      style={selectInput}
-      value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
-    >
-      <option value="">Select your state...</option>
+  {currentQuestion?.type === "choice" ? (
+    <div style={choiceWrap}>
       {currentQuestion.options.map((option) => (
-        <option key={option} value={option}>
+        <button
+          key={option}
+          style={choiceButton}
+          onClick={() => submitAnswer(option)}
+        >
           {option}
-        </option>
+        </button>
       ))}
-    </select>
-    <button style={primaryButton} onClick={() => submitAnswer()}>
-      Send
-    </button>
-  </>
-) : (
-  <>
-    <input
-      style={textInput}
-      value={inputValue}
-      type={currentQuestion?.type === "number" ? "number" : "text"}
-      onChange={(e) => setInputValue(e.target.value)}
-      placeholder="Type your answer..."
-    />
-    <button style={primaryButton} onClick={() => submitAnswer()}>
-      Send
-    </button>
-  </>
-)}
+    </div>
+  ) : currentQuestion?.type === "select" ? (
+    <>
+      <select
+        style={selectInput}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+      >
+        <option value="">Select your state...</option>
+        {currentQuestion.options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      <button style={primaryButton} onClick={() => submitAnswer()}>
+        Send
+      </button>
+    </>
+  ) : (
+    <>
+      <input
+        style={textInput}
+        value={inputValue}
+        type={currentQuestion?.type === "number" ? "number" : "text"}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Type your answer..."
+      />
+      <button style={primaryButton} onClick={() => submitAnswer()}>
+        Send
+      </button>
+    </>
+  )}
 
   {canEditPreviousQuestion && (
     <button
@@ -2026,10 +2035,8 @@ function saveMeasurementValue(fieldKey, value) {
         const previousIndex = questionIndex - 1;
         const previousQuestion = visibleQuestionFlow[previousIndex];
         if (!previousQuestion) return;
-
         setQuestionIndex(previousIndex);
         setInputValue(profile[previousQuestion.key] || "");
-
         setMessages((current) => [
           ...current,
           {
@@ -3430,21 +3437,6 @@ const measurementSmallInput = {
   padding: "12px 12px",
   outline: "none",
   fontSize: 15,
-};
-
-const selectInput = {
-  width: "100%",
-  boxSizing: "border-box",
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "rgba(255,255,255,0.08)",
-  color: "white",
-  borderRadius: 18,
-  padding: "14px 16px",
-  outline: "none",
-  fontSize: 15,
-  appearance: "none",
-  WebkitAppearance: "none",
-  MozAppearance: "none",
 };
 
 const selectInput = {
