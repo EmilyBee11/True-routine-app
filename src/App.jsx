@@ -322,7 +322,7 @@ function getClarificationForQuestion(question) {
     coachName: "This is just what you want your Coach to be called inside the app.",
     firstName: "Just type the name you want your Coach to call you.",
     age: "Type your age as a number. This helps guide your routine safely.",
-    state: "Choose the state you live in from the list.",
+    state: "Choose the state you live in from the list. After you answer, I’ll also share a quick fun fact about it.",
     gender: "Choose the option that fits you.",
     pregnancyStatus:
       "This helps the Coach guide you safely if needed. Choose what applies to you.",
@@ -374,25 +374,145 @@ function getClarificationForQuestion(question) {
 
 function getSupportMessage(profile) {
   const coachName = capitalizeName(profile.coachName) || "Coach";
-
   if (profile.gender === "Woman" && profile.pregnancyStatus === "Pregnant") {
     return `${coachName}: You’re in the right place. We’ll keep this safe, steady, faith-centered, and calisthenics-focused with gentle movement, walking, posture, breathing, and wise progress.`;
   }
-
   if (profile.gender === "Woman" && profile.pregnancyStatus === "Postpartum") {
     return `${coachName}: You’re in the right place. We’ll rebuild gently and safely with simple movement, walking, breathing, posture, and steady calisthenics-based recovery.`;
   }
-
   return "";
+}
+
+function getStateFunFact(state) {
+  const facts = {
+    Alabama: "Fun fact: Alabama is home to the U.S. Space & Rocket Center.",
+    Alaska: "Fun fact: Alaska has more coastline than all the other U.S. states combined.",
+    Arizona: "Fun fact: Arizona is home to the Grand Canyon.",
+    Arkansas: "Fun fact: Arkansas is known as The Natural State.",
+    California: "Fun fact: California is home to both the highest and lowest points in the contiguous U.S.",
+    Colorado: "Fun fact: Colorado is known for the Rocky Mountains and high elevation.",
+    Connecticut: "Fun fact: Connecticut is one of the original 13 colonies.",
+    Delaware: "Fun fact: Delaware was the first state to ratify the Constitution.",
+    Florida: "Fun fact: Florida is home to the Everglades and the southernmost point in the continental U.S.",
+    Georgia: "Fun fact: Georgia is known as the Peach State.",
+    Hawaii: "Fun fact: Hawaii is the only U.S. state made entirely of islands.",
+    Idaho: "Fun fact: Idaho is famous for its potatoes and mountain landscapes.",
+    Illinois: "Fun fact: Illinois is home to Chicago and the Willis Tower.",
+    Indiana: "Fun fact: Indiana is famous for the Indianapolis 500.",
+    Iowa: "Fun fact: Iowa is known for its farmland and rolling plains.",
+    Kansas: "Fun fact: Kansas is near the geographic center of the contiguous United States.",
+    Kentucky: "Fun fact: Kentucky is known for horse racing and Mammoth Cave.",
+    Louisiana: "Fun fact: Louisiana is known for its unique Cajun and Creole culture.",
+    Maine: "Fun fact: Maine is famous for its rocky coastline and lobster.",
+    Maryland: "Fun fact: Maryland is known for blue crabs and Chesapeake Bay.",
+    Massachusetts: "Fun fact: Massachusetts played a huge role in early American history.",
+    Michigan: "Fun fact: Michigan touches four of the five Great Lakes.",
+    Minnesota: "Fun fact: Minnesota is known as the Land of 10,000 Lakes.",
+    Mississippi: "Fun fact: The Mississippi River helped shape much of the state’s identity.",
+    Missouri: "Fun fact: Missouri is known as the Show-Me State.",
+    Montana: "Fun fact: Montana is known for wide-open spaces and Glacier National Park.",
+    Nebraska: "Fun fact: Nebraska is the only state with a unicameral legislature.",
+    Nevada: "Fun fact: Nevada is home to Las Vegas and vast desert landscapes.",
+    New Hampshire: "Fun fact: New Hampshire’s state motto is 'Live Free or Die.'",
+    New Jersey: "Fun fact: New Jersey has more diners than any other state.",
+    New Mexico: "Fun fact: New Mexico is known for its desert beauty and rich Native and Hispanic heritage.",
+    New York: "Fun fact: New York is home to the Statue of Liberty and Niagara Falls.",
+    North Carolina: "Fun fact: North Carolina is where the Wright brothers made their first powered flight.",
+    North Dakota: "Fun fact: North Dakota is known for its plains and strong farming roots.",
+    Ohio: "Fun fact: Ohio has produced many U.S. presidents and astronauts.",
+    Oklahoma: "Fun fact: Oklahoma has a deep Native American history and heritage.",
+    Oregon: "Fun fact: Oregon is known for its forests, coastline, and Crater Lake.",
+    Pennsylvania: "Fun fact: Pennsylvania is home to Independence Hall and the Liberty Bell.",
+    Rhode Island: "Fun fact: Rhode Island is the smallest U.S. state.",
+    South Carolina: "Fun fact: South Carolina is known for its coastal cities and historic charm.",
+    South Dakota: "Fun fact: South Dakota is home to Mount Rushmore.",
+    Tennessee: "Fun fact: Tennessee is known for Nashville, Memphis, and a rich music history.",
+    Texas: "Fun fact: Texas is the second-largest U.S. state by both area and population.",
+    Utah: "Fun fact: Utah is known for its red rock landscapes and five national parks.",
+    Vermont: "Fun fact: Vermont is famous for maple syrup and beautiful fall color.",
+    Virginia: "Fun fact: Virginia is home to many important early American landmarks.",
+    Washington: "Fun fact: Washington is known for coffee, mountains, and evergreen forests.",
+    West Virginia: "Fun fact: West Virginia is known for its mountains and outdoor beauty.",
+    Wisconsin: "Fun fact: Wisconsin is famous for cheese and dairy farming.",
+    Wyoming: "Fun fact: Wyoming is home to Yellowstone National Park.",
+  };
+
+  return facts[state] || `Fun fact: ${state} has its own unique history, people, and beauty.`;
+}
+
+function getBibleLinkForName(firstName) {
+  const clean = capitalizeName(firstName);
+
+  const directMatches = {
+    Aaron: "Aaron was chosen for spiritual leadership and service. That name can remind you that God can use your life to encourage and guide others.",
+    Abigail: "Abigail is remembered for wisdom, discernment, and peace-making. That name can remind you that wisdom is powerful.",
+    Anna: "Anna was known for faithfulness and devotion. That name can remind you that steady faith matters.",
+    Benjamin: "Benjamin can remind you that you are deeply loved and remembered by God.",
+    Caleb: "Caleb is remembered for courage and wholehearted faith. That name can remind you to stay strong and trust God fully.",
+    Daniel: "Daniel is remembered for courage, discipline, and faithfulness under pressure.",
+    David: "David reminds us that God looks at the heart and can grow someone into a leader over time.",
+    Deborah: "Deborah is remembered for courage, wisdom, and leadership.",
+    Elizabeth: "Elizabeth reminds us that God is faithful and sees His people at the right time.",
+    Elijah: "Elijah is linked to bold faith and trusting God in hard seasons.",
+    Esther: "Esther reminds us of courage, purpose, and being placed where you are for a reason.",
+    Ethan: "Ethan is connected with wisdom and praise.",
+    Eve: "Eve can point to life, beginnings, and the importance of walking closely with God.",
+    Ezra: "Ezra is remembered for love of God’s Word and spiritual rebuilding.",
+    Gabriel: "Gabriel reminds us of carrying important messages with purpose.",
+    Grace: "Grace points directly to one of the most beautiful truths in Scripture — God’s unearned favor and kindness.",
+    Hannah: "Hannah reminds us of prayer, surrender, and trusting God deeply.",
+    Isaiah: "Isaiah is linked with calling, vision, and speaking truth.",
+    Jacob: "Jacob reminds us that God can transform a life over time.",
+    James: "James is strongly linked to spiritual maturity, wisdom, and living out faith.",
+    Jeremiah: "Jeremiah reminds us that God knows and calls people with purpose.",
+    Joanna: "Joanna is remembered as someone who supported God’s work faithfully.",
+    John: "John strongly connects to love, truth, and staying close to Jesus.",
+    Jonah: "Jonah can remind you that God is patient and still works through imperfect people.",
+    Jonathan: "Jonathan is remembered for loyalty, friendship, and courage.",
+    Jordan: "Jordan can remind you of crossing into new ground with God’s help.",
+    Joseph: "Joseph is remembered for integrity, endurance, and trusting God through delay.",
+    Joshua: "Joshua is remembered for courage and obedience. 'Be strong and courageous' fits beautifully here.",
+    Leah: "Leah can remind you that God sees the overlooked and gives real worth.",
+    Luke: "Luke is linked with carefulness, compassion, and sharing truth clearly.",
+    Lydia: "Lydia is remembered for hospitality, faith, and open-hearted response to God.",
+    Martha: "Martha can remind you to serve faithfully while also staying close to Jesus.",
+    Mary: "Mary is tied to humility, surrender, and trusting God’s calling.",
+    Matthew: "Matthew reminds us that Jesus calls people into a new story.",
+    Michael: "Michael is linked with strength and spiritual courage.",
+    Miriam: "Miriam is remembered for worship, leadership, and boldness.",
+    Naomi: "Naomi reminds us that God is still present even through grief and change.",
+    Nathan: "Nathan is linked to truth, wisdom, and speaking faithfully.",
+    Noah: "Noah is remembered for obedience and steady faith over a long season.",
+    Paul: "Paul reminds us of transformation, endurance, and bold purpose.",
+    Peter: "Peter reminds us that even imperfect people can become strong and faithful over time.",
+    Rachel: "Rachel can remind you of love, hope, and God’s care through long seasons.",
+    Rebecca: "Rebecca can remind you of willingness and stepping forward in faith.",
+    Rebekah: "Rebekah can remind you of willingness and stepping forward in faith.",
+    Ruth: "Ruth is remembered for loyalty, humility, and faithful love.",
+    Samuel: "Samuel reminds us of listening for God’s voice and responding faithfully.",
+    Sarah: "Sarah reminds us that God keeps His promises, even when the wait feels long.",
+    Solomon: "Solomon is strongly connected to wisdom.",
+    Stephen: "Stephen is remembered for courage and unwavering faith.",
+    Susanna: "Susanna is remembered as faithful and supportive in God’s work.",
+    Thomas: "Thomas reminds us that honest questions can still lead to strong faith.",
+    Timothy: "Timothy is linked with spiritual growth, courage, and faithful leadership.",
+  };
+
+  if (directMatches[clean]) {
+    return directMatches[clean];
+  }
+
+  return `${clean || "Your name"} can still be a reminder that God gave you purpose, dignity, and gifts that can grow with faithfulness. Scripture shows again and again that your identity is not random — you were made on purpose and for a purpose.`;
 }
 
 function getConversationalReply(profile, justAnsweredKey) {
   const name = capitalizeName(profile.firstName) || "";
+  const state = profile.state || "";
   const map = {
     coachName: `Got it — ${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
-    firstName: `Nice to meet you, ${name}.`,
+    firstName: `Nice to meet you, ${name}. ${getBibleLinkForName(name)}`,
     age: `Got it, ${name}.`,
-    state: "Okay, that helps.",
+    state: `Okay, that helps. ${getStateFunFact(state)}`,
     gender: "Alright.",
     pregnancyStatus:
       profile.pregnancyStatus === "Pregnant" || profile.pregnancyStatus === "Postpartum"
@@ -418,7 +538,6 @@ function getConversationalReply(profile, justAnsweredKey) {
     bodyFocus: "Got it.",
     foodPreferences: "Good to know.",
   };
-
   return map[justAnsweredKey] || "Got it.";
 }
 
