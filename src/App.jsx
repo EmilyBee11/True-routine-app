@@ -26,7 +26,7 @@ const QUESTION_FLOW = [
 {
   key: "state",
   label: "What state do you live in?",
-  type: "choice",
+  type: "select",
   options: [
     "Alabama",
     "Alaska",
@@ -1974,32 +1974,50 @@ function saveMeasurementValue(fieldKey, value) {
           </div>
 
 <div style={inputArea}>
-  {currentQuestion?.type === "choice" ? (
-    <div style={choiceWrap}>
-      {currentQuestion.options.map((option) => (
-        <button
-          key={option}
-          style={choiceButton}
-          onClick={() => submitAnswer(option)}
-        >
-          {option}
-        </button>
-      ))}
-    </div>
-  ) : (
-    <>
-      <input
-        style={textInput}
-        value={inputValue}
-        type={currentQuestion?.type === "number" ? "number" : "text"}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Type your answer..."
-      />
-      <button style={primaryButton} onClick={() => submitAnswer()}>
-        Send
+{currentQuestion?.type === "choice" ? (
+  <div style={choiceWrap}>
+    {currentQuestion.options.map((option) => (
+      <button
+        key={option}
+        style={choiceButton}
+        onClick={() => submitAnswer(option)}
+      >
+        {option}
       </button>
-    </>
-  )}
+    ))}
+  </div>
+) : currentQuestion?.type === "select" ? (
+  <>
+    <select
+      style={selectInput}
+      value={inputValue}
+      onChange={(e) => setInputValue(e.target.value)}
+    >
+      <option value="">Select your state...</option>
+      {currentQuestion.options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+    <button style={primaryButton} onClick={() => submitAnswer()}>
+      Send
+    </button>
+  </>
+) : (
+  <>
+    <input
+      style={textInput}
+      value={inputValue}
+      type={currentQuestion?.type === "number" ? "number" : "text"}
+      onChange={(e) => setInputValue(e.target.value)}
+      placeholder="Type your answer..."
+    />
+    <button style={primaryButton} onClick={() => submitAnswer()}>
+      Send
+    </button>
+  </>
+)}
 
   {canEditPreviousQuestion && (
     <button
@@ -3410,6 +3428,33 @@ const measurementSmallInput = {
   color: "#111",
   borderRadius: 14,
   padding: "12px 12px",
+  outline: "none",
+  fontSize: 15,
+};
+
+const selectInput = {
+  width: "100%",
+  boxSizing: "border-box",
+  border: "1px solid rgba(255,255,255,0.15)",
+  background: "rgba(255,255,255,0.08)",
+  color: "white",
+  borderRadius: 18,
+  padding: "14px 16px",
+  outline: "none",
+  fontSize: 15,
+  appearance: "none",
+  WebkitAppearance: "none",
+  MozAppearance: "none",
+};
+
+const selectInput = {
+  width: "100%",
+  boxSizing: "border-box",
+  border: "1px solid rgba(255,255,255,0.15)",
+  background: "#1f1f22",
+  color: "white",
+  borderRadius: 18,
+  padding: "14px 16px",
   outline: "none",
   fontSize: 15,
 };
