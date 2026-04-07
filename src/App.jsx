@@ -899,17 +899,15 @@ function getLastAssistantMessage(chatMessages) {
 }
 
 function getAIResponse(input, profile) {
-  const raw = input.trim();
-  const lower = raw.toLowerCase();
-
+  const lower = input.toLowerCase().trim();
   const coachName = capitalizeName(profile.coachName) || "Coach";
   const firstName = capitalizeName(profile.firstName) || "";
   const namePart = firstName ? `, ${firstName}` : "";
-
   const goal = (profile.mainGoal || "").toLowerCase();
   const activity = (profile.activityLevel || "").toLowerCase();
-  const pregnancyStatus = profile.pregnancyStatus || "";
   const foodPrefs = (profile.foodPreferences || "").toLowerCase();
+  const pregnancyStatus = profile.pregnancyStatus || "";
+  const routine = getRoutineData(profile);
 
   const limitationText = [
     profile.hasLimitations,
@@ -995,7 +993,6 @@ function getAIResponse(input, profile) {
 
   const asksWhy =
     lower === "why" ||
-    lower.includes("why") ||
     lower.includes("what do you mean") ||
     lower.includes("clarify") ||
     lower.includes("explain");
@@ -1059,18 +1056,36 @@ function getAIResponse(input, profile) {
   }
 
   if (wantsRoutineHelp) {
+    if (lower.includes("video")) {
+      return `${coachName}: Your workout videos${namePart} are in the Routine tab.`;
+    }
+
+    if (lower.includes("what is my routine") || lower.includes("today's routine")) {
+      return `${coachName}: Your routine today${namePart} is ${routine.title}. Main exercises: ${routine.main
+        .map((e) => e.name)
+        .join(", ")}.`;
+    }
+
+    if (lower.includes("simplify")) {
+      return `${coachName}: Keep it simple${namePart}: warmup, first 2 exercises, done.`;
+    }
+
     if (isGentleMode) {
       return `${coachName}: For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.`;
     }
+
     if (goal.includes("discipline")) {
       return `${coachName}: Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
     }
+
     if (goal.includes("muscle") || goal.includes("strength")) {
       return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
     }
+
     if (goal.includes("weight")) {
       return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
     }
+
     return `${coachName}: Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
   }
 
