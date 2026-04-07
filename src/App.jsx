@@ -3537,6 +3537,9 @@ if (!completedOnboarding && screen === "theme") {
           ))}
         </div>
       )}
+          </div>
+  </>
+)}
 
       <button
         style={secondaryButton}
