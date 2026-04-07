@@ -3724,39 +3724,38 @@ if (!completedOnboarding && screen === "theme") {
             </div>
           ))}
         </div>
-      )}
+<div style={dailyCard}>
+  ...
+  
+  <button
+    style={secondaryButton}
+    onClick={() =>
+      setProfile((current) => ({
+        ...current,
+        coachMemory: {
+          ...current.coachMemory,
+          recurringTopics: [],
+          commonStruggles: [],
+          victories: [],
+          preferredFoods: [],
+          avoidedFoods: [],
+          allergies: [],
+          learnedInjuries: [],
+          learnedLimits: [],
+          motivationStyle: "",
+          faithFocus: "",
+          lastChatTopic: "",
+        },
+      }))
+    }
+  >
+    Clear coach memory
+  </button>
 
-      <button
-        style={secondaryButton}
-        onClick={() =>
-          setProfile((current) => ({
-            ...current,
-            coachMemory: {
-              ...current.coachMemory,
-              recurringTopics: [],
-              commonStruggles: [],
-              victories: [],
-              preferredFoods: [],
-              avoidedFoods: [],
-              allergies: [],
-              learnedInjuries: [],
-              learnedLimits: [],
-              motivationStyle: "",
-              faithFocus: "",
-              lastChatTopic: "",
-            },
-          }))
-        }
-      >
-        Clear coach memory
-      </button>
-
-      <button style={dangerButton} onClick={resetApp}>
-        Reset App
-      </button>
-    </div>
-  </>
-)}
+  <button style={dangerButton} onClick={resetApp}>
+    Reset App
+  </button>
+</div>
 
       <button
         style={secondaryButton}
