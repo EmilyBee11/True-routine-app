@@ -3372,64 +3372,120 @@ if (!completedOnboarding && screen === "theme") {
     <div style={routineSectionCard}>
       <p style={sectionLabel}>Coach memory</p>
       <h3 style={cardTitle}>What the coach has learned</h3>
-
       <p style={bodyText}>
         <strong>Motivation style:</strong>{" "}
         {profile.coachMemory?.motivationStyle || "balanced"}
       </p>
-
       <p style={bodyText}>
         <strong>Faith focus:</strong>{" "}
         {profile.coachMemory?.faithFocus || "growing"}
       </p>
-
       <p style={bodyText}>
         <strong>Preferred foods:</strong>{" "}
         {profile.coachMemory?.preferredFoods?.length
           ? profile.coachMemory.preferredFoods.join(", ")
           : "None saved yet"}
       </p>
-
       <p style={bodyText}>
         <strong>Avoided foods:</strong>{" "}
         {profile.coachMemory?.avoidedFoods?.length
           ? profile.coachMemory.avoidedFoods.join(", ")
           : "None saved yet"}
       </p>
-
       <p style={bodyText}>
         <strong>Allergies:</strong>{" "}
         {profile.coachMemory?.allergies?.length
           ? profile.coachMemory.allergies.join(", ")
           : "None saved yet"}
       </p>
-
       <p style={bodyText}>
         <strong>Injuries or pain:</strong>{" "}
         {profile.coachMemory?.learnedInjuries?.length
           ? profile.coachMemory.learnedInjuries.join(", ")
           : "None saved yet"}
       </p>
-
       <p style={bodyText}>
         <strong>Limits or preferences:</strong>{" "}
         {profile.coachMemory?.learnedLimits?.length
           ? profile.coachMemory.learnedLimits.join(", ")
           : "None saved yet"}
       </p>
-
       <p style={bodyText}>
         <strong>Common struggles:</strong>{" "}
         {profile.coachMemory?.commonStruggles?.length
           ? profile.coachMemory.commonStruggles.join(", ")
           : "None saved yet"}
       </p>
-
       <p style={bodyTextLast}>
         <strong>Victories:</strong>{" "}
         {profile.coachMemory?.victories?.length
           ? profile.coachMemory.victories.join(", ")
           : "None saved yet"}
+      </p>
+    </div>
+
+    <div style={memoryCard}>
+      <p style={sectionLabel}>Coach Memory</p>
+      <h3 style={cardTitle}>What the coach has learned</h3>
+      <p style={bodyText}>
+        <strong>Last chat topic:</strong>{" "}
+        {profile.coachMemory?.lastChatTopic || "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Recurring topics:</strong>{" "}
+        {profile.coachMemory?.recurringTopics?.length
+          ? profile.coachMemory.recurringTopics.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Common struggles:</strong>{" "}
+        {profile.coachMemory?.commonStruggles?.length
+          ? profile.coachMemory.commonStruggles.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Victories:</strong>{" "}
+        {profile.coachMemory?.victories?.length
+          ? profile.coachMemory.victories.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Preferred foods:</strong>{" "}
+        {profile.coachMemory?.preferredFoods?.length
+          ? profile.coachMemory.preferredFoods.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Avoided foods:</strong>{" "}
+        {profile.coachMemory?.avoidedFoods?.length
+          ? profile.coachMemory.avoidedFoods.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Allergies:</strong>{" "}
+        {profile.coachMemory?.allergies?.length
+          ? profile.coachMemory.allergies.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Learned injuries:</strong>{" "}
+        {profile.coachMemory?.learnedInjuries?.length
+          ? profile.coachMemory.learnedInjuries.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Learned limits:</strong>{" "}
+        {profile.coachMemory?.learnedLimits?.length
+          ? profile.coachMemory.learnedLimits.join(", ")
+          : "None yet"}
+      </p>
+      <p style={bodyText}>
+        <strong>Motivation style:</strong>{" "}
+        {profile.coachMemory?.motivationStyle || "Not learned yet"}
+      </p>
+      <p style={bodyTextLast}>
+        <strong>Faith focus:</strong>{" "}
+        {profile.coachMemory?.faithFocus || "Not learned yet"}
       </p>
     </div>
 
@@ -3482,121 +3538,37 @@ if (!completedOnboarding && screen === "theme") {
         </div>
       )}
 
+      <button
+        style={secondaryButton}
+        onClick={() =>
+          setProfile((current) => ({
+            ...current,
+            coachMemory: {
+              ...current.coachMemory,
+              recurringTopics: [],
+              commonStruggles: [],
+              victories: [],
+              preferredFoods: [],
+              avoidedFoods: [],
+              allergies: [],
+              learnedInjuries: [],
+              learnedLimits: [],
+              motivationStyle: "",
+              faithFocus: "",
+              lastChatTopic: "",
+            },
+          }))
+        }
+      >
+        Clear coach memory
+      </button>
+
       <button style={dangerButton} onClick={resetApp}>
         Reset App
       </button>
     </div>
   </>
 )}
-
-  <div style={memoryCard}>
-    <p style={sectionLabel}>Coach Memory</p>
-    <h3 style={cardTitle}>What the coach has learned</h3>
-
-    <p style={bodyText}>
-      <strong>Last chat topic:</strong>{" "}
-      {profile.coachMemory?.lastChatTopic || "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Recurring topics:</strong>{" "}
-      {profile.coachMemory?.recurringTopics?.length
-        ? profile.coachMemory.recurringTopics.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Common struggles:</strong>{" "}
-      {profile.coachMemory?.commonStruggles?.length
-        ? profile.coachMemory.commonStruggles.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Victories:</strong>{" "}
-      {profile.coachMemory?.victories?.length
-        ? profile.coachMemory.victories.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Preferred foods:</strong>{" "}
-      {profile.coachMemory?.preferredFoods?.length
-        ? profile.coachMemory.preferredFoods.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Avoided foods:</strong>{" "}
-      {profile.coachMemory?.avoidedFoods?.length
-        ? profile.coachMemory.avoidedFoods.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Allergies:</strong>{" "}
-      {profile.coachMemory?.allergies?.length
-        ? profile.coachMemory.allergies.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Learned injuries:</strong>{" "}
-      {profile.coachMemory?.learnedInjuries?.length
-        ? profile.coachMemory.learnedInjuries.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Learned limits:</strong>{" "}
-      {profile.coachMemory?.learnedLimits?.length
-        ? profile.coachMemory.learnedLimits.join(", ")
-        : "None yet"}
-    </p>
-
-    <p style={bodyText}>
-      <strong>Motivation style:</strong>{" "}
-      {profile.coachMemory?.motivationStyle || "Not learned yet"}
-    </p>
-
-    <p style={bodyTextLast}>
-      <strong>Faith focus:</strong>{" "}
-      {profile.coachMemory?.faithFocus || "Not learned yet"}
-    </p>
-  </div>
-
-  <button
-    style={secondaryButton}
-    onClick={() =>
-      setProfile((current) => ({
-        ...current,
-        coachMemory: {
-          ...current.coachMemory,
-          recurringTopics: [],
-          commonStruggles: [],
-          victories: [],
-          preferredFoods: [],
-          avoidedFoods: [],
-          allergies: [],
-          learnedInjuries: [],
-          learnedLimits: [],
-          motivationStyle: "",
-          faithFocus: "",
-          lastChatTopic: "",
-        },
-      }))
-    }
-  >
-    Clear coach memory
-  </button>
-
-  <button style={dangerButton} onClick={resetApp}>
-    Reset App
-  </button>
-</div>
-            </>
-          )}
-        </div>
 
         <div style={bottomNav}>
           <button
