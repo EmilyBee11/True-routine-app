@@ -1071,7 +1071,242 @@ function getLastAssistantMessage(chatMessages) {
   const aiMessages = chatMessages.filter((msg) => msg.role === "ai");
   return aiMessages.length ? aiMessages[aiMessages.length - 1].text : "";
 }
+function detectChatTopic(text) {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("food") ||
+    lower.includes("meal") ||
+    lower.includes("eat") ||
+    lower.includes("eating") ||
+    lower.includes("snack") ||
+    lower.includes("breakfast") ||
+    lower.includes("lunch") ||
+    lower.includes("dinner")
+  ) {
+    return "food";
+  }
+  if (
+    lower.includes("pray") ||
+    lower.includes("prayer") ||
+    lower.includes("god") ||
+    lower.includes("bible") ||
+    lower.includes("verse")
+  ) {
+    return "faith";
+  }
+  if (
+    lower.includes("measurement") ||
+    lower.includes("measurements") ||
+    lower.includes("weight") ||
+    lower.includes("waist") ||
+    lower.includes("hip") ||
+    lower.includes("progress")
+  ) {
+    return "progress";
+  }
+  if (
+    lower.includes("routine") ||
+    lower.includes("workout") ||
+    lower.includes("exercise") ||
+    lower.includes("training") ||
+    lower.includes("session")
+  ) {
+    return "routine";
+  }
+  if (
+    lower.includes("discouraged") ||
+    lower.includes("sad") ||
+    lower.includes("tired") ||
+    lower.includes("exhausted") ||
+    lower.includes("unmotivated") ||
+    lower.includes("behind") ||
+    lower.includes("fell off") ||
+    lower.includes("missed")
+  ) {
+    return "emotion";
+  }
+  return "general";
+}
 
+function detectMood(text) {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("discouraged") ||
+    lower.includes("sad") ||
+    lower.includes("unmotivated") ||
+    lower.includes("feel bad") ||
+    lower.includes("behind") ||
+    lower.includes("fell off")
+  ) {
+    return "discouraged";
+  }
+  if (
+    lower.includes("tired") ||
+    lower.includes("exhausted") ||
+    lower.includes("worn out") ||
+    lower.includes("no energy")
+  ) {
+    return "tired";
+  }
+  if (
+    lower.includes("good") ||
+    lower.includes("great") ||
+    lower.includes("strong") ||
+    lower.includes("better") ||
+    lower.includes("proud")
+  ) {
+    return "positive";
+  }
+  return "neutral";
+}
+
+function detectPreferredHelpStyle(text) {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("simple") ||
+    lower.includes("simplify") ||
+    lower.includes("short") ||
+    lower.includes("quick")
+  ) {
+    return "simple";
+  }
+  if (
+    lower.includes("detailed") ||
+    lower.includes("explain more") ||
+    lower.includes("more detail")
+  ) {
+    return "detailed";
+  }
+  return "balanced";
+}
+
+function detectCurrentStruggle(text) {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("too hard") ||
+    lower.includes("hard") ||
+    lower.includes("pain")
+  ) {
+    return "routine difficulty";
+  }
+  if (
+    lower.includes("too long") ||
+    lower.includes("long") ||
+    lower.includes("no time")
+  ) {
+    return "time consistency";
+  }
+  if (
+    lower.includes("food") ||
+    lower.includes("meal") ||
+    lower.includes("snack") ||
+    lower.includes("hungry")
+  ) {
+    return "food consistency";
+  }
+  if (
+    lower.includes("discouraged") ||
+    lower.includes("unmotivated") ||
+    lower.includes("fell off") ||
+    lower.includes("behind")
+  ) {
+    return "motivation";
+  }
+  if (
+    lower.includes("tired") ||
+    lower.includes("exhausted") ||
+    lower.includes("no energy")
+  ) {
+    return "low energy";
+  }
+  return "";
+}
+
+function detectWin(text) {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("i did it") ||
+    lower.includes("finished") ||
+    lower.includes("completed") ||
+    lower.includes("got it done") ||
+    lower.includes("i worked out") ||
+    lower.includes("i trained") ||
+    lower.includes("i walked")
+  ) {
+    return "followed through";
+  }
+  if (
+    lower.includes("ate well") ||
+    lower.includes("good meal") ||
+    lower.includes("hit my protein") ||
+    lower.includes("drank water")
+  ) {
+    return "made a strong food choice";
+  }
+  return "";
+}
+
+function updateCoachMemoryFromMessage(profile, text) {
+  const topic = detectChatTopic(text);
+  const mood = detectMood(text);
+  const preferredHelpStyle = detectPreferredHelpStyle(text);
+  const struggle = detectCurrentStruggle(text);
+  const win = detectWin(text);
+
+  const previousTopics = profile.coachMemory?.recentTopics || [];
+  const recentTopics = [...previousTopics, topic].slice(-6);
+
+  const previousWins = profile.coachMemory?.userWins || [];
+  const nextWins = win ? [...previousWins, win].slice(-6) : previousWins;
+
+  return {
+    ...profile,
+    coachMemory: {
+      ...profile.coachMemory,
+      prefersShortWorkouts:
+        preferredHelpStyle === "simple"
+          ? true
+          : profile.coachMemory?.prefersShortWorkouts || false,
+      lastChatTopic: topic,
+      recentTopics,
+      lastMood: mood,
+      currentStruggle: struggle || profile.coachMemory?.currentStruggle || "",
+      preferredHelpStyle:
+        preferredHelpStyle !== "balanced"
+          ? preferredHelpStyle
+          : profile.coachMemory?.preferredHelpStyle || "balanced",
+      userWins: nextWins,
+    },
+  };
+}
+
+function getMemoryPrefix(profile) {
+  const firstName = capitalizeName(profile.firstName) || "";
+  const namePart = firstName ? `, ${firstName}` : "";
+  const mood = profile.coachMemory?.lastMood || "neutral";
+  const struggle = profile.coachMemory?.currentStruggle || "";
+  const wins = profile.coachMemory?.userWins || [];
+
+  if (mood === "discouraged") {
+    return `I know this has felt discouraging${namePart}. `;
+  }
+  if (mood === "tired") {
+    return `I know your energy has felt low${namePart}. `;
+  }
+  if (struggle === "time consistency") {
+    return `I know consistency and time have been the big pressure point${namePart}. `;
+  }
+  if (struggle === "food consistency") {
+    return `I know food consistency has been one of the harder parts${namePart}. `;
+  }
+  if (struggle === "routine difficulty") {
+    return `I know the routine has felt a little tough lately${namePart}. `;
+  }
+  if (wins.length > 0) {
+    return `You have already had some wins here${namePart}, so keep building on that. `;
+  }
+  return "";
+}
 function getAIResponse(input, profile) {
   const lower = input.toLowerCase().trim();
   const coachName = capitalizeName(profile.coachName) || "Coach";
@@ -1082,6 +1317,7 @@ function getAIResponse(input, profile) {
   const foodPrefs = (profile.foodPreferences || "").toLowerCase();
   const pregnancyStatus = profile.pregnancyStatus || "";
   const routine = getRoutineData(profile);
+  const memoryPrefix = getMemoryPrefix(profile);
 
   const limitationText = [
     profile.hasLimitations,
@@ -1174,100 +1410,97 @@ function getAIResponse(input, profile) {
   const asksPregnancy =
     lower.includes("pregnant") || lower.includes("postpartum");
 
+  const prefersSimple =
+    profile.coachMemory?.preferredHelpStyle === "simple" ||
+    profile.coachMemory?.prefersShortWorkouts;
+
   if (wantsPrayer) {
-    return `${coachName}: Of course. Lord, give ${firstName || "them"} peace, wisdom, endurance, and steady faith today. Help them take the next right step with strength and grace. Amen.`;
+    return `${coachName}: ${memoryPrefix}Of course. Lord, give ${firstName || "them"} peace, wisdom, endurance, and steady faith today. Help them take the next right step with strength and grace. Amen.`;
   }
 
   if (wantsMeasurementHelp) {
-    return `${coachName}: Put them in the Progress tab${namePart}, inside the measurement boxes. Tap the body diagram too — it helps match each measurement to the right place.`;
+    return `${coachName}: ${memoryPrefix}Put them in the Progress tab${namePart}, inside the measurement boxes. Tap the body diagram too — it helps match each measurement to the right place.`;
   }
 
   if (wantsFoodHelp) {
     if (foodPrefs.includes("allerg")) {
-      return `${coachName}: Let’s keep food simple today${namePart}. Stay with foods you already know work well for your body, and focus on protein, steady energy, and water.`;
+      return `${coachName}: ${memoryPrefix}Let’s keep food simple today${namePart}. Stay with foods you already know work well for your body, and focus on protein, steady energy, and water.`;
     }
     if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: For today${namePart}, build meals around protein, enough carbs for energy, and water. Simple and repeatable is the goal.`;
+      return `${coachName}: ${memoryPrefix}For today${namePart}, build meals around protein, enough carbs for energy, and water.`;
     }
     if (goal.includes("weight")) {
-      return `${coachName}: For today${namePart}, focus on protein, fiber, and meals that keep you full. Keep it simple, not extreme.`;
+      return `${coachName}: ${memoryPrefix}For today${namePart}, focus on protein, fiber, and meals that keep you full. Keep it simple, not extreme.`;
     }
-    return `${coachName}: Keep food steady today${namePart} — protein, something filling, and enough water.`;
+    return `${coachName}: ${memoryPrefix}Keep food steady today${namePart} — protein, something filling, and enough water.`;
   }
 
   if (asksPregnancy) {
     if (pregnancyStatus === "Pregnant") {
-      return `${coachName}: Since you’re pregnant${namePart}, we’ll keep things gentler, safer, and more controlled with walking, posture, breathing, and simple calisthenics.`;
+      return `${coachName}: ${memoryPrefix}Since you’re pregnant${namePart}, we’ll keep things gentler, safer, and more controlled with walking, posture, breathing, and simple calisthenics.`;
     }
     if (pregnancyStatus === "Postpartum") {
-      return `${coachName}: Since you’re postpartum${namePart}, we’ll rebuild patiently with controlled movement, walking, posture, and core awareness.`;
+      return `${coachName}: ${memoryPrefix}Since you’re postpartum${namePart}, we’ll rebuild patiently with controlled movement, walking, posture, and core awareness.`;
     }
-    return `${coachName}: If pregnancy or postpartum ever becomes relevant${namePart}, I can adjust your routine to be much more gentle and supportive.`;
+    return `${coachName}: ${memoryPrefix}If pregnancy or postpartum ever becomes relevant${namePart}, I can adjust your routine to be much more gentle and supportive.`;
   }
 
   if (feelsDiscouraged) {
-    return `${coachName}: I hear you${namePart}. A rough day does not erase your progress. We are not chasing perfect — just the next faithful step.`;
+    return `${coachName}: ${memoryPrefix}A rough day does not erase your progress. We are not chasing perfect — just the next faithful step.`;
   }
 
   if (feelsTired) {
-    return `${coachName}: Then today should be wiser, not harder${namePart}. A shorter and gentler day still counts.`;
+    return `${coachName}: ${memoryPrefix}Then today should be wiser, not harder${namePart}. A shorter and gentler day still counts.`;
   }
 
   if (wantsAdjustment) {
     if (lower.includes("hard")) {
-      return `${coachName}: Then let’s scale it down${namePart}. Reduce reps, slow the pace, and stop short of pain.`;
+      return `${coachName}: ${memoryPrefix}Then let’s scale it down${namePart}. Reduce reps, slow the pace, and stop short of pain.`;
     }
     if (lower.includes("easy")) {
-      return `${coachName}: Then we can raise the challenge a little${namePart} — more reps, slower tempo, or one extra round.`;
+      return `${coachName}: ${memoryPrefix}Then we can raise the challenge a little${namePart} — more reps, slower tempo, or one extra round.`;
     }
-    if (lower.includes("short") || lower.includes("long")) {
-      return `${coachName}: Yes${namePart}. We can make today shorter and more manageable while keeping the main goal intact.`;
+    if (lower.includes("short") || lower.includes("long") || prefersSimple) {
+      return `${coachName}: ${memoryPrefix}Yes${namePart}. We can keep today shorter and more manageable while still moving forward.`;
     }
     if (isGentleMode) {
-      return `${coachName}: Yes${namePart}. I’d keep today gentle, lower-pressure, and more recovery-focused.`;
+      return `${coachName}: ${memoryPrefix}Yes${namePart}. I’d keep today gentle, lower-pressure, and more recovery-focused.`;
     }
-    return `${coachName}: Yes${namePart}. I can help make it easier, harder, shorter, or more focused.`;
+    return `${coachName}: ${memoryPrefix}Yes${namePart}. I can help make it easier, harder, shorter, or more focused.`;
   }
 
   if (wantsRoutineHelp) {
     if (lower.includes("video")) {
-      return `${coachName}: Your workout videos${namePart} are in the Routine tab.`;
+      return `${coachName}: ${memoryPrefix}Your workout videos${namePart} are in the Routine tab.`;
     }
-
     if (lower.includes("what is my routine") || lower.includes("today's routine")) {
-      return `${coachName}: Your routine today${namePart} is ${routine.title}. Main exercises: ${routine.main
+      return `${coachName}: ${memoryPrefix}Your routine today${namePart} is ${routine.title}. Main exercises: ${routine.main
         .map((e) => e.name)
         .join(", ")}.`;
     }
-
-    if (lower.includes("simplify")) {
-      return `${coachName}: Keep it simple${namePart}: warmup, first 2 exercises, done.`;
+    if (lower.includes("simplify") || prefersSimple) {
+      return `${coachName}: ${memoryPrefix}Keep it simple${namePart}: warmup, first 2 exercises, done.`;
     }
-
     if (isGentleMode) {
-      return `${coachName}: For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.`;
+      return `${coachName}: ${memoryPrefix}For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.`;
     }
-
     if (goal.includes("discipline")) {
-      return `${coachName}: Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
+      return `${coachName}: ${memoryPrefix}Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
     }
-
     if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
+      return `${coachName}: ${memoryPrefix}Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
     }
-
     if (goal.includes("weight")) {
-      return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
+      return `${coachName}: ${memoryPrefix}Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
     }
-
-    return `${coachName}: Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
+    return `${coachName}: ${memoryPrefix}Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
   }
 
   if (asksWhy) {
-    return `${coachName}: I’m here${namePart}. Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer more clearly.`;
+    return `${coachName}: ${memoryPrefix}Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer clearly.`;
   }
 
-  return `${coachName}: I’m with you${namePart}. Tell me what you want help with right now — routine, food, progress, motivation, or prayer.`;
+  return `${coachName}: ${memoryPrefix}I’m with you${namePart}. Tell me what you want help with right now — routine, food, progress, motivation, or prayer.`;
 }
 
 function getMeasurementGuide(unit) {
@@ -1494,16 +1727,26 @@ const [profile, setProfile] = useState(() => {
   const saved = localStorage.getItem("christian-fitness-profile");
   return saved
     ? normalizeProfile(JSON.parse(saved))
-    : {
-        measurements: {},
-        measurementHistory: [],
-        createdAt: null,
-        coachMemory: {
-          lastMeasurementUpdate: null,
-          lastWeeklyReport: null,
-          weeklyCheckins: [],
-        },
-      };
+: {
+    measurements: {},
+    measurementHistory: [],
+    createdAt: null,
+    coachMemory: {
+      lastMeasurementUpdate: null,
+      lastWeeklyReport: null,
+      weeklyCheckins: [],
+      lastRoutineFeedback: "",
+      lastRoutineFeedbackReason: "",
+      prefersShortWorkouts: false,
+      lastChatTopic: "general",
+      recentTopics: [],
+      lastMood: "neutral",
+      currentStruggle: "",
+      preferredHelpStyle: "balanced",
+      spiritualTone: "encouraging",
+      userWins: [],
+    },
+  };
 });
 
   const [messages, setMessages] = useState(() => {
@@ -1884,6 +2127,16 @@ setProfile({
     lastMeasurementUpdate: null,
     lastWeeklyReport: null,
     weeklyCheckins: [],
+    lastRoutineFeedback: "",
+    lastRoutineFeedbackReason: "",
+    prefersShortWorkouts: false,
+    lastChatTopic: "general",
+    recentTopics: [],
+    lastMood: "neutral",
+    currentStruggle: "",
+    preferredHelpStyle: "balanced",
+    spiritualTone: "encouraging",
+    userWins: [],
   },
 });
   setMessages([
@@ -1916,30 +2169,7 @@ function sendChatMessage(text) {
   if (!cleanText) return;
 
   const coachName = capitalizeName(profile.coachName) || "Coach";
-  const lower = cleanText.toLowerCase();
-
-  const nextProfile = {
-    ...profile,
-    coachMemory: {
-      ...profile.coachMemory,
-      prefersShortWorkouts:
-        lower.includes("short") ||
-        lower.includes("simplify") ||
-        lower.includes("too long")
-          ? true
-          : profile.coachMemory?.prefersShortWorkouts || false,
-      lastChatTopic:
-        lower.includes("food") || lower.includes("meal")
-          ? "food"
-          : lower.includes("pray")
-          ? "prayer"
-          : lower.includes("measurement") || lower.includes("weight")
-          ? "progress"
-          : lower.includes("routine") || lower.includes("workout")
-          ? "routine"
-          : "general",
-    },
-  };
+  const nextProfile = updateCoachMemoryFromMessage(profile, cleanText);
 
   setProfile(nextProfile);
 
