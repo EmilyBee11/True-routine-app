@@ -335,40 +335,83 @@ function getSupportMessage(profile) {
 
 function getConversationalReply(profile, justAnsweredKey) {
   const name = capitalizeName(profile.firstName) || "";
-  const coachName = capitalizeName(profile.coachName) || "Coach";
-
   const map = {
-    coachName: `${coachName}: ${coachName} it is. I like that.`,
-    firstName: `${coachName}: Nice to meet you, ${name}.`,
-    age: `${coachName}: Got it, ${name}.`,
-    state: `${coachName}: Okay, that helps.`,
-    gender: `${coachName}: Alright.`,
+    coachName: `${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
+    firstName: `Nice to meet you, ${name}.`,
+    age: `Got it, ${name}.`,
+    state: "Okay, that helps.",
+    gender: "Alright.",
     pregnancyStatus:
       profile.pregnancyStatus === "Pregnant" || profile.pregnancyStatus === "Postpartum"
-        ? getSupportMessage(profile)
-        : `${coachName}: Okay, thank you for telling me that.`,
-    pregnancyTrimester: `${coachName}: Got it. That helps me guide you more carefully.`,
-    pregnancyRestrictions: `${coachName}: Good to know. I’ll keep that in mind.`,
-    pregnancySymptoms: `${coachName}: Thank you. We’ll keep things supportive and gentle where needed.`,
-    postpartumTime: `${coachName}: Got it.`,
-    deliveryType: `${coachName}: Okay, thank you for sharing that.`,
-    postpartumConcerns: `${coachName}: That helps. We’ll build carefully around that.`,
-    relationshipStatus: `${coachName}: Okay.`,
-    denomination: `${coachName}: Got it.`,
-    whyStarted: `${coachName}: That makes sense.`,
-    lifeChange: `${coachName}: I can see why that matters to you.`,
-    activityLevel: `${coachName}: Got it. That gives me a better feel for your starting point.`,
-    hasLimitations: `${coachName}: Okay.`,
-    limitationType: `${coachName}: Got it.`,
-    limitationName: `${coachName}: Thank you. That helps.`,
-    limitationDuration: `${coachName}: Okay.`,
-    activityLimit: `${coachName}: That gives me a clearer picture.`,
-    mainGoal: `${coachName}: That makes sense.`,
-    bodyFocus: `${coachName}: Got it.`,
-    foodPreferences: `${coachName}: Good to know.`,
+        ? cleanCoachBubbleText(getSupportMessage(profile), profile.coachName)
+        : "Okay, thank you for telling me that.",
+    pregnancyTrimester: "Got it. That helps me guide you more carefully.",
+    pregnancyRestrictions: "Good to know. I’ll keep that in mind.",
+    pregnancySymptoms: "Thank you. We’ll keep things supportive and gentle where needed.",
+    postpartumTime: "Got it.",
+    deliveryType: "Okay, thank you for sharing that.",
+    postpartumConcerns: "That helps. We’ll build carefully around that.",
+    relationshipStatus: "Okay.",
+    denomination: "Got it.",
+    whyStarted: "That makes sense.",
+    lifeChange: "I can see why that matters to you.",
+    activityLevel: "Got it. That gives me a better feel for your starting point.",
+    hasLimitations: "Okay.",
+    limitationType: "Got it.",
+    limitationName: "Thank you. That helps.",
+    limitationDuration: "Okay.",
+    activityLimit: "That gives me a clearer picture.",
+    mainGoal: "That makes sense.",
+    bodyFocus: "Got it.",
+    foodPreferences: "Good to know.",
   };
 
-  return map[justAnsweredKey] || `${coachName}: Got it.`;
+  return map[justAnsweredKey] || "Got it.";
+}
+
+function getConversationalReply(profile, justAnsweredKey) {
+  const name = capitalizeName(profile.firstName) || "";
+  const map = {
+    coachName: `${capitalizeName(profile.coachName) || "Coach"} it is. I like that.`,
+    firstName: `Nice to meet you, ${name}.`,
+    age: `Got it, ${name}.`,
+    state: "Okay, that helps.",
+    gender: "Alright.",
+    pregnancyStatus:
+      profile.pregnancyStatus === "Pregnant" || profile.pregnancyStatus === "Postpartum"
+        ? cleanCoachBubbleText(getSupportMessage(profile), profile.coachName)
+        : "Okay, thank you for telling me that.",
+    pregnancyTrimester: "Got it. That helps me guide you more carefully.",
+    pregnancyRestrictions: "Good to know. I’ll keep that in mind.",
+    pregnancySymptoms: "Thank you. We’ll keep things supportive and gentle where needed.",
+    postpartumTime: "Got it.",
+    deliveryType: "Okay, thank you for sharing that.",
+    postpartumConcerns: "That helps. We’ll build carefully around that.",
+    relationshipStatus: "Okay.",
+    denomination: "Got it.",
+    whyStarted: "That makes sense.",
+    lifeChange: "I can see why that matters to you.",
+    activityLevel: "Got it. That gives me a better feel for your starting point.",
+    hasLimitations: "Okay.",
+    limitationType: "Got it.",
+    limitationName: "Thank you. That helps.",
+    limitationDuration: "Okay.",
+    activityLimit: "That gives me a clearer picture.",
+    mainGoal: "That makes sense.",
+    bodyFocus: "Got it.",
+    foodPreferences: "Good to know.",
+  };
+
+  return map[justAnsweredKey] || "Got it.";
+}
+
+function cleanCoachBubbleText(text, coachName = "Coach") {
+  if (!text || typeof text !== "string") return "";
+  const cleanName = capitalizeName(coachName) || "Coach";
+  return text
+    .replace(new RegExp(`^Coach ${cleanName}:\\s*`, "i"), "")
+    .replace(new RegExp(`^${cleanName}:\\s*`, "i"), "")
+    .replace(/^Coach:\s*/i, "");
 }
 
 function getRoutineLength(profile) {
@@ -397,7 +440,8 @@ if (feedback === "down" && reason.includes("long")) {
 
 function getRoutineData(profile) {
   const feedback = profile.coachMemory?.lastRoutineFeedback;
-  const feedbackReason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
+  const feedbackReason =
+    (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
 
   let adjust = {
     easier: false,
@@ -423,36 +467,387 @@ function getRoutineData(profile) {
   const goal = (profile.mainGoal || "").toLowerCase();
   const activity = profile.activityLevel || "Somewhat active";
 
-  const baseRoutine = {
-    title: "Balanced Full-Body Day",
-    summary: "A moderate calisthenics session.",
-    warmup: [],
+  const limitationText = [
+    profile.hasLimitations,
+    profile.limitationType,
+    profile.limitationName,
+    profile.activityLimit,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const shouldGoGentle =
+    activity === "Beginner" ||
+    profile.hasLimitations === "Yes" ||
+    profile.pregnancyStatus === "Pregnant" ||
+    profile.pregnancyStatus === "Postpartum" ||
+    limitationText.includes("injury") ||
+    limitationText.includes("disability") ||
+    limitationText.includes("pain") ||
+    limitationText.includes("limited");
+
+  const beginnerRoutine = {
+    title: "Foundation Calisthenics Day",
+    summary: "A lighter full-body session built for consistency and clean form.",
+    warmup: [
+      {
+        name: "Arm Circles",
+        reps: "30 sec each way",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/140RTNMciH8",
+      },
+      {
+        name: "Bodyweight Good Mornings",
+        reps: "12 reps",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/vKPGe8zb2S4",
+      },
+      {
+        name: "March in Place",
+        reps: "60 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/czYx1UcuQ4Y",
+      },
+    ],
     main: [
-      { name: "Push-Ups", reps: "3 x 10", time: "5 min" },
-      { name: "Squats", reps: "3 x 15", time: "5 min" },
-      { name: "Lunges", reps: "3 x 10 each", time: "5 min" },
+      {
+        name: "Incline Push-Ups",
+        reps: "3 x 8",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/zkU6Ok44_CI",
+        note: "Use a sturdy surface and keep your body in one line.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "3 x 12",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/YaXPRqUwItQ",
+        note: "Sit back and keep your chest lifted.",
+      },
+      {
+        name: "Glute Bridges",
+        reps: "3 x 12",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/wPM8icPu6H8",
+        note: "Pause at the top and squeeze with control.",
+      },
+      {
+        name: "Dead Bug",
+        reps: "3 x 8 each side",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/g_BYB0R-4Ws",
+        note: "Keep your lower back steady on the floor.",
+      },
     ],
     cooldown: [
-      { name: "Stretch", reps: "1 min", time: "1 min" },
+      {
+        name: "Child’s Pose",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/eqVMAPM00DM",
+      },
+      {
+        name: "Standing Quad Stretch",
+        reps: "30 sec each side",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/8caF1Keg2XU",
+      },
     ],
-    walking: "Optional walk",
+    walking: "Easy 10–15 minute walk if your energy feels good.",
   };
 
-  const wantsShorter =
-    profile.coachMemory?.prefersShortWorkouts || adjust.shorter;
+  const disciplineRoutine = {
+    title: "Consistency Builder Routine",
+    summary: "A balanced calisthenics session built to reinforce daily discipline.",
+    warmup: [
+      {
+        name: "Jumping Jacks",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/c4DAnQ6DtF8",
+      },
+      {
+        name: "Hip Openers",
+        reps: "10 each side",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/jj2AAH6jbHk",
+      },
+      {
+        name: "World’s Greatest Stretch",
+        reps: "5 each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/-CiWQ2IvY34",
+      },
+    ],
+    main: [
+      {
+        name: "Push-Ups",
+        reps: "4 x 8–12",
+        time: "6 min",
+        video: "https://www.youtube-nocookie.com/embed/IODxDxX7oi4",
+        note: "Drop to knees if needed, but keep the reps honest.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "4 x 15",
+        time: "6 min",
+        video: "https://www.youtube-nocookie.com/embed/YaXPRqUwItQ",
+        note: "Move smoothly and control the lowering phase.",
+      },
+      {
+        name: "Reverse Lunges",
+        reps: "3 x 10 each leg",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/7pw6gM0s4V8",
+        note: "Step back softly and stay stable.",
+      },
+      {
+        name: "Plank",
+        reps: "3 rounds",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/pSHjTRCQxIw",
+        note: "Brace your core and keep hips level.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Seated Hamstring Stretch",
+        reps: "45 sec each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/0hTllAb4XGg",
+      },
+      {
+        name: "Chest Opener Stretch",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/SV7l1sfEmO0",
+      },
+    ],
+    walking: "Optional 15–20 minute walk to reinforce consistency.",
+  };
 
-  if (wantsShorter) {
+  const muscleRoutine = {
+    title: "Strength-Focused Calisthenics Day",
+    summary: "More volume and slower reps to build strength without equipment.",
+    warmup: [
+      {
+        name: "High Knees",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/oDdkytliOqE",
+      },
+      {
+        name: "Shoulder Taps",
+        reps: "20 taps",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/gWHQpMUd51A",
+      },
+      {
+        name: "Deep Squat Hold",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/ZvFe8xIYw4Q",
+      },
+    ],
+    main: [
+      {
+        name: "Tempo Push-Ups",
+        reps: "4 x 8",
+        time: "6 min",
+        video: "https://www.youtube-nocookie.com/embed/IODxDxX7oi4",
+        note: "Lower for 3 seconds, then press up strong.",
+      },
+      {
+        name: "Bulgarian Split Squat",
+        reps: "3 x 10 each leg",
+        time: "6 min",
+        video: "https://www.youtube-nocookie.com/embed/2C-uNgKwPLE",
+        note: "Use a chair or couch edge for the back foot.",
+      },
+      {
+        name: "Pike Push-Ups",
+        reps: "3 x 8–10",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/xoU6NwB5Nf0",
+        note: "Focus on shoulder control and clean range.",
+      },
+      {
+        name: "Hollow Body Hold",
+        reps: "3 x 25 sec",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/4xRpGgttca8",
+        note: "Keep your lower back pressed down.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Hip Flexor Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/lPKRiU9u_Hc",
+      },
+      {
+        name: "Thread the Needle",
+        reps: "30 sec each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/M7R6xM4z6-k",
+      },
+    ],
+    walking: "Light 10-minute walk after training if your legs feel good.",
+  };
+
+  const weightLossRoutine = {
+    title: "Cardio Calisthenics Circuit",
+    summary: "A higher-movement session built to keep energy up and the workout simple.",
+    warmup: [
+      {
+        name: "Jump Rope Without Rope",
+        reps: "60 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/1BZM8TORnJU",
+      },
+      {
+        name: "Leg Swings",
+        reps: "10 each side",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/fajfA1vT0lA",
+      },
+      {
+        name: "Walkouts",
+        reps: "8 reps",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/LzQ2cKk3S7Q",
+      },
+    ],
+    main: [
+      {
+        name: "Squat to Knee Drive",
+        reps: "3 x 12 each side",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/tjJdXQ6LC0g",
+        note: "Keep your core engaged and drive the knee with control.",
+      },
+      {
+        name: "Mountain Climbers",
+        reps: "3 x 30 sec",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/nmwgirgXLYM",
+        note: "Move steadily instead of rushing.",
+      },
+      {
+        name: "Alternating Reverse Lunges",
+        reps: "3 x 12 each side",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/7pw6gM0s4V8",
+        note: "Stay tall through the whole set.",
+      },
+      {
+        name: "Forearm Plank",
+        reps: "3 x 30 sec",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/pSHjTRCQxIw",
+        note: "Strong core, steady breathing.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Standing Forward Fold",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/g7Uhp5tphAs",
+      },
+      {
+        name: "Figure Four Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/OTEXv5n_aKU",
+      },
+    ],
+    walking: "Aim for an easy 20-minute walk sometime today.",
+  };
+
+  const balancedRoutine = {
+    title: "Balanced Full-Body Day",
+    summary: "A moderate calisthenics session built to support strength, energy, and consistency.",
+    warmup: [
+      {
+        name: "Jumping Jacks",
+        reps: "45 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/c4DAnQ6DtF8",
+      },
+      {
+        name: "Hip Circles",
+        reps: "30 sec each way",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/J4v8V2q5-OU",
+      },
+    ],
+    main: [
+      {
+        name: "Push-Ups",
+        reps: "3 x 10",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/IODxDxX7oi4",
+        note: "Use a knee version if needed and keep your form strong.",
+      },
+      {
+        name: "Bodyweight Squats",
+        reps: "3 x 15",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/YaXPRqUwItQ",
+        note: "Drive through your whole foot.",
+      },
+      {
+        name: "Walking Lunges",
+        reps: "3 x 10 each leg",
+        time: "5 min",
+        video: "https://www.youtube-nocookie.com/embed/L8fvypPrzzs",
+        note: "Stay stable and avoid rushing.",
+      },
+      {
+        name: "Dead Bug",
+        reps: "3 x 10 each side",
+        time: "4 min",
+        video: "https://www.youtube-nocookie.com/embed/g_BYB0R-4Ws",
+        note: "Move with control and brace your core.",
+      },
+    ],
+    cooldown: [
+      {
+        name: "Hamstring Stretch",
+        reps: "40 sec each side",
+        time: "2 min",
+        video: "https://www.youtube-nocookie.com/embed/0hTllAb4XGg",
+      },
+      {
+        name: "Chest Stretch",
+        reps: "40 sec",
+        time: "1 min",
+        video: "https://www.youtube-nocookie.com/embed/SV7l1sfEmO0",
+      },
+    ],
+    walking: "Optional 15-minute walk for recovery and energy.",
+  };
+
+  if (shouldGoGentle || adjust.easier) return beginnerRoutine;
+  if (adjust.harder) return muscleRoutine;
+  if (goal.includes("discipline")) return disciplineRoutine;
+  if (goal.includes("muscle") || goal.includes("strength")) return muscleRoutine;
+  if (goal.includes("weight")) return weightLossRoutine;
+
+  if (adjust.shorter) {
     return {
-      ...baseRoutine,
-      title: baseRoutine.title + " — Simplified",
-      summary: "Shorter version of today’s workout.",
-      main: baseRoutine.main.slice(0, 2),
-      cooldown: baseRoutine.cooldown.slice(0, 1),
-      walking: "Optional 5–10 min walk",
+      ...balancedRoutine,
+      title: "Balanced Full-Body Day — Simplified",
+      summary: "A shorter full-body session based on your last workout feedback.",
+      main: balancedRoutine.main.slice(0, 2),
+      cooldown: balancedRoutine.cooldown.slice(0, 1),
+      walking: "Optional 5–10 minute walk for recovery and energy.",
     };
   }
 
-  return baseRoutine;
+  return balancedRoutine;
 }
 
 function getCoachMessage(profile) {
@@ -1090,28 +1485,56 @@ const canEditPreviousQuestion = questionIndex > 0;
       ]);
     }
   }
-
 function submitAnswer(answerOverride) {
   const answer =
     typeof answerOverride === "string" ? answerOverride : inputValue.trim();
 
   if (!currentQuestion) return;
 
-  if (typeof answer === "string" && isClarifyMessage(answer)) {
-    const coachName = capitalizeName(profile.coachName) || "Coach";
+  if (!answer) return;
+
+  const lower = typeof answer === "string" ? answer.toLowerCase().trim() : "";
+
+  if (isClarifyMessage(lower)) {
     setMessages((current) => [
       ...current,
       { role: "user", text: answer },
       {
         role: "ai",
-        text: `${coachName}: ${getClarificationForQuestion(currentQuestion)}`,
+        text: getClarificationForQuestion(currentQuestion),
       },
     ]);
     setInputValue("");
     return;
   }
 
-  if (!answer) return;
+  if (
+    typeof answer === "string" &&
+    (
+      lower === "why" ||
+      lower === "what" ||
+      lower === "how" ||
+      lower.includes("why are you asking") ||
+      lower.includes("why do you need that") ||
+      lower.includes("what do you mean") ||
+      lower.includes("explain")
+    )
+  ) {
+    setMessages((current) => [
+      ...current,
+      { role: "user", text: answer },
+      {
+        role: "ai",
+        text: "Good question. I’m asking this so I can guide your plan in a way that actually fits your life.",
+      },
+      {
+        role: "ai",
+        text: currentQuestion.label,
+      },
+    ]);
+    setInputValue("");
+    return;
+  }
 
   const safeAnswer =
     typeof answer === "string" &&
@@ -1128,12 +1551,12 @@ function submitAnswer(answerOverride) {
   const nextProfile = normalizeProfile({
     ...profile,
     [currentQuestion.key]: normalizedAnswer,
-coachMemory: {
-  ...profile.coachMemory,
-  detailLevel: profile.coachMemory?.detailLevel || "balanced",
-  tone: "balanced",
-  neutralUntilLearned: true,
-},
+    coachMemory: {
+      ...profile.coachMemory,
+      detailLevel: profile.coachMemory?.detailLevel || "balanced",
+      tone: "balanced",
+      neutralUntilLearned: true,
+    },
   });
 
   setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
@@ -1159,32 +1582,30 @@ coachMemory: {
     return;
   }
 
-setTimeout(() => {
-  const coachName = capitalizeName(nextProfile.coachName) || "Coach";
-  const firstName = capitalizeName(nextProfile.firstName);
-  setMessages((current) => [
-    ...current,
-    {
-      role: "ai",
-      text: `${coachName}: Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
-    },
-    {
-      role: "ai",
-      text: `${coachName}: As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month.
+  setTimeout(() => {
+    const firstName = capitalizeName(nextProfile.firstName);
 
-To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.`,
-    },
-  ]);
-}, 250);
+    setMessages((current) => [
+      ...current,
+      {
+        role: "ai",
+        text: `Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
+      },
+      {
+        role: "ai",
+        text: `As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month. To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.`,
+      },
+    ]);
+  }, 250);
 
   setProfile((current) => ({
     ...current,
     ...nextProfile,
     onboardingStage: "tour",
   }));
+
   setScreen("theme");
 }
-
 function finishThemeAndTour() {
   setProfile((current) => ({
     ...current,
@@ -1425,7 +1846,9 @@ function saveMeasurementValue(fieldKey, value) {
           ...(message.role === "ai" ? aiBubble : userBubble),
         }}
       >
-        {message.text}
+        {message.role === "ai"
+  ? cleanCoachBubbleText(message.text, profile.coachName)
+  : message.text}
       </div>
     </div>
   </div>
@@ -1973,7 +2396,9 @@ if (!completedOnboarding && screen === "theme") {
           ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight),
         }}
       >
-        {msg.text}
+        {msg.role === "ai"
+  ? cleanCoachBubbleText(msg.text, profile.coachName)
+  : msg.text}
       </div>
     </div>
   </div>
