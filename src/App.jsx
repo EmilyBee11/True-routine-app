@@ -893,8 +893,15 @@ function getFoodGuidance(profile) {
   return "Keep meals simple, nourishing, and realistic for the day you actually have.";
 }
 
+function getLastAssistantMessage(chatMessages) {
+  const aiMessages = chatMessages.filter((msg) => msg.role === "ai");
+  return aiMessages.length ? aiMessages[aiMessages.length - 1].text : "";
+}
+
 function getAIResponse(input, profile) {
-  const lower = input.toLowerCase().trim();
+  const raw = input.trim();
+  const lower = raw.toLowerCase();
+
   const coachName = capitalizeName(profile.coachName) || "Coach";
   const firstName = capitalizeName(profile.firstName) || "";
   const namePart = firstName ? `, ${firstName}` : "";
@@ -903,6 +910,7 @@ function getAIResponse(input, profile) {
   const activity = (profile.activityLevel || "").toLowerCase();
   const pregnancyStatus = profile.pregnancyStatus || "";
   const foodPrefs = (profile.foodPreferences || "").toLowerCase();
+
   const limitationText = [
     profile.hasLimitations,
     profile.limitationType,
@@ -926,94 +934,151 @@ function getAIResponse(input, profile) {
     limitationText.includes("pelvic") ||
     limitationText.includes("bleeding");
 
-  if (
+  const wantsPrayer =
+    lower.includes("pray") ||
+    lower.includes("prayer") ||
+    lower.includes("please pray");
+
+  const wantsFoodHelp =
+    lower.includes("food") ||
+    lower.includes("meal") ||
+    lower.includes("eat") ||
+    lower.includes("eating") ||
+    lower.includes("hungry") ||
+    lower.includes("snack") ||
+    lower.includes("breakfast") ||
+    lower.includes("lunch") ||
+    lower.includes("dinner");
+
+  const wantsRoutineHelp =
+    lower.includes("routine") ||
+    lower.includes("workout") ||
+    lower.includes("exercise") ||
+    lower.includes("training") ||
+    lower.includes("session");
+
+  const wantsAdjustment =
+    lower.includes("adjust") ||
+    lower.includes("change it") ||
+    lower.includes("make it easier") ||
+    lower.includes("make it harder") ||
+    lower.includes("shorter") ||
+    lower.includes("longer") ||
+    lower.includes("too hard") ||
+    lower.includes("too easy") ||
+    lower.includes("too long");
+
+  const wantsMeasurementHelp =
     lower.includes("measurement") ||
     lower.includes("measurements") ||
-    lower.includes("where do i put")
-  ) {
-    return `${coachName}: Put them in the Progress tab${namePart}, inside the measurement boxes. You can also tap the body diagram to match each box more easily.`;
+    lower.includes("weight") ||
+    lower.includes("waist") ||
+    lower.includes("hip") ||
+    lower.includes("chest") ||
+    lower.includes("where do i put");
+
+  const feelsDiscouraged =
+    lower.includes("discouraged") ||
+    lower.includes("unmotivated") ||
+    lower.includes("demotivated") ||
+    lower.includes("i feel bad") ||
+    lower.includes("feel like giving up") ||
+    lower.includes("fell off") ||
+    lower.includes("behind") ||
+    lower.includes("missed");
+
+  const feelsTired =
+    lower.includes("tired") ||
+    lower.includes("exhausted") ||
+    lower.includes("worn out") ||
+    lower.includes("no energy");
+
+  const asksWhy =
+    lower === "why" ||
+    lower.includes("why") ||
+    lower.includes("what do you mean") ||
+    lower.includes("clarify") ||
+    lower.includes("explain");
+
+  const asksPregnancy =
+    lower.includes("pregnant") || lower.includes("postpartum");
+
+  if (wantsPrayer) {
+    return `${coachName}: Of course. Lord, give ${firstName || "them"} peace, wisdom, endurance, and steady faith today. Help them take the next right step with strength and grace. Amen.`;
   }
 
-  if (lower.includes("what do you mean") || lower.includes("clarify")) {
-    return `${coachName}: Absolutely${namePart}. Tell me which part you want me to explain, and I’ll make it simple.`;
+  if (wantsMeasurementHelp) {
+    return `${coachName}: Put them in the Progress tab${namePart}, inside the measurement boxes. Tap the body diagram too — it helps match each measurement to the right place.`;
   }
 
-  if (lower.includes("simplify my day") || lower === "simplify") {
-    if (isGentleMode) {
-      return `${coachName}: Absolutely${namePart}. Today we keep it simple: warmup, 1 to 2 main movements, a short walk, and steady breathing. That is enough for today.`;
-    }
-    return `${coachName}: Absolutely${namePart}. Strip today down to the essentials: warmup, first 2 main exercises, one simple healthy meal choice, and done.`;
-  }
-
-  if (lower.includes("adjust my routine") || lower.includes("adjust")) {
-    if (isGentleMode) {
-      return `${coachName}: Yes${namePart}. I’d keep today lower-pressure and more controlled. We can make it shorter, gentler, or more recovery-focused. Tell me which one you want.`;
-    }
-    return `${coachName}: Yes${namePart}. I can make it shorter, easier, harder, or more focused. Tell me which direction you want and I’ll guide it.`;
-  }
-
-  if (lower.includes("help with food") || lower.includes("food")) {
+  if (wantsFoodHelp) {
     if (foodPrefs.includes("allerg")) {
-      return `${coachName}: Let’s keep food simple today${namePart}. Stay with meals you already know work well for your body, and focus on enough protein, steady energy, and hydration.`;
+      return `${coachName}: Let’s keep food simple today${namePart}. Stay with foods you already know work well for your body, and focus on protein, steady energy, and water.`;
     }
     if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: For today${namePart}, build meals around protein, carbs for energy, and water. Keep it simple and repeatable.`;
+      return `${coachName}: For today${namePart}, build meals around protein, enough carbs for energy, and water. Simple and repeatable is the goal.`;
     }
     if (goal.includes("weight")) {
-      return `${coachName}: For today${namePart}, focus on protein, fiber, and meals that actually keep you full. Simple beats perfect.`;
+      return `${coachName}: For today${namePart}, focus on protein, fiber, and meals that keep you full. Keep it simple, not extreme.`;
     }
-    return `${coachName}: Let’s keep food steady today${namePart} — protein, something filling, and enough water. Nothing extreme.`;
+    return `${coachName}: Keep food steady today${namePart} — protein, something filling, and enough water.`;
   }
 
-  if (lower.includes("discouraged") || lower.includes("i feel discouraged")) {
-    return `${coachName}: I hear you${namePart}. Feeling discouraged does not erase your progress. We are not chasing perfect — we are practicing faithfulness. Let’s choose one good next step and do that well.`;
+  if (asksPregnancy) {
+    if (pregnancyStatus === "Pregnant") {
+      return `${coachName}: Since you’re pregnant${namePart}, we’ll keep things gentler, safer, and more controlled with walking, posture, breathing, and simple calisthenics.`;
+    }
+    if (pregnancyStatus === "Postpartum") {
+      return `${coachName}: Since you’re postpartum${namePart}, we’ll rebuild patiently with controlled movement, walking, posture, and core awareness.`;
+    }
+    return `${coachName}: If pregnancy or postpartum ever becomes relevant${namePart}, I can adjust your routine to be much more gentle and supportive.`;
   }
 
-  if (lower.includes("pray for me") || lower.includes("pray")) {
-    return `${coachName}: Of course. Lord, give ${firstName || "them"} peace, strength, wisdom, and steady courage today. Help them care for their body with humility, discipline, and grace. Amen.`;
+  if (feelsDiscouraged) {
+    return `${coachName}: I hear you${namePart}. A rough day does not erase your progress. We are not chasing perfect — just the next faithful step.`;
   }
 
-  if (lower.includes("pregnant")) {
-    return `${coachName}: You are in the right place${namePart}. We’ll keep this safe, calm, and strength-building with gentle calisthenics, walking, posture, breathing, and wise pacing.`;
+  if (feelsTired) {
+    return `${coachName}: Then today should be wiser, not harder${namePart}. A shorter and gentler day still counts.`;
   }
 
-  if (lower.includes("postpartum")) {
-    return `${coachName}: You are in the right place${namePart}. We’ll rebuild gradually with gentle core awareness, posture, walking, controlled movement, and patience.`;
+  if (wantsAdjustment) {
+    if (lower.includes("hard")) {
+      return `${coachName}: Then let’s scale it down${namePart}. Reduce reps, slow the pace, and stop short of pain.`;
+    }
+    if (lower.includes("easy")) {
+      return `${coachName}: Then we can raise the challenge a little${namePart} — more reps, slower tempo, or one extra round.`;
+    }
+    if (lower.includes("short") || lower.includes("long")) {
+      return `${coachName}: Yes${namePart}. We can make today shorter and more manageable while keeping the main goal intact.`;
+    }
+    if (isGentleMode) {
+      return `${coachName}: Yes${namePart}. I’d keep today gentle, lower-pressure, and more recovery-focused.`;
+    }
+    return `${coachName}: Yes${namePart}. I can help make it easier, harder, shorter, or more focused.`;
   }
 
-  if (lower.includes("tired") || lower.includes("exhausted")) {
-    return `${coachName}: Then today needs wisdom, not guilt${namePart}. A shorter and gentler day still counts. Low-pressure consistency is still obedience.`;
+  if (wantsRoutineHelp) {
+    if (isGentleMode) {
+      return `${coachName}: For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.`;
+    }
+    if (goal.includes("discipline")) {
+      return `${coachName}: Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
+    }
+    if (goal.includes("muscle") || goal.includes("strength")) {
+      return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
+    }
+    if (goal.includes("weight")) {
+      return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
+    }
+    return `${coachName}: Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
   }
 
-  if (
-    lower.includes("i missed") ||
-    lower.includes("fell off") ||
-    lower.includes("behind")
-  ) {
-    return `${coachName}: Then we restart simply${namePart}. No shame, no dramatic reset. Just the next right step today.`;
+  if (asksWhy) {
+    return `${coachName}: I’m here${namePart}. Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer more clearly.`;
   }
 
-  if (lower.includes("hard") || lower.includes("too hard")) {
-    return `${coachName}: Thank you for telling me${namePart}. That means we should scale the plan, not quit it. We can lower reps, shorten the session, or choose easier movements.`;
-  }
-
-  if (lower.includes("easy") || lower.includes("too easy")) {
-    return `${coachName}: That is helpful${namePart}. We can increase challenge gradually with more reps, slower tempo, or one more round.`;
-  }
-
-  if (goal.includes("discipline")) {
-    return `${coachName}: I’m with you${namePart}. Since your focus is discipline, I want you to keep today simple and follow through fully. Completion matters more than intensity right now.`;
-  }
-
-  if (goal.includes("muscle") || goal.includes("strength")) {
-    return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing. Strong and steady.`;
-  }
-
-  if (goal.includes("weight")) {
-    return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
-  }
-
-  return `${coachName}: I’m with you${namePart}. Tell me what kind of help you need right now — routine, food, motivation, recovery, or prayer.`;
+  return `${coachName}: I’m with you${namePart}. Tell me what you want help with right now — routine, food, progress, motivation, or prayer.`;
 }
 
 function getMeasurementGuide(unit) {
@@ -1639,7 +1704,7 @@ setProfile({
   setWeeklyReportDismissed(false);
 }
 
-  function sendChatMessage(text) {
+function sendChatMessage(text) {
   const cleanText = text.trim();
   if (!cleanText) return;
 
@@ -1656,6 +1721,16 @@ setProfile({
         lower.includes("too long")
           ? true
           : profile.coachMemory?.prefersShortWorkouts || false,
+      lastChatTopic:
+        lower.includes("food") || lower.includes("meal")
+          ? "food"
+          : lower.includes("pray")
+          ? "prayer"
+          : lower.includes("measurement") || lower.includes("weight")
+          ? "progress"
+          : lower.includes("routine") || lower.includes("workout")
+          ? "routine"
+          : "general",
     },
   };
 
