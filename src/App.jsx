@@ -280,6 +280,15 @@ const fadeStyle = `
 `;
 
 function capitalizeName(value) {
+  if (!value) return "";
+  return String(value)
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function normalizeProfile(profile) {
   return {
     ...profile,
@@ -325,6 +334,7 @@ function isClarifyMessage(value) {
     lower === "i dont understand" ||
     lower === "i don't understand"
   );
+}
 
 function getClarificationForQuestion(question) {
   const map = {
@@ -375,7 +385,10 @@ function getClarificationForQuestion(question) {
       "Include allergies, dislikes, or how you usually eat.",
   };
 
-return map[question.key] || "Answer in the way that feels most true for you. It does not have to be perfect.";
+  return (
+    map[question.key] ||
+    "Answer in the way that feels most true for you. It does not have to be perfect."
+  );
 }
 
 function getSupportMessage(profile) {
@@ -387,6 +400,8 @@ function getSupportMessage(profile) {
     return `${coachName}: You’re in the right place. We’ll rebuild gently and safely with simple movement, walking, breathing, posture, and steady calisthenics-based recovery.`;
   }
   return "";
+}
+
 function detectSlang(text = "") {
   const lower = text.toLowerCase();
   const candidates = [
@@ -449,8 +464,9 @@ function getStateFunFact(state) {
     Wisconsin: "Fun fact: Wisconsin is famous for cheese and dairy farming.",
     Wyoming: "Fun fact: Wyoming is home to Yellowstone National Park.",
   };
-
   return facts[state] || `Fun fact: ${state} has its own unique history, people, and beauty.`;
+}
+
 function detectToneStyle(text = "", age) {
   const lower = text.toLowerCase();
   if (lower.includes("be direct") || lower.includes("just tell me")) return "direct";
@@ -461,7 +477,6 @@ function detectToneStyle(text = "", age) {
 
 function getBibleLinkForName(firstName) {
   const clean = capitalizeName(firstName);
-
   const directMatches = {
     Aaron: "Aaron was chosen for spiritual leadership and service. That name can remind you that God can use your life to encourage and guide others.",
     Abigail: "Abigail is remembered for wisdom, discernment, and peace-making. That name can remind you that wisdom is powerful.",
@@ -520,10 +535,6 @@ function getBibleLinkForName(firstName) {
   if (directMatches[clean]) {
     return directMatches[clean];
   }
-  const phrasePatterns = [];
-  if (text.includes("...")) phrasePatterns.push("ellipsis");
-  if (/[!?]{2,}/.test(text)) phrasePatterns.push("extraPunctuation");
-  if (text === text.toLowerCase() && /[a-z]/.test(text)) phrasePatterns.push("lowercase");
 
   return `${clean || "Your name"} can still be a reminder that God gave you purpose, dignity, and gifts that can grow with faithfulness. Scripture shows again and again that your identity is not random — you were made on purpose and for a purpose.`;
 }
@@ -577,9 +588,6 @@ function getUserVoicePrefix(profile) {
   const slang = profile.coachMemory?.slangWords || [];
   const tone = profile.coachMemory?.toneStyle || "balanced";
 
-function getRoutineLength(profile) {
-  const feedback = profile.coachMemory?.lastRoutineFeedback;
-  const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
   if (tone === "direct") return "Alright";
   if (tone === "gentle") return "I’m with you";
   if (slang.includes("lowkey")) return "Lowkey";
@@ -588,9 +596,26 @@ function getRoutineLength(profile) {
   return "Okay";
 }
 
+function getRoutineLength(profile) {
+  const feedback = profile.coachMemory?.lastRoutineFeedback;
+  const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
+  const goal = (profile.mainGoal || "").toLowerCase();
+  const activity = profile.activityLevel || "";
+
   if (feedback === "down" && reason.includes("long")) {
     return "15–20 min";
   }
+  if (activity === "Beginner") return "18–24 min";
+  if (activity === "Active") {
+    if (goal.includes("muscle") || goal.includes("strength")) return "35–45 min";
+    if (goal.includes("discipline")) return "25–35 min";
+    return "30–40 min";
+  }
+  if (goal.includes("weight")) return "28–36 min";
+  if (goal.includes("mental")) return "22–30 min";
+  return "24–32 min";
+}
+
 function getGoalType(profile) {
   const goal = (profile.mainGoal || "").toLowerCase();
   if (goal.includes("weight")) return "weight-loss";
@@ -609,7 +634,9 @@ function getRoutineData(profile) {
     harder: false,
     shorter: false,
   };
+
   const goalType = getGoalType(profile);
+  const goal = (profile.mainGoal || "").toLowerCase();
   const beginner = profile.activityLevel === "Beginner";
   const pregnant = profile.pregnancyStatus === "Pregnant";
   const postpartum = profile.pregnancyStatus === "Postpartum";
@@ -621,19 +648,15 @@ function getRoutineData(profile) {
     if (feedbackReason.includes("long")) {
       adjust.shorter = true;
     }
-  if (pregnant || postpartum || beginner) {
   }
 
   if (feedback === "up") {
     if (feedbackReason.includes("easy")) {
       adjust.harder = true;
     }
-  if (goalType === "strength") {
   }
 
-  const goal = (profile.mainGoal || "").toLowerCase();
   const activity = profile.activityLevel || "Somewhat active";
-
   const limitationText = [
     profile.hasLimitations,
     profile.limitationType,
@@ -646,8 +669,8 @@ function getRoutineData(profile) {
   const shouldGoGentle =
     activity === "Beginner" ||
     profile.hasLimitations === "Yes" ||
-    profile.pregnancyStatus === "Pregnant" ||
-    profile.pregnancyStatus === "Postpartum" ||
+    pregnant ||
+    postpartum ||
     limitationText.includes("injury") ||
     limitationText.includes("disability") ||
     limitationText.includes("pain") ||
@@ -1004,7 +1027,14 @@ function getRoutineData(profile) {
   if (goal.includes("weight")) return weightLossRoutine;
 
   if (adjust.shorter) {
-  if (goalType === "weight-loss") {
+    return {
+      ...balancedRoutine,
+      title: "Balanced Full-Body Day — Simplified",
+      summary: "A shorter full-body session based on your last workout feedback.",
+      main: balancedRoutine.main.slice(0, 2),
+      cooldown: balancedRoutine.cooldown.slice(0, 1),
+      walking: "Optional 5–10 minute walk for recovery and energy.",
+    };
   }
 
   return balancedRoutine;
@@ -1021,7 +1051,7 @@ function getCoachMessage(profile) {
   const goalType = getGoalType(profile);
   const prefix = getUserVoicePrefix(profile);
 
-let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
+  let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
   let focus = "Consistency over perfection.";
   let action = "Finish today’s core routine and keep your meals simple.";
 
@@ -1040,12 +1070,13 @@ let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady
   } else if (goal.includes("mental")) {
     message = `We’re aiming for strength and steadiness today${greetingName}.`;
     focus = "Movement should support your mind, not just your body.";
-action = "Finish the session, breathe slowly, and do not chase perfection.";
-}
-action = "Do your routine and keep your meals simple.";
+    action = "Finish the session, breathe slowly, and do not chase perfection.";
+  }
 
   if (activity === "Beginner") {
     message = `We’re keeping this approachable${greetingName} and building from where you are now.`;
+  }
+
   if (goalType === "strength") {
     focus = "Controlled reps and honest effort.";
     action = "Hit your main sets and make protein a priority.";
@@ -1060,6 +1091,7 @@ action = "Do your routine and keep your meals simple.";
   if (whyStarted && whyStarted.length > 10) {
     action = `Remember why you started: ${whyStarted.slice(0, 55)}${whyStarted.length > 55 ? "..." : ""}`;
   }
+
   return {
     speaker: capitalizeName(profile.coachName) || "Coach",
     message,
