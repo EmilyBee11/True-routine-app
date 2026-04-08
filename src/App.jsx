@@ -560,11 +560,10 @@ function getConversationalReply(profile, justAnsweredKey) {
     activityLimit: "That gives me a clearer picture.",
     mainGoal: "That makes sense.",
     bodyFocus: "Got it.",
-const map = {
-  foodPreferences: "Good to know.",
-};
+    foodPreferences: "Good to know.",
+  };
 
-return map[justAnsweredKey] || "Got it.";
+  return map[justAnsweredKey] || "Got it.";
 }
 function cleanCoachBubbleText(text, coachName = "Coach") {
   if (!text || typeof text !== "string") return "";
