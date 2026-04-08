@@ -1413,6 +1413,7 @@ function getAIResponse(input, profile) {
 
 function getMeasurementGuide(unit) {
   const u = unit === "Centimeters" ? "cm" : "in";
+
   return [
     `Chest: wrap the tape around the fullest part of your chest. Write it down in ${u}.`,
     `Waist: wrap the tape around the narrowest part of your waist and keep it level.`,
@@ -1422,6 +1423,8 @@ function getMeasurementGuide(unit) {
     "Arm: measure around the fullest part of your upper arm while relaxed.",
     "Calf: measure around the fullest part of your calf.",
   ];
+}
+
 function GearIcon({ size = 18 }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
