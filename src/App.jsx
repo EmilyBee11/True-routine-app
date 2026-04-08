@@ -1443,43 +1443,13 @@ function GearIcon({ size = 18 }) {
 
 function TourMeasurementDiagram({ activePart, onSelectPart }) {
   const accent = "#4f8edc";
-  return (
-    <div
-      style={{
-        background: "#f4f5f7",
-        borderRadius: 26,
-        padding: 16,
-        border: "1px solid rgba(0,0,0,0.06)",
-      }}
-    >
-      <svg viewBox="0 0 360 520" style={{ width: "100%", height: "auto", display: "block" }}>
-        <text
-          x="180"
-          y="28"
-          textAnchor="middle"
-          style={{
-            fontSize: 18,
-            fontWeight: 800,
-            fill: "#111111",
-            letterSpacing: "0.04em",
-          }}
-        >
-          BODY MEASUREMENT TRACKER
-        </text>
 
-        <rect x="18" y="46" width="110" height="20" rx="0" fill={accent} />
-        <rect x="232" y="46" width="110" height="20" rx="0" fill={accent} />
-        <text x="73" y="61" textAnchor="middle" style={{ fill: "white", fontSize: 12, fontWeight: 800 }}>
-          TRACK
-        </text>
-        <text x="287" y="61" textAnchor="middle" style={{ fill: "white", fontSize: 12, fontWeight: 800 }}>
-          GUIDE
-        </text>
+  return (
     <div style={diagramCard}>
       <svg viewBox="0 0 360 420" style={{ width: "100%", display: "block" }}>
         <circle cx="180" cy="70" r="26" fill="none" stroke="#222" strokeWidth="2" />
-        <path d="M180 96 L180 250" stroke="#222" strokeWidth="2" />
-        <path d="M130 135 L230 135" stroke="#222" strokeWidth="2" />
+        <path d="M180 96 L180 250" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M130 135 L230 135" stroke="#222" strokeWidth="2" fill="none" />
         <path d="M145 135 L130 210 L142 270" stroke="#222" strokeWidth="2" fill="none" />
         <path d="M215 135 L230 210 L218 270" stroke="#222" strokeWidth="2" fill="none" />
         <path d="M160 250 L152 345 L163 385" stroke="#222" strokeWidth="2" fill="none" />
@@ -1492,20 +1462,19 @@ function TourMeasurementDiagram({ activePart, onSelectPart }) {
           { key: "hip", label: "HIPS", y: 204 },
           { key: "thigh", label: "THIGH", y: 242 },
           { key: "calf", label: "CALF", y: 280 },
-          { key: "chest", y: 135, label: "CHEST" },
-          { key: "waist", y: 185, label: "WAIST" },
-          { key: "hip", y: 230, label: "HIP" },
-          { key: "thigh", y: 300, label: "THIGH" },
         ].map((item) => (
-          <g key={item.key} onClick={() => onSelectPart?.(item.key)} style={{ cursor: "pointer" }}>
-          <g key={item.key} onClick={() => onSelectPart(item.key)} style={{ cursor: "pointer" }}>
+          <g
+            key={item.key}
+            onClick={() => onSelectPart?.(item.key)}
+            style={{ cursor: "pointer" }}
+          >
             <rect
               x="18"
               y={item.y}
               width="92"
               height="26"
               rx="6"
-              fill={boxFill(item.key)}
+              fill={activePart === item.key ? `${accent}22` : "#ffffff"}
               stroke={accent}
               strokeWidth="2"
             />
@@ -1513,7 +1482,11 @@ function TourMeasurementDiagram({ activePart, onSelectPart }) {
               x="64"
               y={item.y + 17}
               textAnchor="middle"
-              style={{ fill: labelFill(item.key), fontSize: 11, fontWeight: 800 }}
+              style={{
+                fill: activePart === item.key ? "#111111" : accent,
+                fontSize: 11,
+                fontWeight: 800,
+              }}
             >
               {item.label}
             </text>
@@ -1536,11 +1509,6 @@ function TourMeasurementDiagram({ activePart, onSelectPart }) {
               height="26"
               rx="6"
               fill="#ffffff"
-              y={item.y - 12}
-              width="90"
-              height="24"
-              rx="8"
-              fill={activePart === item.key ? `${accent}22` : "#fff"}
               stroke={accent}
               strokeWidth="2"
             />
@@ -1550,28 +1518,10 @@ function TourMeasurementDiagram({ activePart, onSelectPart }) {
               textAnchor="middle"
               style={{ fill: "#111111", fontSize: 11, fontWeight: 800 }}
             >
-            <text x="63" y={item.y + 4} textAnchor="middle" fontSize="11" fontWeight="800" fill="#111">
               {item.label}
             </text>
           </g>
         ))}
-
-        <circle cx="180" cy="102" r="28" fill="none" stroke="#222" strokeWidth="2" />
-        <path d="M180 130 L180 300" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M138 170 L222 170" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M145 170 L132 244 L140 314" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M215 170 L228 244 L220 314" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M160 300 L154 414 L166 458" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M200 300 L206 414 L194 458" stroke="#222" strokeWidth="2" fill="none" />
-
-        <line x1="135" y1="170" x2="225" y2="170" stroke="#777" strokeDasharray="5 4" />
-        <line x1="142" y1="224" x2="218" y2="224" stroke="#777" strokeDasharray="5 4" />
-        <line x1="138" y1="262" x2="222" y2="262" stroke="#777" strokeDasharray="5 4" />
-        <line x1="148" y1="350" x2="212" y2="350" stroke="#777" strokeDasharray="5 4" />
-
-        <text x="180" y="495" textAnchor="middle" style={{ fill: "#111111", fontSize: 13, fontWeight: 700 }}>
-          Tap a label on the left to highlight its box below
-        </text>
       </svg>
     </div>
   );
