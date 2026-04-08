@@ -375,10 +375,7 @@ function getClarificationForQuestion(question) {
       "Include allergies, dislikes, or how you usually eat.",
   };
 
-  return (
-    map[question.key] ||
-    "Answer in the way that feels most true for you. It does not have to be perfect."
-  );
+return map[question.key] || "Answer in the way that feels most true for you. It does not have to be perfect.";
 }
 
 function getSupportMessage(profile) {
@@ -563,12 +560,12 @@ function getConversationalReply(profile, justAnsweredKey) {
     activityLimit: "That gives me a clearer picture.",
     mainGoal: "That makes sense.",
     bodyFocus: "Got it.",
-    foodPreferences: "Good to know.",
-  };
+const map = {
+  foodPreferences: "Good to know.",
+};
 
-  return map[justAnsweredKey] || "Got it.";
+return map[justAnsweredKey] || "Got it.";
 }
-
 function cleanCoachBubbleText(text, coachName = "Coach") {
   if (!text || typeof text !== "string") return "";
   const cleanName = capitalizeName(coachName) || "Coach";
@@ -1025,8 +1022,7 @@ function getCoachMessage(profile) {
   const goalType = getGoalType(profile);
   const prefix = getUserVoicePrefix(profile);
 
-  let message = `Let’s keep today steady and intentional${greetingName}.`;
-  let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
+let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
   let focus = "Consistency over perfection.";
   let action = "Finish today’s core routine and keep your meals simple.";
 
@@ -1045,9 +1041,9 @@ function getCoachMessage(profile) {
   } else if (goal.includes("mental")) {
     message = `We’re aiming for strength and steadiness today${greetingName}.`;
     focus = "Movement should support your mind, not just your body.";
-    action = "Finish the session, breathe slowly, and do not chase perfection.";
-  }
-  let action = "Do your routine and keep your meals simple.";
+action = "Finish the session, breathe slowly, and do not chase perfection.";
+}
+action = "Do your routine and keep your meals simple.";
 
   if (activity === "Beginner") {
     message = `We’re keeping this approachable${greetingName} and building from where you are now.`;
