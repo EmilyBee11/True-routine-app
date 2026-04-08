@@ -373,6 +373,7 @@ function getClarificationForQuestion(question) {
       "This can be a body part, habit, or type of fitness.",
     foodPreferences:
       "Include allergies, dislikes, or how you usually eat.",
+  };
 
   return (
     map[question.key] ||
