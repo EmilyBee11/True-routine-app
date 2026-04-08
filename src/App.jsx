@@ -564,6 +564,7 @@ function getConversationalReply(profile, justAnsweredKey) {
     mainGoal: "That makes sense.",
     bodyFocus: "Got it.",
     foodPreferences: "Good to know.",
+  };
 
   return map[justAnsweredKey] || "Got it.";
 }
