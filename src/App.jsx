@@ -61,13 +61,6 @@ const ALL_STATES = [
   "West Virginia",
   "Wisconsin",
   "Wyoming",
-  "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware",
-  "Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky",
-  "Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi",
-  "Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico",
-  "New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania",
-  "Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
-  "Virginia","Washington","West Virginia","Wisconsin","Wyoming",
 ];
 
 const QUESTION_FLOW = [
@@ -98,11 +91,7 @@ const QUESTION_FLOW = [
     type: "choice",
     options: ["Woman", "Man"],
   },
-  { key: "coachName", label: "What do you want to call your coach?", type: "text" },
-  { key: "firstName", label: "What’s your first name?", type: "text" },
-  { key: "age", label: "How old are you?", type: "number" },
-  { key: "state", label: "What state do you live in?", type: "select", options: ALL_STATES },
-  { key: "gender", label: "Are you a man or a woman?", type: "choice", options: ["Woman", "Man"] },
+
   {
     key: "pregnancyStatus",
     label: "Are you currently pregnant, postpartum, or neither?",
@@ -173,10 +162,9 @@ const QUESTION_FLOW = [
     label: "What are you hoping changes in your life because of this?",
     type: "text",
   },
-  { key: "mainGoal", label: "What is your main goal right now?", type: "text" },
+
   {
     key: "activityLevel",
-    label: "How active would you say you are right now?",
     label: "How active are you right now?",
     type: "choice",
     options: ["Beginner", "Somewhat active", "Active"],
@@ -224,8 +212,6 @@ const QUESTION_FLOW = [
   },
   {
     key: "foodPreferences",
-    label:
-      "Any food preferences, dislikes, allergies, or eating habits I should know about?",
     label: "Any food preferences, dislikes, or allergies?",
     type: "text",
   },
@@ -266,10 +252,7 @@ const COLOR_OPTIONS = [
     accent: "#e11d48",
     tint: "#ffe4e6",
   },
-  { name: "Granite Blue", primary: "#20242d", accent: "#4f8edc", tint: "#dbeafe" },
-  { name: "Granite Purple", primary: "#241f29", accent: "#8b5cf6", tint: "#ede9fe" },
-  { name: "Granite Teal", primary: "#1e2628", accent: "#14b8a6", tint: "#ccfbf1" },
-  { name: "Granite Rose", primary: "#2a2124", accent: "#e11d48", tint: "#ffe4e6" },
+
 ];
 
 const MEASUREMENT_FIELDS = [
@@ -281,13 +264,6 @@ const MEASUREMENT_FIELDS = [
   { key: "thigh", label: "Thigh", tip: "around one upper thigh" },
   { key: "arm", label: "Arm", tip: "around the fullest upper arm" },
   { key: "calf", label: "Calf", tip: "around the fullest part of the calf" },
-  { key: "chest", label: "Chest", tip: "fullest part" },
-  { key: "waist", label: "Waist", tip: "narrowest part" },
-  { key: "highHip", label: "High Hip", tip: "upper hip" },
-  { key: "hip", label: "Hip", tip: "fullest part" },
-  { key: "thigh", label: "Thigh", tip: "upper thigh" },
-  { key: "arm", label: "Arm", tip: "upper arm" },
-  { key: "calf", label: "Calf", tip: "fullest part" },
 ];
 
 const fadeStyle = `
@@ -300,12 +276,10 @@ const fadeStyle = `
       opacity: 1;
       transform: translateY(0);
     }
-    0% { opacity: 0; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
   }
 `;
 
-@@ -286,1569 +90,480 @@ function capitalizeName(value) {
+function capitalizeName(value) {
 function normalizeProfile(profile) {
   return {
     ...profile,
@@ -313,7 +287,6 @@ function normalizeProfile(profile) {
     coachName: capitalizeName(profile.coachName),
     limitationType: capitalizeName(profile.limitationType),
     limitationName: capitalizeName(profile.limitationName),
-    firstName: capitalizeName(profile.firstName),
     measurements: profile.measurements || {},
     measurementHistory: profile.measurementHistory || [],
     measurementUnit: profile.measurementUnit || "Inches",
@@ -338,7 +311,6 @@ function getVisibleQuestionFlow(profile) {
     }
     return true;
   });
-  return QUESTION_FLOW.filter((q) => !q.showIf || q.showIf(profile));
 }
 
 function isClarifyMessage(value) {
@@ -353,13 +325,6 @@ function isClarifyMessage(value) {
     lower === "i dont understand" ||
     lower === "i don't understand"
   );
-function cleanCoachBubbleText(text, coachName = "Coach") {
-  if (!text) return "";
-  const cleanName = capitalizeName(coachName) || "Coach";
-  return text
-    .replace(new RegExp(`^${cleanName}:\\s*`, "i"), "")
-    .replace(/^Coach:\s*/i, "");
-}
 
 function getClarificationForQuestion(question) {
   const map = {
@@ -408,12 +373,6 @@ function getClarificationForQuestion(question) {
       "This can be a body part, habit, or type of fitness.",
     foodPreferences:
       "Include allergies, dislikes, or how you usually eat.",
-function buildMeasurementSnapshot(profile) {
-  return {
-    id: Date.now(),
-    createdAt: new Date().toISOString(),
-    measurements: { ...(profile.measurements || {}) },
-  };
 
   return (
     map[question.key] ||
@@ -559,9 +518,6 @@ function getBibleLinkForName(firstName) {
     Thomas: "Thomas reminds us that honest questions can still lead to strong faith.",
     Timothy: "Timothy is linked with spiritual growth, courage, and faithful leadership.",
   };
-function updateLanguageMemory(profile, text) {
-  const slang = detectSlang(text);
-  const toneStyle = detectToneStyle(text, profile.age);
 
   if (directMatches[clean]) {
     return directMatches[clean];
@@ -573,8 +529,6 @@ function updateLanguageMemory(profile, text) {
 
   return `${clean || "Your name"} can still be a reminder that God gave you purpose, dignity, and gifts that can grow with faithfulness. Scripture shows again and again that your identity is not random — you were made on purpose and for a purpose.`;
 }
-  const existingSlang = profile.coachMemory?.slangWords || [];
-  const existingPatterns = profile.coachMemory?.phrasePatterns || [];
 
 function getConversationalReply(profile, justAnsweredKey) {
   const name = capitalizeName(profile.firstName) || "";
@@ -609,16 +563,6 @@ function getConversationalReply(profile, justAnsweredKey) {
     mainGoal: "That makes sense.",
     bodyFocus: "Got it.",
     foodPreferences: "Good to know.",
-  return {
-    ...profile,
-    coachMemory: {
-      ...profile.coachMemory,
-      slangWords: [...new Set([...existingSlang, ...slang])].slice(-12),
-      phrasePatterns: [...new Set([...existingPatterns, ...phrasePatterns])].slice(-8),
-      toneStyle,
-      ageStyle: profile.age && Number(profile.age) <= 18 ? "teen" : "adult",
-    },
-  };
 
   return map[justAnsweredKey] || "Got it.";
 }
@@ -651,20 +595,6 @@ function getRoutineLength(profile) {
   }
 function getGoalType(profile) {
   const goal = (profile.mainGoal || "").toLowerCase();
-  const activity = profile.activityLevel || "";
-
-  if (activity === "Beginner") return "18–24 min";
-
-  if (activity === "Active") {
-    if (goal.includes("muscle") || goal.includes("strength")) return "35–45 min";
-    if (goal.includes("discipline")) return "25–35 min";
-    return "30–40 min";
-  }
-
-  if (goal.includes("weight")) return "28–36 min";
-  if (goal.includes("mental")) return "22–30 min";
-
-  return "24–32 min";
   if (goal.includes("weight")) return "weight-loss";
   if (goal.includes("muscle") || goal.includes("strength")) return "strength";
   if (goal.includes("discipline")) return "discipline";
@@ -694,18 +624,6 @@ function getRoutineData(profile) {
       adjust.shorter = true;
     }
   if (pregnant || postpartum || beginner) {
-    return {
-      title: "Foundation Day",
-      summary: "A gentle full-body day focused on consistency and good form.",
-      blocks: [
-        "5 min easy warmup walk",
-        "2 x 10 bodyweight squats",
-        "2 x 8 incline push-ups",
-        "2 x 10 glute bridges",
-        "2 x 20 sec plank or dead bug",
-        "5–10 min recovery walk",
-      ],
-    };
   }
 
   if (feedback === "up") {
@@ -713,17 +631,6 @@ function getRoutineData(profile) {
       adjust.harder = true;
     }
   if (goalType === "strength") {
-    return {
-      title: "Strength Day",
-      summary: "Controlled reps, steady tension, and simple bodyweight strength work.",
-      blocks: [
-        "3 x 10 push-ups",
-        "3 x 15 squats",
-        "3 x 10 reverse lunges each leg",
-        "3 x 20 sec hollow hold",
-        "Short cooldown stretch",
-      ],
-    };
   }
 
   const goal = (profile.mainGoal || "").toLowerCase();
@@ -1100,37 +1007,9 @@ function getRoutineData(profile) {
 
   if (adjust.shorter) {
   if (goalType === "weight-loss") {
-    return {
-      ...balancedRoutine,
-      title: "Balanced Full-Body Day — Simplified",
-      summary: "A shorter full-body session based on your last workout feedback.",
-      main: balancedRoutine.main.slice(0, 2),
-      cooldown: balancedRoutine.cooldown.slice(0, 1),
-      walking: "Optional 5–10 minute walk for recovery and energy.",
-      title: "Cardio Calisthenics Day",
-      summary: "Simple movement with a little more pace.",
-      blocks: [
-        "3 rounds jumping jacks",
-        "3 x 12 squat to knee drive",
-        "3 x 20 sec mountain climbers",
-        "3 x 10 reverse lunges each leg",
-        "10–20 min walk",
-      ],
-    };
   }
 
   return balancedRoutine;
-  return {
-    title: "Balanced Full-Body Day",
-    summary: "A steady full-body session built for consistency.",
-    blocks: [
-      "3 x 8 push-ups",
-      "3 x 12 squats",
-      "3 x 8 lunges each leg",
-      "3 x 20 sec plank",
-      "5–10 min walk",
-    ],
-  };
 }
 
 function getCoachMessage(profile) {
@@ -1192,8 +1071,6 @@ function getCoachMessage(profile) {
   };
 }
 
-  const lastUpdate = profile.coachMemory?.lastMeasurementUpdate;
-  let measurementReminder = "";
 function parseFoodSignals(text = "") {
   const lower = text.toLowerCase();
   const preferred = [];
@@ -1231,20 +1108,6 @@ function parseFoodSignals(text = "") {
   return { preferred, avoided, allergies };
 }
 
-function getFoodGuidance(profile) {
-  const goal = (profile.mainGoal || "").toLowerCase();
-  const prefs = (profile.foodPreferences || "").toLowerCase();
-function getNutritionTargets(profile) {
-  const age = Number(profile.age) || 18;
-  const goalType = getGoalType(profile);
-  const activity = profile.activityLevel || "Somewhat active";
-  const weight = Number(profile.measurements?.weight) || 140;
-  const pregnant = profile.pregnancyStatus === "Pregnant";
-  const postpartum = profile.pregnancyStatus === "Postpartum";
-
-  if (prefs.includes("allerg")) {
-    return "Keep meals simple today and stay aware of the foods you already know work well for you.";
-  }
   if (goal.includes("muscle") || goal.includes("strength")) {
     return "Center meals around protein, enough carbs for training energy, and good hydration.";
   }
@@ -1263,10 +1126,6 @@ function getNutritionTargets(profile) {
   if (activity === "Active") calories += 300;
   if (activity === "Beginner") calories -= 100;
 
-function getLastAssistantMessage(chatMessages) {
-  const aiMessages = chatMessages.filter((msg) => msg.role === "ai");
-  return aiMessages.length ? aiMessages[aiMessages.length - 1].text : "";
-}
 function detectChatTopic(text) {
   const lower = text.toLowerCase();
   if (
@@ -1457,265 +1316,11 @@ function detectWin(text) {
   return "";
 }
 
-function updateCoachMemoryFromMessage(profile, text) {
-  const topic = detectChatTopic(text);
-  const mood = detectMood(text);
-  const preferredHelpStyle = detectPreferredHelpStyle(text);
-  const struggle = detectCurrentStruggle(text);
-  const win = detectWin(text);
-
-  const previousTopics = profile.coachMemory?.recentTopics || [];
-  const recentTopics = [...previousTopics, topic].slice(-6);
-
-  const previousWins = profile.coachMemory?.userWins || [];
-  const nextWins = win ? [...previousWins, win].slice(-6) : previousWins;
-
-  return {
-    ...profile,
-    coachMemory: {
-      ...profile.coachMemory,
-      prefersShortWorkouts:
-        preferredHelpStyle === "simple"
-          ? true
-          : profile.coachMemory?.prefersShortWorkouts || false,
-      lastChatTopic: topic,
-      recentTopics,
-      lastMood: mood,
-      currentStruggle: struggle || profile.coachMemory?.currentStruggle || "",
-      preferredHelpStyle:
-        preferredHelpStyle !== "balanced"
-          ? preferredHelpStyle
-          : profile.coachMemory?.preferredHelpStyle || "balanced",
-      userWins: nextWins,
-    },
-    calories,
-    protein,
-    water,
-    carbsFocus: goalType === "strength" ? "moderate to higher" : "moderate",
-    fatsFocus: "steady healthy fats",
-  };
-}
-
-function getMemoryPrefix(profile) {
-  const firstName = capitalizeName(profile.firstName) || "";
-  const namePart = firstName ? `, ${firstName}` : "";
-  const mood = profile.coachMemory?.lastMood || "neutral";
-  const struggle = profile.coachMemory?.currentStruggle || "";
-  const wins = profile.coachMemory?.userWins || [];
-
-  if (mood === "discouraged") {
-    return `I know this has felt discouraging${namePart}. `;
-  }
-  if (mood === "tired") {
-    return `I know your energy has felt low${namePart}. `;
-  }
-  if (struggle === "time consistency") {
-    return `I know consistency and time have been the big pressure point${namePart}. `;
-  }
-  if (struggle === "food consistency") {
-    return `I know food consistency has been one of the harder parts${namePart}. `;
-  }
-  if (struggle === "routine difficulty") {
-    return `I know the routine has felt a little tough lately${namePart}. `;
-  }
-  if (wins.length > 0) {
-    return `You have already had some wins here${namePart}, so keep building on that. `;
-  }
-  return "";
 function getFoodGuidance(profile) {
   const targets = getNutritionTargets(profile);
   return `Aim for about ${targets.protein}g protein, around ${targets.water} oz water, and meals built around protein, carbs for energy, and steady healthy fats.`;
 }
-function getAIResponse(input, profile) {
-  const lower = input.toLowerCase().trim();
-  const coachName = capitalizeName(profile.coachName) || "Coach";
-  const firstName = capitalizeName(profile.firstName) || "";
-  const namePart = firstName ? `, ${firstName}` : "";
-  const goal = (profile.mainGoal || "").toLowerCase();
-  const activity = (profile.activityLevel || "").toLowerCase();
-  const foodPrefs = (profile.foodPreferences || "").toLowerCase();
-  const pregnancyStatus = profile.pregnancyStatus || "";
-  const routine = getRoutineData(profile);
 
-  const memory = profile.coachMemory || {};
-  const preferredFoods = memory.preferredFoods || [];
-  const avoidedFoods = memory.avoidedFoods || [];
-  const allergies = memory.allergies || [];
-  const learnedInjuries = memory.learnedInjuries || [];
-  const learnedLimits = memory.learnedLimits || [];
-  const commonStruggles = memory.commonStruggles || [];
-  const victories = memory.victories || [];
-  const motivationStyle = memory.motivationStyle || "balanced";
-  const faithFocus = memory.faithFocus || "growing";
-
-  const limitationText = [
-    profile.hasLimitations,
-    profile.limitationType,
-    profile.limitationName,
-    profile.activityLimit,
-    profile.pregnancyRestrictions,
-    profile.pregnancySymptoms,
-    profile.postpartumConcerns,
-    ...learnedInjuries,
-    ...learnedLimits,
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  const isGentleMode =
-    pregnancyStatus === "Pregnant" ||
-    pregnancyStatus === "Postpartum" ||
-    profile.hasLimitations === "Yes" ||
-    activity.includes("beginner") ||
-    limitationText.includes("pain") ||
-    limitationText.includes("injury") ||
-    limitationText.includes("dizziness") ||
-    limitationText.includes("pelvic") ||
-    limitationText.includes("bleeding") ||
-    limitationText.includes("gentler");
-
-  const shortWorkoutPreference =
-    memory.prefersShortWorkouts ||
-    learnedLimits.includes("prefers shorter workouts");
-
-  const hasKneeIssue = learnedInjuries.includes("knee issue");
-  const hasBackIssue = learnedInjuries.includes("back issue");
-  const hasShoulderIssue = learnedInjuries.includes("shoulder issue");
-
-  const wantsPrayer =
-    lower.includes("pray") ||
-    lower.includes("prayer") ||
-    lower.includes("please pray");
-
-  const wantsFoodHelp =
-    lower.includes("food") ||
-    lower.includes("meal") ||
-    lower.includes("eat") ||
-    lower.includes("eating") ||
-    lower.includes("hungry") ||
-    lower.includes("snack") ||
-    lower.includes("breakfast") ||
-    lower.includes("lunch") ||
-    lower.includes("dinner");
-
-  const wantsRoutineHelp =
-    lower.includes("routine") ||
-    lower.includes("workout") ||
-    lower.includes("exercise") ||
-    lower.includes("training") ||
-    lower.includes("session");
-
-  const wantsAdjustment =
-    lower.includes("adjust") ||
-    lower.includes("change it") ||
-    lower.includes("make it easier") ||
-    lower.includes("make it harder") ||
-    lower.includes("shorter") ||
-    lower.includes("longer") ||
-    lower.includes("too hard") ||
-    lower.includes("too easy") ||
-    lower.includes("too long");
-
-  const wantsMeasurementHelp =
-    lower.includes("measurement") ||
-    lower.includes("measurements") ||
-    lower.includes("weight") ||
-    lower.includes("waist") ||
-    lower.includes("hip") ||
-    lower.includes("chest") ||
-    lower.includes("where do i put");
-
-  const feelsDiscouraged =
-    lower.includes("discouraged") ||
-    lower.includes("unmotivated") ||
-    lower.includes("demotivated") ||
-    lower.includes("i feel bad") ||
-    lower.includes("feel like giving up") ||
-    lower.includes("fell off") ||
-    lower.includes("behind") ||
-    lower.includes("missed");
-
-  const feelsTired =
-    lower.includes("tired") ||
-    lower.includes("exhausted") ||
-    lower.includes("worn out") ||
-    lower.includes("no energy");
-
-  const asksWhy =
-    lower === "why" ||
-    lower.includes("what do you mean") ||
-    lower.includes("clarify") ||
-    lower.includes("explain");
-
-  const asksPregnancy =
-    lower.includes("pregnant") || lower.includes("postpartum");
-
-  const gentlePrefix =
-    motivationStyle === "gentle"
-      ? `I’m with you${namePart}. `
-      : motivationStyle === "direct"
-      ? `Alright${namePart}. `
-      : "";
-
-  if (wantsPrayer) {
-    if (faithFocus === "strong") {
-      return `${coachName}: Of course. Lord, give ${firstName || "them"} peace, wisdom, endurance, and steady faith today. Help them take the next right step with strength and grace. Amen.`;
-    }
-    return `${coachName}: Of course. I’m praying for peace, strength, and steady courage over you today${namePart}.`;
-  }
-
-  if (wantsMeasurementHelp) {
-    return `${coachName}: Put them in the Progress tab${namePart}, inside the measurement boxes. Tap the body diagram too — it helps match each measurement to the right place.`;
-  }
-
-  if (wantsFoodHelp) {
-    let memoryFoodLine = "";
-
-    if (allergies.length > 0) {
-      memoryFoodLine = ` I remember you need to avoid ${allergies.join(", ")}.`;
-    } else if (avoidedFoods.length > 0) {
-      memoryFoodLine = ` I remember you do not enjoy ${avoidedFoods.join(", ")}.`;
-    } else if (preferredFoods.length > 0) {
-      memoryFoodLine = ` I remember foods like ${preferredFoods.join(", ")} work well for you.`;
-    }
-function getMealIdeas(profile) {
-  const goalType = getGoalType(profile);
-  const allergiesText = (profile.foodPreferences || "").toLowerCase();
-  const avoidDairy = allergiesText.includes("dairy");
-  const avoidEggs = allergiesText.includes("egg");
-  const avoidGluten = allergiesText.includes("gluten");
-
-    if (foodPrefs.includes("allerg")) {
-      return `${coachName}: Let’s keep food simple today${namePart}. Stay with foods you already know work well for your body, and focus on protein, steady energy, and water.${memoryFoodLine}`;
-    }
-    if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: For today${namePart}, build meals around protein, enough carbs for energy, and water. Simple and repeatable is the goal.${memoryFoodLine}`;
-    }
-    if (goal.includes("weight")) {
-      return `${coachName}: For today${namePart}, focus on protein, fiber, and meals that keep you full. Keep it simple, not extreme.${memoryFoodLine}`;
-    }
-    return `${coachName}: Keep food steady today${namePart} — protein, something filling, and enough water.${memoryFoodLine}`;
-  }
-
-  if (asksPregnancy) {
-    if (pregnancyStatus === "Pregnant") {
-      return `${coachName}: Since you’re pregnant${namePart}, we’ll keep things gentler, safer, and more controlled with walking, posture, breathing, and simple calisthenics.`;
-    }
-    if (pregnancyStatus === "Postpartum") {
-      return `${coachName}: Since you’re postpartum${namePart}, we’ll rebuild patiently with controlled movement, walking, posture, and core awareness.`;
-    }
-    return `${coachName}: If pregnancy or postpartum ever becomes relevant${namePart}, I can adjust your routine to be much more gentle and supportive.`;
-  }
-
-  if (feelsDiscouraged) {
-    const struggleLine = commonStruggles.includes("discouragement")
-      ? " I remember this is one of the places you need the most support, so we’re going to answer it with consistency, not shame."
-      : "";
-    const victoryLine = victories.includes("followed through")
-      ? " You have followed through before, and you can do it again."
-      : "";
-    return `${coachName}: ${gentlePrefix}A rough day does not erase your progress.${struggleLine}${victoryLine}`;
-  }
   const recipes = [
     {
       title: "Protein Oat Bowl",
@@ -1748,9 +1353,7 @@ function getMealIdeas(profile) {
     },
   ];
 
-  if (feelsTired) {
-    return `${coachName}: ${gentlePrefix}Then today should be wiser, not harder${namePart}. A shorter and gentler day still counts.`;
-  if (goalType === "weight-loss") {
+
     recipes.push({
       title: "High-Protein Wrap Bowl",
       fit: "easy meal",
@@ -1758,24 +1361,6 @@ function getMealIdeas(profile) {
       items: ["lean protein", "lettuce or rice", "beans", "salsa", "veggies"],
     });
   }
-
-  if (wantsAdjustment) {
-    if (lower.includes("hard")) {
-      if (hasKneeIssue || hasBackIssue || hasShoulderIssue) {
-        return `${coachName}: Then let’s scale it down${namePart}. I remember your ${hasKneeIssue ? "knee" : hasBackIssue ? "back" : "shoulder"} has been bothering you, so we’ll lower the reps, slow the pace, and protect that area.`;
-      }
-      return `${coachName}: Then let’s scale it down${namePart}. Reduce reps, slow the pace, and stop short of pain.`;
-    }
-    if (lower.includes("easy")) {
-      return `${coachName}: Then we can raise the challenge a little${namePart} — more reps, slower tempo, or one extra round.`;
-    }
-    if (lower.includes("short") || lower.includes("long") || shortWorkoutPreference) {
-      return `${coachName}: Yes${namePart}. I remember shorter workouts help you more, so we can keep today tight and manageable while still making it count.`;
-    }
-    if (isGentleMode) {
-      return `${coachName}: Yes${namePart}. I’d keep today gentle, lower-pressure, and more recovery-focused.`;
-    }
-    return `${coachName}: Yes${namePart}. I can help make it easier, harder, shorter, or more focused.`;
   if (goalType === "strength") {
     recipes.push({
       title: "Post-Workout Plate",
@@ -1785,63 +1370,15 @@ function getMealIdeas(profile) {
     });
   }
 
-  if (wantsRoutineHelp) {
-    if (lower.includes("video")) {
-      return `${coachName}: Your workout videos${namePart} are in the Routine tab.`;
-    }
-
-    if (lower.includes("what is my routine") || lower.includes("today's routine")) {
-      let routineNote = "";
-      if (shortWorkoutPreference) {
-        routineNote = " I’m also keeping it mindful of your preference for shorter workouts.";
-      } else if (hasKneeIssue) {
-        routineNote = " I’m also keeping your knee in mind.";
-      } else if (hasBackIssue) {
-        routineNote = " I’m also keeping your back in mind.";
-      } else if (hasShoulderIssue) {
-        routineNote = " I’m also keeping your shoulder in mind.";
-      }
-
-      return `${coachName}: Your routine today${namePart} is ${routine.title}. Main exercises: ${routine.main
-        .map((e) => e.name)
-        .join(", ")}.${routineNote}`;
-    }
-
-    if (lower.includes("simplify")) {
-      if (shortWorkoutPreference) {
-        return `${coachName}: Keep it simple${namePart}: warmup, first 2 exercises, done. That fits the shorter workout style you respond best to.`;
-      }
-      return `${coachName}: Keep it simple${namePart}: warmup, first 2 exercises, done.`;
-    }
   return recipes;
 }
 
-    if (isGentleMode) {
-      let supportLine = "";
-      if (hasKneeIssue) supportLine = " We’ll be mindful of your knee.";
-      if (hasBackIssue) supportLine = " We’ll be mindful of your back.";
-      if (hasShoulderIssue) supportLine = " We’ll be mindful of your shoulder.";
-      return `${coachName}: For today${namePart}, stay with a gentler routine: simple warmup, 1 to 2 main movements, and a short walk if you feel good.${supportLine}`;
-    }
+
 function getAIResponse(input, profile) {
   const lower = input.toLowerCase();
   const coachName = capitalizeName(profile.coachName) || "Coach";
   const prefix = getUserVoicePrefix(profile);
   const name = capitalizeName(profile.firstName);
-
-    if (goal.includes("discipline")) {
-      return `${coachName}: Since your goal is discipline${namePart}, the win today is finishing the plan — even if it is not perfect.`;
-    }
-    if (goal.includes("muscle") || goal.includes("strength")) {
-      return `${coachName}: Since your goal is strength${namePart}, focus on controlled reps, good form, and not rushing.`;
-    }
-    if (goal.includes("weight")) {
-      return `${coachName}: Since your goal is weight loss${namePart}, think consistency: movement, simple meals, and no all-or-nothing thinking.`;
-    }
-    return `${coachName}: Let’s keep today’s routine steady${namePart} — clean form, honest effort, and consistency over perfection.`;
-  if (lower.includes("pray")) {
-    return `${coachName}: Lord, give ${name || "them"} peace, strength, wisdom, and steady faith today. Amen.`;
-  }
 
   if (asksWhy) {
     return `${coachName}: I’m here${namePart}. Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer more clearly.`;
@@ -1866,9 +1403,7 @@ function getAIResponse(input, profile) {
     return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — your routine today is ${routine.title}. Start with: ${routine.blocks.slice(0, 3).join(", ")}.`;
   }
 
-  if (motivationStyle === "gentle") {
-    return `${coachName}: I’m with you${namePart}. Tell me what kind of support you need right now — routine, food, progress, motivation, or prayer.`;
-  if (
+    if (
     lower.includes("discouraged") ||
     lower.includes("behind") ||
     lower.includes("tired")
@@ -1876,7 +1411,6 @@ function getAIResponse(input, profile) {
     return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — a rough day does not erase your progress. Smaller still counts.`;
   }
 
-  return `${coachName}: I’m with you${namePart}. Tell me what you want help with right now — routine, food, progress, motivation, or prayer.`;
   return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — tell me if you want help with routine, food, progress, or prayer.`;
 }
 
@@ -1909,11 +1443,6 @@ function GearIcon({ size = 18 }) {
     </svg>
   );
 }
-
-function TourMeasurementDiagram({ gender, onSelectPart, activePart }) {
-  const accent = gender === "Woman" ? "#7caf45" : "#4f8edc";
-  const labelFill = (key) => (activePart === key ? "#111111" : accent);
-  const boxFill = (key) => (activePart === key ? `${accent}22` : "#ffffff");
 
 function TourMeasurementDiagram({ activePart, onSelectPart }) {
   const accent = "#4f8edc";
@@ -2137,33 +1666,7 @@ const [showTour, setShowTour] = useState(false);
 const [weeklyReportDismissed, setWeeklyReportDismissed] = useState(false);
 const [editingSetup, setEditingSetup] = useState(false);
   const onboardingChatRef = useRef(null);
-const appChatRef = useRef(null);
 
-const [profile, setProfile] = useState(() => {
-  const saved = localStorage.getItem("christian-fitness-profile");
-  return saved
-    ? normalizeProfile(JSON.parse(saved))
-: {
-    measurements: {},
-    measurementHistory: [],
-    createdAt: null,
-    coachMemory: {
-      lastMeasurementUpdate: null,
-      lastWeeklyReport: null,
-      weeklyCheckins: [],
-      lastRoutineFeedback: "",
-      lastRoutineFeedbackReason: "",
-      prefersShortWorkouts: false,
-      lastChatTopic: "general",
-      recentTopics: [],
-      lastMood: "neutral",
-      currentStruggle: "",
-      preferredHelpStyle: "balanced",
-      spiritualTone: "encouraging",
-      userWins: [],
-    },
-  };
-});
   const [showSettings, setShowSettings] = useState(false);
   const appChatRef = useRef(null);
 
@@ -2203,8 +1706,6 @@ const [profile, setProfile] = useState(() => {
             role: "ai",
             text: "We’ll keep this simple and take it one step at a time.",
           },
-          { role: "ai", text: "Hey — I’m here to help you build a routine that cares for your body and honors God too." },
-          { role: "ai", text: "We’ll keep this simple and take it one step at a time." },
         ];
   });
 
@@ -2216,11 +1717,10 @@ const [profile, setProfile] = useState(() => {
           speaker: capitalizeName(msg.speaker),
         }))
       : [];
-    return saved ? JSON.parse(saved) : [];
   });
 
   const [selectedTheme, setSelectedTheme] = useState(() => {
-@@ -1871,10 +586,7 @@ const [profile, setProfile] = useState(() => {
+const [profile, setProfile] = useState(() => {
   }, []);
 
   useEffect(() => {
@@ -2232,82 +1732,13 @@ const [profile, setProfile] = useState(() => {
   }, [profile]);
 
   useEffect(() => {
-@@ -1888,74 +600,6 @@ const [profile, setProfile] = useState(() => {
+const [profile, setProfile] = useState(() => {
   useEffect(() => {
     localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
-  }, [selectedTheme]);
-  useEffect(() => {
-  if (!profile.onboardingComplete) return;
-
-  const now = new Date();
-  const lastWeeklyReport = profile.coachMemory?.lastWeeklyReport;
-  let shouldGenerate = false;
-
-  if (!lastWeeklyReport) {
-    const created = new Date(profile.createdAt || Date.now());
-    const daysSinceStart =
-      (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
-
-    if (daysSinceStart >= 3) {
-      shouldGenerate = true;
-    }
-  } else {
-    const daysSinceLast =
-      (now.getTime() - new Date(lastWeeklyReport).getTime()) /
-      (1000 * 60 * 60 * 24);
-
-    if (daysSinceLast >= 7) {
-      shouldGenerate = true;
-    }
-  }
-
-  if (!shouldGenerate) return;
-
-  setProfile((current) => {
-    const existing = current.coachMemory?.weeklyCheckins || [];
-    const newCheckin = buildWeeklyReport(current);
-
-    return {
-      ...current,
-      coachMemory: {
-        ...current.coachMemory,
-        weeklyCheckins: [...existing, newCheckin].slice(-8),
-        lastWeeklyReport: new Date().toISOString(),
-      },
-    };
-  });
-
-  setWeeklyReportDismissed(false);
-}, [profile.onboardingComplete, profile.createdAt, profile.coachMemory?.lastWeeklyReport]);
-
-  useEffect(() => {
-    if (activeTab === "chat" && chatMessages.length === 0 && profile.onboardingComplete) {
-      const coachName = capitalizeName(profile.coachName) || "Coach";
-      const firstName = capitalizeName(profile.firstName)
-        ? `, ${capitalizeName(profile.firstName)}`
-        : "";
-
-      setChatMessages([
-        {
-          role: "ai",
-          speaker: coachName,
-          text: `Welcome back${firstName}. Let’s stay steady today. What do you need?`,
-        },
-      ]);
-    }
-  }, [activeTab, chatMessages.length, profile]);
-
-  useEffect(() => {
-    const el = onboardingChatRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
-  }, [messages, questionIndex]);
 
   useEffect(() => {
     const el = appChatRef.current;
-@@ -1967,530 +611,113 @@ const [profile, setProfile] = useState(() => {
+const [profile, setProfile] = useState(() => {
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
   const currentQuestion = visibleQuestionFlow[questionIndex];
@@ -2387,11 +1818,6 @@ const canEditPreviousQuestion = questionIndex > 0;
       setMessages((current) => [...current, { role: "ai", text: QUESTION_FLOW[0].label }]);
     }
   }
-function submitAnswer(answerOverride) {
-  const answer =
-    typeof answerOverride === "string" ? answerOverride : inputValue.trim();
-
-  if (!currentQuestion) return;
   function submitAnswer(answerOverride) {
     const answer = typeof answerOverride === "string" ? answerOverride : inputValue.trim();
     if (!currentQuestion || !answer) return;
@@ -2555,138 +1981,6 @@ function finishThemeAndTour() {
     if (next === 3) setActiveTab("progress");
   }
 
-function resetApp() {
-  localStorage.removeItem("christian-fitness-profile");
-  localStorage.removeItem("christian-fitness-messages");
-  localStorage.removeItem("christian-fitness-chat");
-  localStorage.removeItem("christian-fitness-theme");
-setProfile({
-  measurements: {},
-  measurementHistory: [],
-  createdAt: null,
-  coachMemory: {
-    lastMeasurementUpdate: null,
-    lastWeeklyReport: null,
-    weeklyCheckins: [],
-    lastRoutineFeedback: "",
-    lastRoutineFeedbackReason: "",
-    prefersShortWorkouts: false,
-    lastChatTopic: "general",
-    recentTopics: [],
-    lastMood: "neutral",
-    currentStruggle: "",
-    preferredHelpStyle: "balanced",
-    spiritualTone: "encouraging",
-    userWins: [],
-  },
-});
-  setMessages([
-    {
-      role: "ai",
-      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
-    },
-    {
-      role: "ai",
-      text: "We’ll keep this simple and take it one step at a time.",
-    },
-  ]);
-  setChatMessages([]);
-  setSelectedTheme(COLOR_OPTIONS[0]);
-  setQuestionIndex(0);
-  setInputValue("");
-  setChatInput("");
-  setScreen("welcome");
-  setActiveTab("home");
-  setRoutineFeedback("");
-  setFeedbackReason("");
-  setShowTour(false);
-  setTourStep(0);
-  setEditingSetup(false);
-  setWeeklyReportDismissed(false);
-}
-
-function sendChatMessage(text) {
-  const cleanText = text.trim();
-  if (!cleanText) return;
-
-  const coachName = capitalizeName(profile.coachName) || "Coach";
-  const lower = cleanText.toLowerCase();
-
-  const addUnique = (arr = [], value) => {
-    if (!value) return arr || [];
-    return arr.includes(value) ? arr : [...arr, value];
-  };
-
-  let lastChatTopic =
-    lower.includes("food") || lower.includes("meal") || lower.includes("eat")
-      ? "food"
-      : lower.includes("pray") || lower.includes("prayer")
-      ? "prayer"
-      : lower.includes("measurement") ||
-        lower.includes("weight") ||
-        lower.includes("waist")
-      ? "progress"
-      : lower.includes("routine") ||
-        lower.includes("workout") ||
-        lower.includes("exercise")
-      ? "routine"
-      : lower.includes("discouraged") ||
-        lower.includes("tired") ||
-        lower.includes("behind")
-      ? "motivation"
-      : "general";
-
-  let recurringTopics = [...(profile.coachMemory?.recurringTopics || [])];
-  let commonStruggles = [...(profile.coachMemory?.commonStruggles || [])];
-  let victories = [...(profile.coachMemory?.victories || [])];
-  let preferredFoods = [...(profile.coachMemory?.preferredFoods || [])];
-  let avoidedFoods = [...(profile.coachMemory?.avoidedFoods || [])];
-  let allergies = [...(profile.coachMemory?.allergies || [])];
-  let learnedInjuries = [...(profile.coachMemory?.learnedInjuries || [])];
-  let learnedLimits = [...(profile.coachMemory?.learnedLimits || [])];
-  let motivationStyle = profile.coachMemory?.motivationStyle || "";
-  let faithFocus = profile.coachMemory?.faithFocus || "";
-
-  recurringTopics = addUnique(recurringTopics, lastChatTopic);
-
-  if (
-    lower.includes("discouraged") ||
-    lower.includes("unmotivated") ||
-    lower.includes("behind") ||
-    lower.includes("fell off")
-  ) {
-    commonStruggles = addUnique(commonStruggles, "discouragement");
-  }
-
-  if (
-    lower.includes("tired") ||
-    lower.includes("exhausted") ||
-    lower.includes("no energy")
-  ) {
-    commonStruggles = addUnique(commonStruggles, "low energy");
-  }
-
-  if (
-    lower.includes("too hard") ||
-    lower.includes("hard") ||
-    lower.includes("pain")
-  ) {
-    commonStruggles = addUnique(commonStruggles, "routine difficulty");
-    setProfile((current) => ({
-      ...nextProfile,
-      onboardingComplete: true,
-    }));
-    setScreen("home");
-    setActiveTab("home");
-  }
-
-  if (
-    lower.includes("too long") ||
-    lower.includes("long workout") ||
-    lower.includes("short workout")
-  ) {
-    learnedLimits = addUnique(learnedLimits, "prefers shorter workouts");
-  }
   function sendChatMessage(text) {
     const cleanText = text.trim();
     if (!cleanText) return;
@@ -2703,19 +1997,6 @@ function sendChatMessage(text) {
     let nextProfile = updateLanguageMemory(profile, cleanText);
     const foodSignals = parseFoodSignals(cleanText);
 
-  if (
-    lower.includes("protein") ||
-    lower.includes("chicken") ||
-    lower.includes("eggs") ||
-    lower.includes("fruit") ||
-    lower.includes("rice")
-  ) {
-    if (lower.includes("protein")) preferredFoods = addUnique(preferredFoods, "protein");
-    if (lower.includes("chicken")) preferredFoods = addUnique(preferredFoods, "chicken");
-    if (lower.includes("eggs")) preferredFoods = addUnique(preferredFoods, "eggs");
-    if (lower.includes("fruit")) preferredFoods = addUnique(preferredFoods, "fruit");
-    if (lower.includes("rice")) preferredFoods = addUnique(preferredFoods, "rice");
-  }
     nextProfile = {
       ...nextProfile,
       coachMemory: {
@@ -2725,25 +2006,9 @@ function sendChatMessage(text) {
         allergies: [...new Set([...(nextProfile.coachMemory.allergies || []), ...foodSignals.allergies])].slice(-12),
       },
     };
-
-  if (
-    lower.includes("dont like") ||
-    lower.includes("don't like") ||
-    lower.includes("hate ")
-  ) {
-    if (lower.includes("broccoli")) avoidedFoods = addUnique(avoidedFoods, "broccoli");
-    if (lower.includes("fish")) avoidedFoods = addUnique(avoidedFoods, "fish");
-    if (lower.includes("eggs")) avoidedFoods = addUnique(avoidedFoods, "eggs");
-  }
+    
     setProfile(nextProfile);
 
-  if (lower.includes("allergic")) {
-    if (lower.includes("dairy")) allergies = addUnique(allergies, "dairy");
-    if (lower.includes("gluten")) allergies = addUnique(allergies, "gluten");
-    if (lower.includes("peanut")) allergies = addUnique(allergies, "peanuts");
-    if (lower.includes("nuts")) allergies = addUnique(allergies, "nuts");
-    if (lower.includes("egg")) allergies = addUnique(allergies, "eggs");
-  }
     const coachName = capitalizeName(nextProfile.coachName) || "Coach";
     const userMsg = { role: "user", text: cleanText };
     const aiMsg = {
@@ -2752,80 +2017,6 @@ function sendChatMessage(text) {
       text: getAIResponse(cleanText, nextProfile),
     };
 
-  if (
-    lower.includes("injury") ||
-    lower.includes("hurt") ||
-    lower.includes("bad knee") ||
-    lower.includes("knee pain") ||
-    lower.includes("back pain") ||
-    lower.includes("shoulder pain")
-  ) {
-    if (lower.includes("knee")) learnedInjuries = addUnique(learnedInjuries, "knee issue");
-    if (lower.includes("back")) learnedInjuries = addUnique(learnedInjuries, "back issue");
-    if (lower.includes("shoulder")) learnedInjuries = addUnique(learnedInjuries, "shoulder issue");
-    if (
-      !lower.includes("knee") &&
-      !lower.includes("back") &&
-      !lower.includes("shoulder")
-    ) {
-      learnedInjuries = addUnique(learnedInjuries, "general injury");
-    }
-    setChatMessages((prev) => [...prev, userMsg, aiMsg]);
-    setChatInput("");
-  }
-
-  if (
-    lower.includes("gentle") ||
-    lower.includes("easy on me") ||
-    lower.includes("lower pressure")
-  ) {
-    learnedLimits = addUnique(learnedLimits, "needs gentler coaching sometimes");
-  }
-  function saveMeasurementValue(fieldKey, value) {
-    setProfile((current) => {
-      const nextMeasurements = {
-        ...current.measurements,
-        [fieldKey]: value,
-      };
-
-  if (
-    lower.includes("be direct") ||
-    lower.includes("push me") ||
-    lower.includes("hold me accountable")
-  ) {
-    motivationStyle = "direct";
-  } else if (
-    lower.includes("be gentle") ||
-    lower.includes("encourage me") ||
-    lower.includes("be kind")
-  ) {
-    motivationStyle = "gentle";
-  } else if (!motivationStyle) {
-    motivationStyle = "balanced";
-      return {
-        ...current,
-        measurements: nextMeasurements,
-        measurementHistory: [
-          ...(current.measurementHistory || []).slice(-23),
-          buildMeasurementSnapshot({
-            ...current,
-            measurements: nextMeasurements,
-          }),
-        ],
-      };
-    });
-  }
-
-  if (
-    lower.includes("pray") ||
-    lower.includes("god") ||
-    lower.includes("jesus") ||
-    lower.includes("bible") ||
-    lower.includes("verse")
-  ) {
-    faithFocus = "strong";
-  } else if (!faithFocus) {
-    faithFocus = "growing";
   function resetApp() {
     localStorage.removeItem("christian-fitness-profile");
     localStorage.removeItem("christian-fitness-messages");
@@ -2913,32 +2104,9 @@ function saveMeasurementValue(fieldKey, value) {
   const appStyles = {
     minHeight: "100vh",
     background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
-@@ -2516,7 +743,7 @@ function saveMeasurementValue(fieldKey, value) {
+function saveMeasurementValue(fieldKey, value) {
     position: "relative",
   };
-
-  if (!completedOnboarding && screen === "welcome") {
-  if (!profile.onboardingComplete && screen === "welcome") {
-    return (
-      <div style={appStyles}>
-        <div style={phoneStyles}>
-@@ -2532,316 +759,111 @@ function saveMeasurementValue(fieldKey, value) {
-                </div>
-              </div>
-            </div>
-
-            <div style={welcomeCard}>
-              <h2 style={welcomeHeading}>Christian Wellness Coach</h2>
-              <p style={welcomeCopy}>Build your body with purpose.</p>
-              <button style={primaryButton} onClick={startOnboarding}>
-                Start
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (!completedOnboarding && screen === "onboarding") {
     return (
@@ -3082,27 +2250,7 @@ if (!completedOnboarding && screen === "theme") {
           </p>
 
           <div style={{ display: "grid", gap: 14, width: "100%" }}>
-            {COLOR_OPTIONS.map((option) => {
-              const selected = selectedTheme.name === option.name;
-              return (
-                <button
-                  key={option.name}
-                  onClick={() => setSelectedTheme(option)}
-                  style={{
-                    width: "100%",
-                    borderRadius: 24,
-                    border: selected
-                      ? `3px solid ${option.accent}`
-                      : "1px solid rgba(255,255,255,0.16)",
-                    background: "#16181d",
-                    padding: 16,
-                    color: "white",
-                    cursor: "pointer",
-                    boxShadow: selected
-                      ? `0 0 0 2px rgba(255,255,255,0.08), 0 10px 30px ${option.accent}33`
-                      : "0 10px 24px rgba(0,0,0,0.18)",
-                  }}
-                >
+
   if (!profile.onboardingComplete && screen === "onboarding") {
     return (
       <div style={appStyles}>
@@ -3321,7 +2469,7 @@ if (!completedOnboarding && screen === "theme") {
   const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
 
   return (
-@@ -2851,16 +873,27 @@ if (!completedOnboarding && screen === "theme") {
+ if (!completedOnboarding && screen === "theme") {
           style={{
             ...homeHeader,
             background: `linear-gradient(135deg, ${selectedTheme.primary}, ${selectedTheme.accent})`,
@@ -3351,7 +2499,7 @@ if (!completedOnboarding && screen === "theme") {
           </div>
 
           <div style={tickerViewportHome}>
-@@ -2874,122 +907,75 @@ if (!completedOnboarding && screen === "theme") {
+if (!completedOnboarding && screen === "theme") {
           {activeTab === "home" && (
             <>
               <div style={coachCard}>
@@ -3367,27 +2515,6 @@ if (!completedOnboarding && screen === "theme") {
                   <strong>Today’s action:</strong> {coach.action}
                 </p>
               </div>
-              {latestWeeklyReport && !weeklyReportDismissed && (
-  <div style={weeklyReportCard}>
-    <p style={sectionLabel}>Weekly Report</p>
-    <h3 style={cardTitle}>Your weekly check-in</h3>
-    <p style={bodyText}>{latestWeeklyReport.summary}</p>
-    {latestWeeklyReport.wins?.map((win, index) => (
-      <p key={index} style={bodyText}>
-        • {win}
-      </p>
-    ))}
-    <p style={bodyTextLast}>
-      <strong>Next step:</strong> {latestWeeklyReport.nextStep}
-    </p>
-    <button
-      style={secondaryButton}
-      onClick={() => setWeeklyReportDismissed(true)}
-    >
-      Close weekly report
-    </button>
-  </div>
-)}
 
               <div style={dailyCard}>
                 <p style={sectionLabel}>Today’s Routine</p>
@@ -3423,16 +2550,6 @@ if (!completedOnboarding && screen === "theme") {
                 <p style={bodyTextLast}>{getFoodGuidance(profile)}</p>
               </div>
 
-              <div style={coachMemoryCard}>
-                <p style={sectionLabelWhite}>Coach memory note</p>
-                <p style={bodyTextWhite}>
-                  Neutral until the app learns more. Current preference:{" "}
-                  <strong>
-                    {profile.coachMemory?.detailLevel === "detailed"
-                      ? "detailed progress"
-                      : "balanced guidance"}
-                  </strong>
-                  . Main goal: <strong>{profile.mainGoal || "still learning"}</strong>.
               <div style={dailyCard}>
                 <p style={sectionLabel}>Coach language memory</p>
                 <p style={bodyText}>
@@ -3459,37 +2576,8 @@ if (!completedOnboarding && screen === "theme") {
                 <button style={actionCard} onClick={() => setActiveTab("progress")}>
                   Progress
                 </button>
-                <button style={actionCard}>Food</button>
-                <button style={actionCard}>Sick</button>
-                <button style={actionCard}>Travel</button>
-                <button style={actionCard}>Emergency</button>
-                <button style={actionCard}>Budget</button>
               </div>
 
-<button
-  style={primaryDarkButton}
-  onClick={() => {
-    const nextProfile = {
-      ...profile,
-      coachMemory: {
-        ...profile.coachMemory,
-        prefersShortWorkouts: true,
-      },
-    };
-    setProfile(nextProfile);
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        role: "ai",
-        speaker: capitalizeName(profile.coachName) || "Coach",
-        text: getAIResponse("simplify my day", nextProfile),
-      },
-    ]);
-    setActiveTab("routine");
-  }}
->
-  Simplify My Day
-</button>
               <button
                 style={primaryDarkButton}
                 onClick={() => {
@@ -3517,7 +2605,7 @@ if (!completedOnboarding && screen === "theme") {
             </>
           )}
 
-@@ -2999,117 +985,17 @@ if (!completedOnboarding && screen === "theme") {
+if (!completedOnboarding && screen === "theme") {
                 <p style={sectionLabel}>Generated routine</p>
                 <h2 style={cardTitle}>{routineData.title}</h2>
                 <p style={bodyText}>{routineData.summary}</p>
@@ -3548,12 +2636,6 @@ if (!completedOnboarding && screen === "theme") {
                 <h3 style={routineSectionTitle}>Cooldown</h3>
                 {routineData.cooldown.map((exercise, index) => (
                   <ExerciseCard key={`cooldown-${index}`} exercise={exercise} />
-                <h3 style={routineSectionTitle}>Today’s blocks</h3>
-                {routineData.blocks.map((block) => (
-                  <p key={block} style={bodyText}>
-                    • {block}
-                  </p>
-                ))}
               </div>
 
               <div style={dailyCard}>
@@ -3640,61 +2722,24 @@ if (!completedOnboarding && screen === "theme") {
               <button style={secondaryButton} onClick={() => setActiveTab("home")}>
                 Back to Home
               </button>
-@@ -3119,63 +1005,48 @@ if (!completedOnboarding && screen === "theme") {
+if (!completedOnboarding && screen === "theme") {
           {activeTab === "chat" && (
             <>
               <div style={coachCard}>
                 <p style={sectionLabelWhite}>
                   {capitalizeName(profile.coachName) || "Coach"}
                 </p>
-                <p style={sectionLabelWhite}>{capitalizeName(profile.coachName) || "Coach"}</p>
                 <h2 style={cardTitle}>
                   {profile.firstName
                     ? `Welcome back, ${capitalizeName(profile.firstName)}.`
                     : "Welcome back."}
-                  {profile.firstName ? `Welcome back, ${capitalizeName(profile.firstName)}.` : "Welcome back."}
                 </h2>
                 <p style={bodyTextWhite}>Let’s stay steady today.</p>
                 <p style={bodyTextWhite}>Tell me what you need.</p>
               </div>
 
               <div ref={appChatRef} style={appChatHistory}>
-{chatMessages.map((msg, index) => (
-  <div
-    key={`${msg.role}-${index}`}
-    style={{
-      display: "flex",
-      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
-    }}
-  >
-    <div style={{ maxWidth: "82%" }}>
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 700,
-          opacity: 0.78,
-          marginBottom: 6,
-          color: "#111",
-          textAlign: msg.role === "ai" ? "left" : "right",
-        }}
-      >
-        {msg.role === "ai"
-          ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
-          : capitalizeName(profile.firstName) || "You"}
-      </div>
-      <div
-        style={{
-          ...bubbleBase,
-          ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight),
-        }}
-      >
-        {msg.role === "ai"
-  ? cleanCoachBubbleText(msg.text, profile.coachName)
-  : msg.text}
-      </div>
-    </div>
-  </div>
-))}
+
                 {chatMessages.map((msg, index) => (
                   <div
                     key={`${msg.role}-${index}`}
@@ -3737,29 +2782,19 @@ if (!completedOnboarding && screen === "theme") {
                     {item}
                   </button>
                 ))}
-@@ -3188,10 +1059,7 @@ if (!completedOnboarding && screen === "theme") {
+if (!completedOnboarding && screen === "theme") {
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type a message..."
                 />
-                <button
-                  style={primaryDarkButton}
-                  onClick={() => sendChatMessage(chatInput)}
-                >
                 <button style={primaryDarkButton} onClick={() => sendChatMessage(chatInput)}>
                   Send
                 </button>
               </div>
-@@ -3202,47 +1070,23 @@ if (!completedOnboarding && screen === "theme") {
+if (!completedOnboarding && screen === "theme") {
             <>
               <div style={dailyCard}>
                 <p style={sectionLabel}>Progress</p>
                 <h2 style={cardTitle}>Tracking will grow here</h2>
-                <p style={bodyText}>
-                  This section is where measurements, reports, and progress views will go next.
-                </p>
-                <p style={bodyTextLast}>
-                  Add or update your measurements in the boxes below.
-                </p>
                 <h2 style={cardTitle}>Measurements</h2>
                 <p style={bodyTextLast}>Add or update your measurements below.</p>
               </div>
@@ -3768,66 +2803,20 @@ if (!completedOnboarding && screen === "theme") {
                 <h3 style={routineSectionTitle}>Your Measurements</h3>
 
                 <div style={unitToggleWrap}>
-                  <button
-                    style={
-                      profile.measurementUnit === "Inches"
-                        ? unitToggleActive
-                        : unitToggleButton
-                    }
-                    onClick={() =>
-                      setProfile((current) => ({
-                        ...current,
-                        measurementUnit: "Inches",
-                      }))
-                    }
                     style={profile.measurementUnit === "Inches" ? unitToggleActive : unitToggleButton}
                     onClick={() => setProfile((current) => ({ ...current, measurementUnit: "Inches" }))}
                   >
                     Inches
                   </button>
-
-                  <button
-                    style={
-                      profile.measurementUnit === "Centimeters"
-                        ? unitToggleActive
-                        : unitToggleButton
-                    }
-                    onClick={() =>
-                      setProfile((current) => ({
-                        ...current,
-                        measurementUnit: "Centimeters",
-                      }))
-                    }
                     style={profile.measurementUnit === "Centimeters" ? unitToggleActive : unitToggleButton}
                     onClick={() => setProfile((current) => ({ ...current, measurementUnit: "Centimeters" }))}
                   >
                     Centimeters
                   </button>
-@@ -3265,82 +1109,35 @@ if (!completedOnboarding && screen === "theme") {
+if (!completedOnboarding && screen === "theme") {
                         <span style={measurementTip}>? {field.tip}</span>
                       </div>
 
-<div style={measurementInputRow}>
-  <input
-    style={measurementSmallInput}
-    value={profile.measurements?.[field.key] || ""}
-    onFocus={() =>
-      setProfile((current) => ({
-        ...current,
-        activeMeasurementField: field.key,
-      }))
-    }
-    onChange={(e) => saveMeasurementValue(field.key, e.target.value)}
-    placeholder="0"
-  />
-  <span style={measurementUnitText}>
-    {profile.measurementUnit === "Centimeters"
-      ? "cm"
-      : field.key === "weight"
-      ? "lb"
-      : "in"}
-  </span>
-</div>
                       <div style={measurementInputRow}>
                         <input
                           style={measurementSmallInput}
@@ -3876,17 +2865,8 @@ if (!completedOnboarding && screen === "theme") {
             marginBottom: 10,
           }}
         >
-{MEASUREMENT_FIELDS.map((field) => (
-  <p key={field.key} style={{ ...bodyText, marginBottom: 6 }}>
-    <strong>{field.label}:</strong>{" "}
-    {snapshot.measurements?.[field.key] || "-"}
-  </p>
-))}
+
         </div>
-      ))}
-  </div>
-)}
-              </div>
 
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Measurement guide</h3>
@@ -3907,7 +2887,7 @@ if (!completedOnboarding && screen === "theme") {
                   activePart={profile.activeMeasurementField}
                   onSelectPart={(part) =>
                     setProfile((current) => ({
-@@ -3353,72 +1150,174 @@ if (!completedOnboarding && screen === "theme") {
+ if (!completedOnboarding && screen === "theme") {
             </>
           )}
 
@@ -3953,12 +2933,6 @@ if (!completedOnboarding && screen === "theme") {
                     <p style={mealTitle}>{meal.title}</p>
                     <p style={bodyText}><strong>Best for:</strong> {meal.fit}</p>
                     <p style={bodyText}><strong>Why:</strong> {meal.why}</p>
-                    <p style={bodyTextLast}>
-                      <strong>Build it with:</strong> {meal.items.join(", ")}
-                    </p>
-                  </div>
-                ))}
-              </div>
 
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Saved food memory</h3>
@@ -4014,24 +2988,11 @@ if (!completedOnboarding && screen === "theme") {
           <button style={activeTab === "progress" ? navButtonActive : navButton} onClick={() => setActiveTab("progress")}>
             Progress
           </button>
-          <button
-            style={activeTab === "settings" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("settings")}
-          >
-            Settings
           <button style={activeTab === "food" ? navButtonActive : navButton} onClick={() => setActiveTab("food")}>
             Food
           </button>
         </div>
 
-        {showTour && (
-          <div style={tourOverlay}>
-            <div style={tourModal}>
-              <p style={sectionLabel}>{tourSteps[tourStep].title}</p>
-              <h3 style={{ marginTop: 8, marginBottom: 10 }}>Quick tour</h3>
-              <p style={{ marginTop: 0, lineHeight: 1.5 }}>
-                {tourSteps[tourStep].body}
-              </p>
         {showSettings && (
           <div style={tourOverlay} onClick={() => setShowSettings(false)}>
             <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
@@ -4127,7 +3088,7 @@ if (!completedOnboarding && screen === "theme") {
   );
 }
 
-@@ -3430,8 +1329,7 @@ const welcomeWrap = {
+const welcomeWrap = {
   padding: 22,
   paddingTop: 10,
   paddingBottom: 70,
@@ -4137,7 +3098,7 @@ if (!completedOnboarding && screen === "theme") {
 };
 
 const brandBlock = {
-@@ -3556,7 +1454,6 @@ const onboardingChatArea = {
+ const onboardingChatArea = {
   flexDirection: "column",
   gap: 12,
   minHeight: 0,
@@ -4145,7 +3106,7 @@ const brandBlock = {
 };
 
 const bubbleBase = {
-@@ -3628,19 +1525,6 @@ const textInputLight = {
+ const textInputLight = {
   fontSize: 15,
 };
 
@@ -4165,7 +3126,7 @@ const dangerButton = {
 const choiceWrap = {
   display: "grid",
   gap: 10,
-@@ -3656,33 +1540,16 @@ const choiceButton = {
+ const choiceButton = {
   cursor: "pointer",
 };
 
@@ -4175,27 +3136,7 @@ const themeWrap = {
   flexDirection: "column",
   gap: 18,
 };
-
-const themeCard = {
-  display: "flex",
-  alignItems: "center",
-  gap: 14,
-  width: "100%",
-  padding: 14,
-  borderRadius: 22,
-  color: "white",
-  cursor: "pointer",
-};
-
-const tourCard = {
-  background: "rgba(255,255,255,0.08)",
-  borderRadius: 24,
-  padding: 18,
-};
-
-const tourLine = {
-  margin: "0 0 10px",
-  color: "rgba(255,255,255,0.85)",
+            
 const selectInput = {
   width: "100%",
   boxSizing: "border-box",
@@ -4209,7 +3150,7 @@ const selectInput = {
 };
 
 const homeHeader = {
-@@ -3692,10 +1559,23 @@ const homeHeader = {
+ const homeHeader = {
 const headerTopRow = {
   display: "flex",
   justifyContent: "space-between",
@@ -4234,37 +3175,21 @@ const settingsIconButton = {
 const homeBrandTitle = {
   margin: 0,
   lineHeight: 1,
-@@ -3750,13 +1630,6 @@ const verseCard = {
+const verseCard = {
   boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-};
-
-const coachMemoryCard = {
-  background: "#111",
-  color: "white",
-  borderRadius: 24,
-  padding: 18,
 };
 
 const sectionLabel = {
   margin: 0,
   fontSize: 12,
-@@ -3765,15 +1638,6 @@ const sectionLabel = {
+ const sectionLabel = {
   opacity: 0.7,
-};
-
-const sectionLabelDark = {
-  margin: 0,
-  fontSize: 12,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  opacity: 0.75,
-  color: "rgba(255,255,255,0.72)",
 };
 
 const sectionLabelWhite = {
   margin: 0,
   fontSize: 12,
-@@ -3799,27 +1663,52 @@ const bodyTextLast = {
+const bodyTextLast = {
 };
 
 const bodyTextWhite = {
@@ -4329,7 +3254,7 @@ const quickReplyButton = {
 };
 
 const bottomNav = {
-@@ -3851,74 +1740,6 @@ const navButtonActive = {
+const navButtonActive = {
   cursor: "pointer",
 };
 
@@ -4346,65 +3271,10 @@ const routineSectionTitle = {
   marginBottom: 12,
 };
 
-const exerciseCard = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 20,
-  padding: 14,
-  marginBottom: 14,
-  background: "#fcfcfd",
-};
-
-const exerciseTitle = {
-  margin: "0 0 8px",
-  fontSize: 18,
-};
-
-const exerciseMeta = {
-  margin: "0 0 6px",
-  lineHeight: 1.4,
-};
-
-const exerciseNote = {
-  margin: "8px 0 0",
-  color: "#4b5563",
-  lineHeight: 1.4,
-  fontSize: 14,
-};
-
-const videoWrap = {
-  marginTop: 12,
-};
-
-const videoFrame = {
-  border: "none",
-  borderRadius: 16,
-};
-
-const feedbackRow = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 10,
-};
-
-const feedbackButton = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 18,
-  padding: "14px 12px",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const feedbackQuestion = {
-  margin: "8px 0 6px",
-  fontSize: 14,
-  fontWeight: 700,
-  color: "#111",
-};
-
 const unitToggleWrap = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
-@@ -3994,63 +1815,17 @@ const measurementSmallInput = {
+const measurementSmallInput = {
   fontSize: 15,
 };
 
@@ -4445,12 +3315,6 @@ const appChatHistory = {
   scrollBehavior: "smooth",
 };
 
-const chatSpeaker = {
-  fontSize: 12,
-  opacity: 0.7,
-  marginBottom: 6,
-};
-
 const quickReplyWrap = {
   display: "grid",
   gap: 8,
@@ -4471,7 +3335,7 @@ const diagramCard = {
 };
 
 const tourOverlay = {
-@@ -4063,115 +1838,51 @@ const tourOverlay = {
+const tourOverlay = {
   padding: 18,
 };
 
@@ -4494,74 +3358,6 @@ const measurementMiniCard = {
   marginBottom: 14,
 };
 
-const diagramWrap = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-  background: "rgba(255,255,255,0.9)",
-  borderRadius: 22,
-  padding: 16,
-  color: "#111",
-};
-
-const diagramSvg = {
-  width: "100%",
-  height: 220,
-  background: "#fff",
-  borderRadius: 16,
-};
-
-const diagramText = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 8,
-};
-
-const diagramLine = {
-  margin: 0,
-  lineHeight: 1.45,
-};
-const secondaryOnboardingButton = {
-const themeOptionButton = {
-  width: "100%",
-  border: "1px solid rgba(255,255,255,0.18)",
-  borderRadius: 18,
-  padding: "14px 16px",
-  background: "transparent",
-  color: "white",
-  fontWeight: 700,
-  fontSize: 15,
-  cursor: "pointer",
-};
-
-const editAnswersWrap = {
-  display: "grid",
-  gap: 10,
-  marginTop: 14,
-  marginBottom: 14,
-};
-
-const editAnswerCard = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 12,
-  padding: 14,
-  borderRadius: 18,
-  background: "#f8fafc",
-  border: "1px solid rgba(0,0,0,0.08)",
-  gap: 10,
-  borderRadius: 16,
-  background: "#fff",
-  padding: "12px 14px",
-  cursor: "pointer",
-};
-
-const memoryCard = {
-  background: "#ffffff",
-  borderRadius: 20,
-  padding: 16,
-  marginTop: 14,
 const mealCard = {
   background: "#fff",
   border: "1px solid rgba(0,0,0,0.08)",
@@ -4570,26 +3366,12 @@ const mealCard = {
   marginBottom: 10,
 };
 
-const editAnswerLabel = {
-  margin: "0 0 6px",
-  fontSize: 13,
-  fontWeight: 700,
-  color: "#111",
-};
-
-const editAnswerValue = {
-  margin: 0,
-  fontSize: 14,
-  lineHeight: 1.4,
-  color: "#4b5563",
 const mealTitle = {
   margin: "0 0 8px",
   fontWeight: 800,
   fontSize: 16,
 };
 
-const editAnswerButton = {
-  border: "1px solid rgba(0,0,0,0.08)",
 const dangerButton = {
   width: "100%",
   border: "none",
@@ -4602,13 +3384,4 @@ const dangerButton = {
   fontWeight: 700,
   fontSize: 16,
   cursor: "pointer",
-};
-const weeklyReportCard = {
-  background: "rgba(255,255,255,0.92)",
-  backdropFilter: "blur(10px)",
-  borderRadius: 24,
-  padding: 18,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-  border: "1px solid rgba(0,0,0,0.06)",
-  marginTop: 8,
 };
