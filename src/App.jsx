@@ -1564,15 +1564,20 @@ function buildWeeklyReport(profile) {
     profile.coachMemory?.lastRoutineFeedbackReason || ""
   ).toLowerCase();
 
-  let summary = "You kept showing up this week — and that consistency is what actually builds results.";
+  let summary =
+    "You kept showing up this week — and that consistency is what actually builds results.";
   let nextStep = "Stay steady and complete your next planned workout.";
   let wins = ["You stayed engaged.", "You kept moving forward."];
 
   if (feedback === "up") {
     summary =
       "You had a strong week — you followed through and handled your routine well.";
-    nextStep = "Keep building on that momentum and stay consistent this week.";
-    wins = ["You responded well to your routine.", "You gave clear feedback about what worked."];
+    nextStep =
+      "Keep building on that momentum and stay consistent this week.";
+    wins = [
+      "You responded well to your routine.",
+      "You gave clear feedback about what worked.",
+    ];
   } else if (feedback === "down") {
     summary =
       "You stayed honest this week and learned what needs to change — that’s real progress.";
@@ -1582,7 +1587,10 @@ function buildWeeklyReport(profile) {
         : feedbackReason.includes("hard") || feedbackReason.includes("pain")
         ? "Scale the next workout down and keep it gentler."
         : "Keep the next workout simple and manageable.";
-    wins = ["You paid attention to what felt off.", "You kept learning instead of quitting."];
+    wins = [
+      "You paid attention to what felt off.",
+      "You kept learning instead of quitting.",
+    ];
   }
 
   return {
@@ -1593,6 +1601,7 @@ function buildWeeklyReport(profile) {
     wins,
   };
 }
+
 function buildMeasurementSnapshot(profile) {
   return {
     id: Date.now(),
