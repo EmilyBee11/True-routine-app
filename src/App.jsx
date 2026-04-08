@@ -1106,57 +1106,81 @@ function parseFoodSignals(text = "") {
   const avoided = [];
   const allergies = [];
 
-  if (lastUpdate) {
-    const daysSince =
-      (Date.now() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60 * 24);
   ["chicken", "eggs", "fruit", "rice", "yogurt", "oats", "beef", "salmon"].forEach((food) => {
     if (lower.includes(food)) preferred.push(food);
   });
 
-    if (daysSince > 25) {
-      measurementReminder =
-        " It’s a good time to remeasure and update your progress so we can build your monthly report.";
-    }
-  } else {
-    measurementReminder =
-      " When you’re ready, adding your measurements will help us track your progress over time.";
   if (lower.includes("don't like") || lower.includes("dont like") || lower.includes("hate")) {
     ["fish", "broccoli", "eggs", "oatmeal"].forEach((food) => {
       if (lower.includes(food)) avoided.push(food);
     });
   }
 
-  message += measurementReminder;
   if (lower.includes("allergic")) {
     ["dairy", "gluten", "peanut", "peanuts", "nuts", "eggs"].forEach((item) => {
       if (lower.includes(item)) allergies.push(item);
     });
   }
 
+  return { preferred, avoided, allergies };
+}
+
   return { speaker: coachName, message, focus, action };
   return { preferred, avoided, allergies };
 }
 
-  if (goal.includes("muscle") || goal.includes("strength")) {
-    return "Center meals around protein, enough carbs for training energy, and good hydration.";
-  }
-  if (goal.includes("weight")) {
-    return "Focus on protein, fiber, and meals that keep you full without overcomplicating things.";
-  }
-  if (goal.includes("mental")) {
-    return "Choose steady meals today that help energy, mood, and focus stay stable.";
-  }
+function getNutritionTargets(profile) {
+  const age = Number(profile.age) || 18;
+  const goalType = getGoalType(profile);
+  const activity = profile.activityLevel || "Somewhat active";
+  const weight = Number(profile.measurements?.weight) || 140;
+  const pregnant = profile.pregnancyStatus === "Pregnant";
+  const postpartum = profile.pregnancyStatus === "Postpartum";
+
   let protein = Math.round(weight * 0.7);
   let water = Math.max(64, Math.round(weight * 0.5));
   let calories = 1800;
 
-  return "Keep meals simple, nourishing, and realistic for the day you actually have.";
-}
   if (activity === "Active") calories += 300;
   if (activity === "Beginner") calories -= 100;
 
+  if (goalType === "strength") {
+    protein = Math.round(weight * 0.85);
+    calories += 200;
+  }
+
+  if (goalType === "weight-loss") {
+    protein = Math.round(weight * 0.8);
+    calories -= 200;
+  }
+
+  if (pregnant) {
+    calories += 250;
+    protein += 20;
+    water += 16;
+  }
+
+  if (postpartum) {
+    protein += 15;
+    water += 16;
+  }
+
+  if (age < 18) {
+    calories += 100;
+  }
+
+  return {
+    calories,
+    protein,
+    water,
+    carbsFocus: goalType === "strength" ? "moderate to higher" : "moderate",
+    fatsFocus: "steady healthy fats",
+  };
+}
+
 function detectChatTopic(text) {
   const lower = text.toLowerCase();
+
   if (
     lower.includes("food") ||
     lower.includes("meal") ||
@@ -1169,6 +1193,7 @@ function detectChatTopic(text) {
   ) {
     return "food";
   }
+
   if (
     lower.includes("pray") ||
     lower.includes("prayer") ||
@@ -1178,6 +1203,7 @@ function detectChatTopic(text) {
   ) {
     return "faith";
   }
+
   if (
     lower.includes("measurement") ||
     lower.includes("measurements") ||
@@ -1188,6 +1214,7 @@ function detectChatTopic(text) {
   ) {
     return "progress";
   }
+
   if (
     lower.includes("routine") ||
     lower.includes("workout") ||
@@ -1197,6 +1224,7 @@ function detectChatTopic(text) {
   ) {
     return "routine";
   }
+
   if (
     lower.includes("discouraged") ||
     lower.includes("sad") ||
@@ -1208,15 +1236,14 @@ function detectChatTopic(text) {
     lower.includes("missed")
   ) {
     return "emotion";
-  if (goalType === "strength") {
-    protein = Math.round(weight * 0.85);
-    calories += 200;
   }
+
   return "general";
 }
 
 function detectMood(text) {
   const lower = text.toLowerCase();
+
   if (
     lower.includes("discouraged") ||
     lower.includes("sad") ||
@@ -1227,6 +1254,7 @@ function detectMood(text) {
   ) {
     return "discouraged";
   }
+
   if (
     lower.includes("tired") ||
     lower.includes("exhausted") ||
@@ -1235,6 +1263,7 @@ function detectMood(text) {
   ) {
     return "tired";
   }
+
   if (
     lower.includes("good") ||
     lower.includes("great") ||
@@ -1243,15 +1272,14 @@ function detectMood(text) {
     lower.includes("proud")
   ) {
     return "positive";
-  if (goalType === "weight-loss") {
-    protein = Math.round(weight * 0.8);
-    calories -= 200;
   }
+
   return "neutral";
 }
 
 function detectPreferredHelpStyle(text) {
   const lower = text.toLowerCase();
+
   if (
     lower.includes("simple") ||
     lower.includes("simplify") ||
@@ -1260,22 +1288,21 @@ function detectPreferredHelpStyle(text) {
   ) {
     return "simple";
   }
+
   if (
     lower.includes("detailed") ||
     lower.includes("explain more") ||
     lower.includes("more detail")
   ) {
     return "detailed";
-  if (pregnant) {
-    calories += 250;
-    protein += 20;
-    water += 16;
   }
+
   return "balanced";
 }
 
 function detectCurrentStruggle(text) {
   const lower = text.toLowerCase();
+
   if (
     lower.includes("too hard") ||
     lower.includes("hard") ||
@@ -1283,6 +1310,7 @@ function detectCurrentStruggle(text) {
   ) {
     return "routine difficulty";
   }
+
   if (
     lower.includes("too long") ||
     lower.includes("long") ||
@@ -1290,6 +1318,7 @@ function detectCurrentStruggle(text) {
   ) {
     return "time consistency";
   }
+
   if (
     lower.includes("food") ||
     lower.includes("meal") ||
@@ -1297,10 +1326,8 @@ function detectCurrentStruggle(text) {
     lower.includes("hungry")
   ) {
     return "food consistency";
-  if (postpartum) {
-    protein += 15;
-    water += 16;
   }
+
   if (
     lower.includes("discouraged") ||
     lower.includes("unmotivated") ||
@@ -1309,6 +1336,7 @@ function detectCurrentStruggle(text) {
   ) {
     return "motivation";
   }
+
   if (
     lower.includes("tired") ||
     lower.includes("exhausted") ||
@@ -1316,11 +1344,13 @@ function detectCurrentStruggle(text) {
   ) {
     return "low energy";
   }
+
   return "";
 }
 
 function detectWin(text) {
   const lower = text.toLowerCase();
+
   if (
     lower.includes("i did it") ||
     lower.includes("finished") ||
@@ -1332,6 +1362,7 @@ function detectWin(text) {
   ) {
     return "followed through";
   }
+
   if (
     lower.includes("ate well") ||
     lower.includes("good meal") ||
@@ -1339,9 +1370,8 @@ function detectWin(text) {
     lower.includes("drank water")
   ) {
     return "made a strong food choice";
-  if (age < 18) {
-    calories += 100;
   }
+
   return "";
 }
 
@@ -1349,6 +1379,13 @@ function getFoodGuidance(profile) {
   const targets = getNutritionTargets(profile);
   return `Aim for about ${targets.protein}g protein, around ${targets.water} oz water, and meals built around protein, carbs for energy, and steady healthy fats.`;
 }
+
+function getMealIdeas(profile) {
+  const goalType = getGoalType(profile);
+  const allergiesText = (profile.foodPreferences || "").toLowerCase();
+  const avoidDairy = allergiesText.includes("dairy");
+  const avoidEggs = allergiesText.includes("egg");
+  const avoidGluten = allergiesText.includes("gluten");
 
   const recipes = [
     {
@@ -1372,7 +1409,9 @@ function getFoodGuidance(profile) {
       title: "Greek Yogurt Snack",
       fit: "snack",
       why: "Quick protein option.",
-      items: avoidDairy ? ["fruit", "turkey slices", "nuts if tolerated"] : ["greek yogurt", "fruit", "granola"],
+      items: avoidDairy
+        ? ["fruit", "turkey slices", "nuts if tolerated"]
+        : ["greek yogurt", "fruit", "granola"],
     },
     {
       title: "Salmon or Beef Dinner",
@@ -1382,7 +1421,7 @@ function getFoodGuidance(profile) {
     },
   ];
 
-
+  if (goalType === "weight-loss") {
     recipes.push({
       title: "High-Protein Wrap Bowl",
       fit: "easy meal",
@@ -1390,6 +1429,7 @@ function getFoodGuidance(profile) {
       items: ["lean protein", "lettuce or rice", "beans", "salsa", "veggies"],
     });
   }
+
   if (goalType === "strength") {
     recipes.push({
       title: "Post-Workout Plate",
@@ -1409,8 +1449,6 @@ function getAIResponse(input, profile) {
   const prefix = getUserVoicePrefix(profile);
   const name = capitalizeName(profile.firstName);
 
-  if (asksWhy) {
-    return `${coachName}: I’m here${namePart}. Ask me directly what you want help with — routine, food, progress, motivation, or prayer — and I’ll answer more clearly.`;
   if (
     lower.includes("food") ||
     lower.includes("meal") ||
@@ -1421,23 +1459,25 @@ function getAIResponse(input, profile) {
     return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — for today, aim for about ${targets.protein}g protein and ${targets.water} oz water. Keep meals simple and built around protein first.`;
   }
 
-  if (motivationStyle === "direct") {
-    return `${coachName}: I’m with you${namePart}. Be specific — tell me whether you want help with routine, food, progress, motivation, or prayer.`;
   if (
     lower.includes("routine") ||
     lower.includes("workout") ||
     lower.includes("today")
   ) {
     const routine = getRoutineData(profile);
-    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — your routine today is ${routine.title}. Start with: ${routine.blocks.slice(0, 3).join(", ")}.`;
+    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — your routine today is ${routine.title}. Start with: ${routine.main.slice(0, 3).map((item) => item.name).join(", ")}.`;
   }
 
-    if (
+  if (
     lower.includes("discouraged") ||
     lower.includes("behind") ||
     lower.includes("tired")
   ) {
     return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — a rough day does not erase your progress. Smaller still counts.`;
+  }
+
+  if (lower.includes("pray")) {
+    return `${coachName}: Lord, give ${name || "them"} peace, strength, wisdom, and steady faith today. Amen.`;
   }
 
   return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — tell me if you want help with routine, food, progress, or prayer.`;
@@ -1711,38 +1751,42 @@ const [editingSetup, setEditingSetup] = useState(false);
   });
 
   const [selectedTheme, setSelectedTheme] = useState(() => {
-const [profile, setProfile] = useState(() => {
-  }, []);
+    const saved = localStorage.getItem("christian-fitness-theme");
+    return saved ? JSON.parse(saved) : COLOR_OPTIONS[0];
+  });
 
   useEffect(() => {
     localStorage.setItem(
       "christian-fitness-profile",
       JSON.stringify(normalizeProfile(profile))
     );
-    localStorage.setItem("christian-fitness-profile", JSON.stringify(profile));
   }, [profile]);
 
   useEffect(() => {
-const [profile, setProfile] = useState(() => {
   useEffect(() => {
     localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
+  }, [selectedTheme]);
 
   useEffect(() => {
     const el = appChatRef.current;
-const [profile, setProfile] = useState(() => {
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [chatMessages]);
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
   const currentQuestion = visibleQuestionFlow[questionIndex];
-const canEditPreviousQuestion = questionIndex > 0;
+  const canEditPreviousQuestion = questionIndex > 0;
   const completedOnboarding = Boolean(profile.onboardingComplete);
   const routineData = useMemo(() => getRoutineData(profile), [profile]);
   const coach = useMemo(() => getCoachMessage(profile), [profile]);
   const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
   const routineLength = useMemo(() => getRoutineLength(profile), [profile]);
   const latestWeeklyReport = useMemo(() => {
-  const reports = profile.coachMemory?.weeklyCheckins || [];
-  return reports.length ? reports[reports.length - 1] : null;
-}, [profile]);
+    const reports = profile.coachMemory?.weeklyCheckins || [];
+    return reports.length ? reports[reports.length - 1] : null;
+  }, [profile]);
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
@@ -1806,7 +1850,6 @@ const canEditPreviousQuestion = questionIndex > 0;
         ...current,
         { role: "ai", text: QUESTION_FLOW[0].label },
       ]);
-      setMessages((current) => [...current, { role: "ai", text: QUESTION_FLOW[0].label }]);
     }
   }
   function submitAnswer(answerOverride) {
