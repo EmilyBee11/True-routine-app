@@ -1110,7 +1110,11 @@ function parseFoodSignals(text = "") {
     if (lower.includes(food)) preferred.push(food);
   });
 
-  if (lower.includes("don't like") || lower.includes("dont like") || lower.includes("hate")) {
+  if (
+    lower.includes("don't like") ||
+    lower.includes("dont like") ||
+    lower.includes("hate")
+  ) {
     ["fish", "broccoli", "eggs", "oatmeal"].forEach((food) => {
       if (lower.includes(food)) avoided.push(food);
     });
@@ -1122,10 +1126,6 @@ function parseFoodSignals(text = "") {
     });
   }
 
-  return { preferred, avoided, allergies };
-}
-
-  return { speaker: coachName, message, focus, action };
   return { preferred, avoided, allergies };
 }
 
