@@ -2699,16 +2699,36 @@ const appStyles = {
                 <h3 style={routineSectionTitle}>Your Measurements</h3>
 
                 <div style={unitToggleWrap}>
+                  <button
                     style={profile.measurementUnit === "Inches" ? unitToggleActive : unitToggleButton}
-                    onClick={() => setProfile((current) => ({ ...current, measurementUnit: "Inches" }))}
+                    onClick={() =>
+                      setProfile((current) => ({
+                        ...current,
+                        measurementUnit: "Inches",
+                      }))
+                    }
                   >
                     Inches
                   </button>
+
+                  <button
                     style={profile.measurementUnit === "Centimeters" ? unitToggleActive : unitToggleButton}
-                    onClick={() => setProfile((current) => ({ ...current, measurementUnit: "Centimeters" }))}
+                    onClick={() =>
+                      setProfile((current) => ({
+                        ...current,
+                        measurementUnit: "Centimeters",
+                      }))
+                    }
                   >
                     Centimeters
                   </button>
+                </div>
+
+                <div style={measurementGrid}>
+                  {MEASUREMENT_FIELDS.map((field) => (
+                    <div key={field.key} style={measurementCard}>
+                      <div style={measurementLabelRow}>
+                        <span style={measurementLabel}>{field.label}</span>
                         <span style={measurementTip}>? {field.tip}</span>
                       </div>
 
