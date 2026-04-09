@@ -2378,8 +2378,6 @@ const appStyles = {
     </div>
   );
 }
-    );
-  }
 
   const headerTextColor = "#ffffff";
   const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
