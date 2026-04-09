@@ -2681,13 +2681,26 @@ const appStyles = {
                     {item}
                   </button>
                 ))}
+              </div>
+
+              <div style={chatInputRow}>
+                <input
+                  style={textInput}
+                  value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type a message..."
                 />
-                <button style={primaryDarkButton} onClick={() => sendChatMessage(chatInput)}>
+                <button
+                  style={primaryDarkButton}
+                  onClick={() => sendChatMessage(chatInput)}
+                >
                   Send
                 </button>
               </div>
+            </>
+          )}
+
+          {activeTab === "progress" && (
             <>
               <div style={dailyCard}>
                 <p style={sectionLabel}>Progress</p>
@@ -2710,7 +2723,6 @@ const appStyles = {
                   >
                     Inches
                   </button>
-
                   <button
                     style={profile.measurementUnit === "Centimeters" ? unitToggleActive : unitToggleButton}
                     onClick={() =>
@@ -2731,7 +2743,6 @@ const appStyles = {
                         <span style={measurementLabel}>{field.label}</span>
                         <span style={measurementTip}>? {field.tip}</span>
                       </div>
-
                       <div style={measurementInputRow}>
                         <input
                           style={measurementSmallInput}
@@ -2863,11 +2874,10 @@ const appStyles = {
                     : "none yet"}
                 </p>
               </div>
-            </>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div style={bottomNav}>
+          <div style={bottomNav}>
           <button
             style={activeTab === "home" ? navButtonActive : navButton}
             onClick={() => setActiveTab("home")}
