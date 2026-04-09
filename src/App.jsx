@@ -2782,7 +2782,15 @@ const appStyles = {
                   activePart={profile.activeMeasurementField}
                   onSelectPart={(part) =>
                     setProfile((current) => ({
- if (!completedOnboarding && screen === "theme") {
+                        ...current,
+                        activeMeasurementField: part,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            </>
+          )}
             </>
           )}
 
