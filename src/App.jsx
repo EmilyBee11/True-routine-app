@@ -2378,20 +2378,18 @@ const appStyles = {
     </div>
   );
 }
-
-  const headerTextColor = "#ffffff";
   const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
-
   return (
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div
           style={{
             ...homeHeader,
             background: `linear-gradient(135deg, ${selectedTheme.primary}, ${selectedTheme.accent})`,
-            color: headerTextColor,
             color: "#fff",
           }}
         >
           <div style={headerTopRow}>
-            <div>
             <button
               onClick={() => setShowSettings(true)}
               style={settingsIconButton}
@@ -2400,17 +2398,14 @@ const appStyles = {
             >
               <GearIcon size={18} />
             </button>
-
             <div style={{ flex: 1, textAlign: "center" }}>
               <h1 style={homeBrandTitle}>
                 <span style={{ display: "block" }}>Christian</span>
                 <span style={{ display: "block" }}>Fitness</span>
               </h1>
             </div>
-
             <div style={{ width: 42 }} />
           </div>
-
           <div style={tickerViewportHome}>
           {activeTab === "home" && (
             <>
