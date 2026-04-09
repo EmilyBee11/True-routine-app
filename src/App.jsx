@@ -1853,134 +1853,125 @@ const [editingSetup, setEditingSetup] = useState(false);
     }
   }
   function submitAnswer(answerOverride) {
-    const answer = typeof answerOverride === "string" ? answerOverride : inputValue.trim();
+    const answer =
+      typeof answerOverride === "string" ? answerOverride : inputValue.trim();
+
     if (!currentQuestion || !answer) return;
 
-  if (!answer) return;
-    const normalizedAnswer =
-      currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
-        ? capitalizeName(answer)
+    const lower =
+      typeof answer === "string" ? answer.toLowerCase().trim() : "";
+
+    if (isClarifyMessage(lower)) {
+      setMessages((current) => [
+        ...current,
+        { role: "user", text: answer },
+        {
+          role: "ai",
+          text: getClarificationForQuestion(currentQuestion),
+        },
+      ]);
+      setInputValue("");
+      return;
+    }
+
+    if (
+      typeof answer === "string" &&
+      (
+        lower === "why" ||
+        lower === "what" ||
+        lower === "how" ||
+        lower.includes("why are you asking") ||
+        lower.includes("why do you need that") ||
+        lower.includes("what do you mean") ||
+        lower.includes("explain")
+      )
+    ) {
+      setMessages((current) => [
+        ...current,
+        { role: "user", text: answer },
+        {
+          role: "ai",
+          text: "Good question. I’m asking this so I can guide your plan in a way that actually fits your life.",
+        },
+        {
+          role: "ai",
+          text: currentQuestion.label,
+        },
+      ]);
+      setInputValue("");
+      return;
+    }
+
+    const safeAnswer =
+      typeof answer === "string" &&
+      answer.toLowerCase() === "skip" &&
+      currentQuestion.type === "text"
+        ? ""
         : answer;
 
-  const lower = typeof answer === "string" ? answer.toLowerCase().trim() : "";
+    const normalizedAnswer =
+      currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
+        ? capitalizeName(safeAnswer)
+        : safeAnswer;
 
-  if (isClarifyMessage(lower)) {
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: answer },
-      {
-        role: "ai",
-        text: getClarificationForQuestion(currentQuestion),
-      },
-    ]);
-    setInputValue("");
-    return;
-  }
     const nextProfile = normalizeProfile({
       ...profile,
       [currentQuestion.key]: normalizedAnswer,
+      coachMemory: {
+        ...profile.coachMemory,
+        detailLevel: profile.coachMemory?.detailLevel || "balanced",
+        tone: "balanced",
+        neutralUntilLearned: true,
+      },
     });
 
-  if (
-    typeof answer === "string" &&
-    (
-      lower === "why" ||
-      lower === "what" ||
-      lower === "how" ||
-      lower.includes("why are you asking") ||
-      lower.includes("why do you need that") ||
-      lower.includes("what do you mean") ||
-      lower.includes("explain")
-    )
-  ) {
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: answer },
-      {
-        role: "ai",
-        text: "Good question. I’m asking this so I can guide your plan in a way that actually fits your life.",
-      },
-      {
-        role: "ai",
-        text: currentQuestion.label,
-      },
-    ]);
-    setMessages((current) => [...current, { role: "user", text: answer }]);
+    setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
     setProfile(nextProfile);
     setInputValue("");
-    return;
-  }
 
-  const safeAnswer =
-    typeof answer === "string" &&
-    answer.toLowerCase() === "skip" &&
-    currentQuestion.type === "text"
-      ? ""
-      : answer;
+    const nextVisibleFlow = getVisibleQuestionFlow(nextProfile);
+    const nextIndex = questionIndex + 1;
 
-  const normalizedAnswer =
-    currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
-      ? capitalizeName(safeAnswer)
-      : safeAnswer;
+    if (nextIndex < nextVisibleFlow.length) {
+      setQuestionIndex(nextIndex);
+      const reply = getConversationalReply(nextProfile, currentQuestion.key);
 
-  const nextProfile = normalizeProfile({
-    ...profile,
-    [currentQuestion.key]: normalizedAnswer,
-    coachMemory: {
-      ...profile.coachMemory,
-      detailLevel: profile.coachMemory?.detailLevel || "balanced",
-      tone: "balanced",
-      neutralUntilLearned: true,
-    },
-  });
+      setTimeout(() => {
+        setMessages((current) => [
+          ...current,
+          {
+            role: "ai",
+            text: `${reply} ${nextVisibleFlow[nextIndex].label}`,
+          },
+        ]);
+      }, 250);
 
-  setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
-  setProfile(nextProfile);
-  setInputValue("");
-
-  const nextVisibleFlow = getVisibleQuestionFlow(nextProfile);
-  const nextIndex = questionIndex + 1;
-
-  if (nextIndex < nextVisibleFlow.length) {
-    setQuestionIndex(nextIndex);
-    const reply = getConversationalReply(nextProfile, currentQuestion.key);
+      return;
+    }
 
     setTimeout(() => {
+      const firstName = capitalizeName(nextProfile.firstName);
       setMessages((current) => [
         ...current,
         {
           role: "ai",
-          text: `${reply} ${nextVisibleFlow[nextIndex].label}`,
+          text: `Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
+        },
+        {
+          role: "ai",
+          text: `As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month. To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.`,
         },
       ]);
     }, 250);
-    return;
-  }
 
-  setTimeout(() => {
-    const firstName = capitalizeName(nextProfile.firstName);
-
-    setMessages((current) => [
+    setProfile((current) => ({
       ...current,
-      {
-        role: "ai",
-        text: `Perfect${firstName ? `, ${firstName}` : ""}. That gives me a strong starting picture of you. Before we move on, if you want to change any answer, tap Edit last answer. If everything looks good, I’ll walk you through your style and tour next.`,
-      },
-      {
-        role: "ai",
-        text: `As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month. To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.`,
-      },
-    ]);
-  }, 250);
+      ...nextProfile,
+      onboardingStage: "tour",
+    }));
 
-  setProfile((current) => ({
-    ...current,
-    ...nextProfile,
-    onboardingStage: "tour",
-  }));
-
-  setScreen("theme");
-}
+    setScreen("theme");
+  }
 function finishThemeAndTour() {
   setProfile((current) => ({
     ...current,
