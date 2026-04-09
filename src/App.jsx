@@ -2389,6 +2389,7 @@ const appStyles = {
             color: "#fff",
           }}
         >
+        >
           <div style={headerTopRow}>
             <button
               onClick={() => setShowSettings(true)}
@@ -2879,24 +2880,20 @@ const appStyles = {
               <h3 style={{ marginTop: 8, marginBottom: 12 }}>App settings</h3>
 
               <div style={routineSectionCard}>
-                <p style={bodyText}><strong>Coach name:</strong> {capitalizeName(profile.coachName) || "Coach"}</p>
-                <p style={bodyText}><strong>User name:</strong> {capitalizeName(profile.firstName) || "Not set"}</p>
-                <p style={bodyText}><strong>Goal:</strong> {profile.mainGoal || "Not set"}</p>
-                <p style={bodyTextLast}><strong>Activity:</strong> {profile.activityLevel || "Not set"}</p>
+                <p style={bodyText}>
+                  <strong>Coach name:</strong> {capitalizeName(profile.coachName) || "Coach"}
+                </p>
+                <p style={bodyText}>
+                  <strong>User name:</strong> {capitalizeName(profile.firstName) || "Not set"}
+                </p>
+                <p style={bodyText}>
+                  <strong>Goal:</strong> {profile.mainGoal || "Not set"}
+                </p>
+                <p style={bodyTextLast}>
+                  <strong>Activity:</strong> {profile.activityLevel || "Not set"}
+                </p>
               </div>
 
-              {tourStep === 3 && (
-                <div style={measurementMiniCard}>
-                  <TourMeasurementDiagram
-                    gender={profile.gender}
-                    activePart={profile.activeMeasurementField}
-                    onSelectPart={(part) =>
-                      setProfile((current) => ({
-                        ...current,
-                        activeMeasurementField: part,
-                      }))
-                    }
-                  />
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Theme</h3>
                 <div style={{ display: "grid", gap: 8 }}>
@@ -2925,7 +2922,6 @@ const appStyles = {
                     </button>
                   ))}
                 </div>
-              )}
               </div>
 
               <button
@@ -2949,8 +2945,6 @@ const appStyles = {
                 Clear coach memory
               </button>
 
-              <button style={primaryDarkButton} onClick={nextTourStep}>
-                {tourStep === tourSteps.length - 1 ? "Finish tour" : "Next"}
               <button style={dangerButton} onClick={resetApp}>
                 Reset App
               </button>
@@ -2963,248 +2957,8 @@ const appStyles = {
         )}
       </div>
     </div>
-  </div>
   );
 }
-
-const welcomeWrap = {
-  padding: 22,
-  paddingTop: 10,
-  paddingBottom: 70,
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-};
-
-const brandBlock = {
-const onboardingChatArea = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-  minHeight: 0,
-  scrollBehavior: "smooth",
-};
-
-const bubbleBase = {
-const textInputLight = {
-  width: "100%",
-  boxSizing: "border-box",
-  border: "1px solid rgba(0,0,0,0.08)",
-  background: "#ffffff",
-  color: "#111111",
-  borderRadius: 18,
-  padding: "14px 16px",
-  outline: "none",
-  fontSize: 15,
-};
-
-const dangerButton = {
-  width: "100%",
-  border: "none",
-  borderRadius: 18,
-  padding: "15px 18px",
-  background: "#111111",
-  color: "white",
-  fontWeight: 700,
-  fontSize: 16,
-  cursor: "pointer",
-  marginTop: 8,
-};
-
-const choiceWrap = {
-  display: "grid",
-  gap: 10,
-const choiceButton = {
-  border: "none",
-  borderRadius: 18,
-  padding: "14px 16px",
-  background: "#ffffff",
-  color: "#111111",
-  fontWeight: 700,
-  fontSize: 15,
-  cursor: "pointer",
-};
-const themeWrap = {
-  padding: 22,
-  display: "flex",
-  flexDirection: "column",
-  gap: 18,
-};
-            
-const selectInput = {
-  width: "100%",
-  boxSizing: "border-box",
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "#ffffff",
-  color: "#111111",
-  borderRadius: 18,
-  padding: "14px 16px",
-  outline: "none",
-  fontSize: 15,
-};
-
-const homeHeader = {
-const headerTopRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 12,
-};
-
-const settingsIconButton = {
-  width: 42,
-  height: 42,
-  borderRadius: 14,
-  border: "1px solid rgba(255,255,255,0.25)",
-  background: "linear-gradient(145deg, rgba(255,255,255,0.32), rgba(255,255,255,0.12))",
-  boxShadow: "inset 0 1px 1px rgba(255,255,255,0.35), 0 8px 18px rgba(0,0,0,0.28)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-};
-
-const homeBrandTitle = {
-  margin: 0,
-  lineHeight: 1,
-const verseCard = {
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-};
-
-const sectionLabel = {
-  margin: 0,
-  fontSize: 12,
-  opacity: 0.7,
-};
-
-const sectionLabelWhite = {
-  margin: 0,
-  fontSize: 12,
-const bodyTextLast = {
-};
-
-const bodyTextWhite = {
-  margin: 0,
-  margin: "0 0 10px",
-  lineHeight: 1.5,
-  color: "white",
-};
-
-const buttonGrid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 10,
-const routineSectionCard = {
-  background: "rgba(255,255,255,0.86)",
-  backdropFilter: "blur(10px)",
-  borderRadius: 24,
-  padding: 18,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-};
-
-const actionCard = {
-  border: "none",
-  background: "rgba(255,255,255,0.88)",
-const routineSectionTitle = {
-  marginTop: 0,
-  marginBottom: 12,
-};
-
-const appChatHistory = {
-  background: "rgba(255,255,255,0.86)",
-  backdropFilter: "blur(10px)",
-  borderRadius: 20,
-  padding: "16px 14px",
-  borderRadius: 24,
-  padding: 14,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-  maxHeight: 340,
-  overflowY: "auto",
-  minHeight: 0,
-};
-
-const quickReplyWrap = {
-  display: "grid",
-  gap: 8,
-};
-
-const quickReplyButton = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  background: "rgba(255,255,255,0.9)",
-  color: "#111",
-  borderRadius: 18,
-  padding: "14px 16px",
-  textAlign: "left",
-  fontWeight: 700,
-  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-  cursor: "pointer",
-  fontWeight: 600,
-};
-
-const bottomNav = {
-const navButtonActive = {
-  cursor: "pointer",
-};
-
-const routineSectionCard = {
-  background: "rgba(255,255,255,0.86)",
-  backdropFilter: "blur(10px)",
-  borderRadius: 24,
-  padding: 18,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-};
-
-const routineSectionTitle = {
-  marginTop: 0,
-  marginBottom: 12,
-};
-
-const unitToggleWrap = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-const measurementSmallInput = {
-  fontSize: 15,
-};
-
-const selectInput = {
-  width: "100%",
-  boxSizing: "border-box",
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "#ffffff",
-  color: "#111111",
-  borderRadius: 18,
-  padding: "14px 16px",
-  outline: "none",
-  fontSize: 15,
-  appearance: "auto",
-  WebkitAppearance: "menulist",
-  MozAppearance: "menulist",
-};
-
-const measurementUnitText = {
-  minWidth: 24,
-  fontSize: 13,
-  fontWeight: 700,
-  color: "#6b7280",
-};
-
-const appChatHistory = {
-  background: "rgba(255,255,255,0.86)",
-  backdropFilter: "blur(10px)",
-  borderRadius: 24,
-  padding: 14,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-  maxHeight: 340,
-  overflowY: "auto",
-  minHeight: 0,
-  scrollBehavior: "smooth",
-};
 
 const quickReplyWrap = {
   display: "grid",
