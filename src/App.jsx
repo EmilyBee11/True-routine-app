@@ -1993,103 +1993,58 @@ function finishThemeAndTour() {
   setShowTour(true);
   setTourStep(0);
 }
-    const nextFlow = getVisibleQuestionFlow(nextProfile);
-    const nextIndex = questionIndex + 1;
 
-  function nextTourStep() {
-    if (tourStep >= tourSteps.length - 1) {
-      setShowTour(false);
-      setActiveTab("home");
-    if (nextIndex < nextFlow.length) {
-      setQuestionIndex(nextIndex);
-      setMessages((current) => [...current, { role: "ai", text: nextFlow[nextIndex].label }]);
-      return;
-    }
-
-    const next = tourStep + 1;
-    setTourStep(next);
-
-    if (next === 0) setActiveTab("home");
-    if (next === 1) setActiveTab("routine");
-    if (next === 2) setActiveTab("chat");
-    if (next === 3) setActiveTab("progress");
+function nextTourStep() {
+  if (tourStep >= tourSteps.length - 1) {
+    setShowTour(false);
+    setActiveTab("home");
+    return;
   }
 
-  function sendChatMessage(text) {
-    const cleanText = text.trim();
-    if (!cleanText) return;
+  const next = tourStep + 1;
+  setTourStep(next);
+  if (next === 0) setActiveTab("home");
+  if (next === 1) setActiveTab("routine");
+  if (next === 2) setActiveTab("chat");
+  if (next === 3) setActiveTab("progress");
+}
 
-  if (
-    lower.includes("i did it") ||
-    lower.includes("finished") ||
-    lower.includes("completed") ||
-    lower.includes("i worked out") ||
-    lower.includes("i did my workout")
-  ) {
-    victories = addUnique(victories, "followed through");
-  }
-    let nextProfile = updateLanguageMemory(profile, cleanText);
-    const foodSignals = parseFoodSignals(cleanText);
+function sendChatMessage(text) {
+  const cleanText = text.trim();
+  if (!cleanText) return;
 
-    nextProfile = {
-      ...nextProfile,
-      coachMemory: {
-        ...nextProfile.coachMemory,
-        preferredFoods: [...new Set([...(nextProfile.coachMemory.preferredFoods || []), ...foodSignals.preferred])].slice(-12),
-        avoidedFoods: [...new Set([...(nextProfile.coachMemory.avoidedFoods || []), ...foodSignals.avoided])].slice(-12),
-        allergies: [...new Set([...(nextProfile.coachMemory.allergies || []), ...foodSignals.allergies])].slice(-12),
-      },
-    };
-    
-    setProfile(nextProfile);
+  let nextProfile = updateLanguageMemory(profile, cleanText);
+  const foodSignals = parseFoodSignals(cleanText);
 
-    const coachName = capitalizeName(nextProfile.coachName) || "Coach";
-    const userMsg = { role: "user", text: cleanText };
-    const aiMsg = {
-      role: "ai",
-      speaker: coachName,
-      text: getAIResponse(cleanText, nextProfile),
-    };
-
-  function resetApp() {
-    localStorage.removeItem("christian-fitness-profile");
-    localStorage.removeItem("christian-fitness-messages");
-    localStorage.removeItem("christian-fitness-chat");
-    localStorage.removeItem("christian-fitness-theme");
-    window.location.reload();
-  }
-
-  const nextProfile = {
-    ...profile,
+  nextProfile = {
+    ...nextProfile,
     coachMemory: {
-      ...profile.coachMemory,
-      prefersShortWorkouts:
-        lower.includes("short") ||
-        lower.includes("simplify") ||
-        lower.includes("too long")
-          ? true
-          : profile.coachMemory?.prefersShortWorkouts || false,
-      lastChatTopic,
-      recurringTopics,
-      commonStruggles,
-      victories,
-      preferredFoods,
-      avoidedFoods,
-      allergies,
-      learnedInjuries,
-      learnedLimits,
-      motivationStyle,
-      faithFocus,
+      ...nextProfile.coachMemory,
+      preferredFoods: [
+        ...new Set([
+          ...(nextProfile.coachMemory.preferredFoods || []),
+          ...foodSignals.preferred,
+        ]),
+      ].slice(-12),
+      avoidedFoods: [
+        ...new Set([
+          ...(nextProfile.coachMemory.avoidedFoods || []),
+          ...foodSignals.avoided,
+        ]),
+      ].slice(-12),
+      allergies: [
+        ...new Set([
+          ...(nextProfile.coachMemory.allergies || []),
+          ...foodSignals.allergies,
+        ]),
+      ].slice(-12),
     },
   };
 
   setProfile(nextProfile);
 
-  const userMsg = {
-    role: "user",
-    text: cleanText,
-  };
-
+  const coachName = capitalizeName(nextProfile.coachName) || "Coach";
+  const userMsg = { role: "user", text: cleanText };
   const aiMsg = {
     role: "ai",
     speaker: coachName,
@@ -2109,7 +2064,6 @@ function saveMeasurementValue(fieldKey, value) {
 
     const now = new Date().toISOString();
     const lastUpdate = current.coachMemory?.lastMeasurementUpdate;
-
     const shouldCreateSnapshot =
       !lastUpdate ||
       new Date(now).getTime() - new Date(lastUpdate).getTime() >
@@ -2135,12 +2089,11 @@ function saveMeasurementValue(fieldKey, value) {
   });
 }
 
-  const appStyles = {
-    minHeight: "100vh",
-    background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
-function saveMeasurementValue(fieldKey, value) {
-    position: "relative",
-  };
+const appStyles = {
+  minHeight: "100vh",
+  background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
+  position: "relative",
+};
 
   if (!completedOnboarding && screen === "onboarding") {
     return (
@@ -2155,150 +2108,7 @@ function saveMeasurementValue(fieldKey, value) {
             </div>
           </div>
 
-         <div ref={onboardingChatRef} style={onboardingChatArea}>
-{messages.map((message, index) => (
-  <div
-    key={`${message.role}-${index}`}
-    style={{
-      display: "flex",
-      justifyContent:
-        message.role === "ai" ? "flex-start" : "flex-end",
-    }}
-  >
-    <div style={{ maxWidth: "82%" }}>
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 700,
-          opacity: 0.75,
-          marginBottom: 6,
-          color: "white",
-          textAlign: message.role === "ai" ? "left" : "right",
-        }}
-      >
-        {message.role === "ai"
-          ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
-          : capitalizeName(profile.firstName) || "You"}
-      </div>
-      <div
-        style={{
-          ...bubbleBase,
-          ...(message.role === "ai" ? aiBubble : userBubble),
-        }}
-      >
-        {message.role === "ai"
-  ? cleanCoachBubbleText(message.text, profile.coachName)
-  : message.text}
-      </div>
-    </div>
-  </div>
-))}
-          </div>
-
-<div style={inputArea}>
-  {currentQuestion?.type === "choice" ? (
-    <div style={choiceWrap}>
-      {currentQuestion.options.map((option) => (
-        <button
-          key={option}
-          style={choiceButton}
-          onClick={() => submitAnswer(option)}
-        >
-          {option}
-        </button>
-      ))}
-    </div>
-  ) : currentQuestion?.type === "select" ? (
-    <>
-      <select
-        style={selectInput}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-      >
-        <option value="">Select your state...</option>
-        {currentQuestion.options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <button
-        style={primaryButton}
-        onClick={() => submitAnswer()}
-        disabled={!inputValue}
-      >
-        Send
-      </button>
-    </>
-  ) : (
-    <>
-      <input
-        style={textInput}
-        value={inputValue}
-        type={currentQuestion?.type === "number" ? "number" : "text"}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Type your answer..."
-      />
-      <button style={primaryButton} onClick={() => submitAnswer()}>
-        Send
-      </button>
-    </>
-  )}
-
-  {canEditPreviousQuestion && (
-    <button
-      style={secondaryOnboardingButton}
-      onClick={() => {
-        const previousIndex = questionIndex - 1;
-        const previousQuestion = visibleQuestionFlow[previousIndex];
-        if (!previousQuestion) return;
-        setQuestionIndex(previousIndex);
-        setInputValue(profile[previousQuestion.key] || "");
-        setMessages((current) => [
-          ...current,
-          {
-            role: "ai",
-            text: `${capitalizeName(profile.coachName) || "Coach"}: No problem — let’s change that answer.`,
-          },
-        ]);
-      }}
-    >
-      Edit last answer
-    </button>
-  )}
-</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-if (!completedOnboarding && screen === "theme") {
-  return (
-    <div style={appStyles}>
-      <div style={phoneStyles}>
-        <div style={themeWrap}>
-          <h2 style={{ marginBottom: 6 }}>Choose your style</h2>
-          <p style={subtleText}>
-            Pick a granite-style base and compare the color differences below.
-          </p>
-
-          <div style={{ display: "grid", gap: 14, width: "100%" }}>
-
-  if (!profile.onboardingComplete && screen === "onboarding") {
-    return (
-      <div style={appStyles}>
-        <div style={phoneStyles}>
-          <div style={topBar}>
-            <div>
-              <h2 style={{ margin: 0 }}>Christian Fitness</h2>
-              <p style={subtleText}>
-                Question {questionIndex + 1} of {visibleQuestionFlow.length}
-              </p>
-            </div>
-          </div>
-
-          <div style={onboardingChatArea}>
+          <div ref={onboardingChatRef} style={onboardingChatArea}>
             {messages.map((message, index) => (
               <div
                 key={`${message.role}-${index}`}
@@ -2310,16 +2120,150 @@ if (!completedOnboarding && screen === "theme") {
                 <div style={{ maxWidth: "82%" }}>
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "72px 1fr",
-                      gap: 14,
-                      alignItems: "center",
                       fontSize: 12,
                       fontWeight: 700,
                       opacity: 0.75,
                       marginBottom: 6,
                       color: "white",
                       textAlign: message.role === "ai" ? "left" : "right",
+                    }}
+                  >
+                    {message.role === "ai"
+                      ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
+                      : capitalizeName(profile.firstName) || "You"}
+                  </div>
+
+                  <div
+                    style={{
+                      ...bubbleBase,
+                      ...(message.role === "ai" ? aiBubble : userBubble),
+                    }}
+                  >
+                    {message.role === "ai"
+                      ? cleanCoachBubbleText(message.text, profile.coachName)
+                      : message.text}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={inputArea}>
+            {currentQuestion?.type === "choice" ? (
+              <div style={choiceWrap}>
+                {currentQuestion.options.map((option) => (
+                  <button
+                    key={option}
+                    style={choiceButton}
+                    onClick={() => submitAnswer(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            ) : currentQuestion?.type === "select" ? (
+              <>
+                <select
+                  style={selectInput}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                >
+                  <option value="">Select your state...</option>
+                  {currentQuestion.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  style={primaryButton}
+                  onClick={() => submitAnswer()}
+                  disabled={!inputValue}
+                >
+                  Send
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  style={textInput}
+                  value={inputValue}
+                  type={currentQuestion?.type === "number" ? "number" : "text"}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your answer..."
+                />
+                <button style={primaryButton} onClick={() => submitAnswer()}>
+                  Send
+                </button>
+              </>
+            )}
+
+            {canEditPreviousQuestion && (
+              <button
+                style={secondaryOnboardingButton}
+                onClick={() => {
+                  const previousIndex = questionIndex - 1;
+                  const previousQuestion = visibleQuestionFlow[previousIndex];
+                  if (!previousQuestion) return;
+                  setQuestionIndex(previousIndex);
+                  setInputValue(profile[previousQuestion.key] || "");
+                  setMessages((current) => [
+                    ...current,
+                    {
+                      role: "ai",
+                      text: `${capitalizeName(profile.coachName) || "Coach"}: No problem — let’s change that answer.`,
+                    },
+                  ]);
+                }}
+              >
+                Edit last answer
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (!completedOnboarding && screen === "theme") {
+  return (
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div style={themeWrap}>
+          <h2 style={{ marginBottom: 6 }}>Choose your style</h2>
+          <p style={subtleText}>
+            Pick a granite-style base and compare the color differences below.
+          </p>
+
+          <div style={{ display: "grid", gap: 14, width: "100%" }}>
+            {COLOR_OPTIONS.map((option) => {
+              const selected = selectedTheme.name === option.name;
+
+              return (
+                <button
+                  key={option.name}
+                  onClick={() => setSelectedTheme(option)}
+                  style={{
+                    width: "100%",
+                    borderRadius: 24,
+                    border: selected
+                      ? `3px solid ${option.accent}`
+                      : "1px solid rgba(255,255,255,0.16)",
+                    background: "#16181d",
+                    padding: 16,
+                    color: "white",
+                    cursor: "pointer",
+                    boxShadow: selected
+                      ? `0 0 0 2px rgba(255,255,255,0.08), 0 10px 30px ${option.accent}33`
+                      : "0 10px 24px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "72px 1fr",
+                      gap: 14,
+                      alignItems: "center",
                     }}
                   >
                     <div
@@ -2331,10 +2275,12 @@ if (!completedOnboarding && screen === "theme") {
                         border: "1px solid rgba(255,255,255,0.12)",
                       }}
                     />
+
                     <div style={{ textAlign: "left" }}>
                       <div style={{ fontSize: 18, fontWeight: 800 }}>
                         {option.name}
                       </div>
+
                       <div
                         style={{
                           marginTop: 6,
@@ -2371,6 +2317,7 @@ if (!completedOnboarding && screen === "theme") {
                           }}
                         />
                       </div>
+
                       <div
                         style={{
                           marginTop: 10,
@@ -2389,6 +2336,7 @@ if (!completedOnboarding && screen === "theme") {
                         >
                           Preview header
                         </div>
+
                         <div
                           style={{
                             background: `linear-gradient(180deg, #f7f7f8 0%, ${option.tint} 100%)`,
@@ -2409,6 +2357,7 @@ if (!completedOnboarding && screen === "theme") {
                           >
                             Card preview
                           </div>
+
                           <div
                             style={{
                               background: "#111111",
@@ -2424,68 +2373,10 @@ if (!completedOnboarding && screen === "theme") {
                         </div>
                       </div>
                     </div>
-                    {message.role === "ai"
-                      ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
-                      : capitalizeName(profile.firstName) || "You"}
                   </div>
                 </button>
               );
             })}
-                  <div style={{ ...bubbleBase, ...(message.role === "ai" ? aiBubble : userBubble) }}>
-                    {message.text}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={tourCard}>
-            <h3 style={{ marginTop: 0 }}>Quick tour</h3>
-            <p style={tourLine}>Home shows what matters today.</p>
-            <p style={tourLine}>Today’s Routine gives your movement plan.</p>
-            <p style={tourLine}>Chat lets you talk to your Coach anytime.</p>
-            <p style={tourLine}>Progress is where tracking will live.</p>
-          <div style={inputArea}>
-            {currentQuestion?.type === "choice" ? (
-              <div style={choiceWrap}>
-                {currentQuestion.options.map((option) => (
-                  <button key={option} style={choiceButton} onClick={() => submitAnswer(option)}>
-                    {option}
-                  </button>
-                ))}
-              </div>
-            ) : currentQuestion?.type === "select" ? (
-              <>
-                <select
-                  style={selectInput}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                >
-                  <option value="">Select your state...</option>
-                  {currentQuestion.options.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <button style={primaryButton} onClick={() => submitAnswer()} disabled={!inputValue}>
-                  Send
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  style={textInput}
-                  value={inputValue}
-                  type={currentQuestion?.type === "number" ? "number" : "text"}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your answer..."
-                />
-                <button style={primaryButton} onClick={() => submitAnswer()}>
-                  Send
-                </button>
-              </>
-            )}
           </div>
 
           <button style={primaryButton} onClick={finishThemeAndTour}>
@@ -2533,18 +2424,14 @@ if (!completedOnboarding && screen === "theme") {
           </div>
 
           <div style={tickerViewportHome}>
-if (!completedOnboarding && screen === "theme") {
           {activeTab === "home" && (
             <>
               <div style={coachCard}>
-                <p style={sectionLabelDark}>{coach.speaker}</p>
                 <p style={sectionLabelWhite}>{coach.speaker}</p>
                 <h2 style={cardTitle}>{coach.message}</h2>
-                <p style={bodyText}>
                 <p style={bodyTextWhite}>
                   <strong>Daily focus:</strong> {coach.focus}
                 </p>
-                <p style={bodyTextLast}>
                 <p style={bodyTextWhite}>
                   <strong>Today’s action:</strong> {coach.action}
                 </p>
@@ -2557,10 +2444,6 @@ if (!completedOnboarding && screen === "theme") {
                 <p style={bodyTextLast}>
                   <strong>Estimated length:</strong> {routineLength}
                 </p>
-                <button
-                  style={secondaryButton}
-                  onClick={() => setActiveTab("routine")}
-                >
                 <button style={secondaryButton} onClick={() => setActiveTab("routine")}>
                   Open full routine
                 </button>
@@ -2581,7 +2464,6 @@ if (!completedOnboarding && screen === "theme") {
               <div style={dailyCard}>
                 <p style={sectionLabel}>Food guidance</p>
                 <p style={bodyTextLast}>{foodGuidance}</p>
-                <p style={bodyTextLast}>{getFoodGuidance(profile)}</p>
               </div>
 
               <div style={dailyCard}>
@@ -2639,7 +2521,7 @@ if (!completedOnboarding && screen === "theme") {
             </>
           )}
 
-if (!completedOnboarding && screen === "theme") {
+              <div style={dailyCard}>
                 <p style={sectionLabel}>Generated routine</p>
                 <h2 style={cardTitle}>{routineData.title}</h2>
                 <p style={bodyText}>{routineData.summary}</p>
@@ -2670,6 +2552,7 @@ if (!completedOnboarding && screen === "theme") {
                 <h3 style={routineSectionTitle}>Cooldown</h3>
                 {routineData.cooldown.map((exercise, index) => (
                   <ExerciseCard key={`cooldown-${index}`} exercise={exercise} />
+                ))}
               </div>
 
               <div style={dailyCard}>
@@ -2756,7 +2639,6 @@ if (!completedOnboarding && screen === "theme") {
               <button style={secondaryButton} onClick={() => setActiveTab("home")}>
                 Back to Home
               </button>
-if (!completedOnboarding && screen === "theme") {
           {activeTab === "chat" && (
             <>
               <div style={coachCard}>
@@ -2812,11 +2694,9 @@ if (!completedOnboarding && screen === "theme") {
                     style={quickReplyButton}
                     onClick={() => sendChatMessage(item)}
                   >
-                  <button key={item} style={quickReplyButton} onClick={() => sendChatMessage(item)}>
                     {item}
                   </button>
                 ))}
-if (!completedOnboarding && screen === "theme") {
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type a message..."
                 />
@@ -2824,11 +2704,9 @@ if (!completedOnboarding && screen === "theme") {
                   Send
                 </button>
               </div>
-if (!completedOnboarding && screen === "theme") {
             <>
               <div style={dailyCard}>
                 <p style={sectionLabel}>Progress</p>
-                <h2 style={cardTitle}>Tracking will grow here</h2>
                 <h2 style={cardTitle}>Measurements</h2>
                 <p style={bodyTextLast}>Add or update your measurements below.</p>
               </div>
@@ -2847,7 +2725,6 @@ if (!completedOnboarding && screen === "theme") {
                   >
                     Centimeters
                   </button>
-if (!completedOnboarding && screen === "theme") {
                         <span style={measurementTip}>? {field.tip}</span>
                       </div>
 
@@ -2880,28 +2757,8 @@ if (!completedOnboarding && screen === "theme") {
                   These save on this device automatically.
                 </p>
                 <p style={bodyTextLast}>
-  Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
-</p>
-                {profile.measurementHistory?.length > 0 && (
-  <div style={routineSectionCard}>
-    <h3 style={routineSectionTitle}>Measurement History</h3>
-    {profile.measurementHistory
-      .slice()
-      .reverse()
-      .map((snapshot) => (
-        <div
-          key={snapshot.id}
-          style={{
-            background: "#ffffff",
-            border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 18,
-            padding: 12,
-            marginBottom: 10,
-          }}
-        >
-
-        </div>
-
+                  Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
+                </p>
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Measurement guide</h3>
                 {getMeasurementGuide(profile.measurementUnit).map((item) => (
@@ -2967,6 +2824,11 @@ if (!completedOnboarding && screen === "theme") {
                     <p style={mealTitle}>{meal.title}</p>
                     <p style={bodyText}><strong>Best for:</strong> {meal.fit}</p>
                     <p style={bodyText}><strong>Why:</strong> {meal.why}</p>
+                    <p style={bodyTextLast}>
+                      <strong>Build it with:</strong> {meal.items.join(", ")}
+                    </p>
+                  </div>
+                ))}
 
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Saved food memory</h3>
@@ -3132,7 +2994,8 @@ const welcomeWrap = {
 };
 
 const brandBlock = {
- const onboardingChatArea = {
+const onboardingChatArea = {
+  display: "flex",
   flexDirection: "column",
   gap: 12,
   minHeight: 0,
@@ -3140,7 +3003,15 @@ const brandBlock = {
 };
 
 const bubbleBase = {
- const textInputLight = {
+const textInputLight = {
+  width: "100%",
+  boxSizing: "border-box",
+  border: "1px solid rgba(0,0,0,0.08)",
+  background: "#ffffff",
+  color: "#111111",
+  borderRadius: 18,
+  padding: "14px 16px",
+  outline: "none",
   fontSize: 15,
 };
 
@@ -3160,10 +3031,16 @@ const dangerButton = {
 const choiceWrap = {
   display: "grid",
   gap: 10,
- const choiceButton = {
+const choiceButton = {
+  border: "none",
+  borderRadius: 18,
+  padding: "14px 16px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  fontSize: 15,
   cursor: "pointer",
 };
-
 const themeWrap = {
   padding: 22,
   display: "flex",
@@ -3184,11 +3061,9 @@ const selectInput = {
 };
 
 const homeHeader = {
- const homeHeader = {
 const headerTopRow = {
   display: "flex",
   justifyContent: "space-between",
-  alignItems: "flex-start",
   alignItems: "center",
   gap: 12,
 };
@@ -3216,7 +3091,6 @@ const verseCard = {
 const sectionLabel = {
   margin: 0,
   fontSize: 12,
- const sectionLabel = {
   opacity: 0.7,
 };
 
