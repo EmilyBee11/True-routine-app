@@ -2383,7 +2383,6 @@ const appStyles = {
   const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
 
   return (
- if (!completedOnboarding && screen === "theme") {
           style={{
             ...homeHeader,
             background: `linear-gradient(135deg, ${selectedTheme.primary}, ${selectedTheme.accent})`,
