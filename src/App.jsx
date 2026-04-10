@@ -2795,9 +2795,8 @@ const appStyles = {
                   }
                 />
               </div>
-            </>
-          )}
-          {activeTab === "food" && (
+            )}
+            {activeTab === "food" && (
 
             <>
               <div style={dailyCard}>
@@ -2867,11 +2866,10 @@ const appStyles = {
                     : "none yet"}
                 </p>
               </div>
-            </>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div style={bottomNav}>
+          <div style={bottomNav}>
             <button
               style={activeTab === "home" ? navButtonActive : navButton}
               onClick={() => setActiveTab("home")}
