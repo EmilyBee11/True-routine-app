@@ -2504,6 +2504,8 @@ const appStyles = {
             </>
           )}
 
+          {activeTab === "routine" && (
+            <>
               <div style={dailyCard}>
                 <p style={sectionLabel}>Generated routine</p>
                 <h2 style={cardTitle}>{routineData.title}</h2>
@@ -2516,33 +2518,28 @@ const appStyles = {
                   tap thumbs up or down and say why.
                 </p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Warmup</h3>
                 {routineData.warmup.map((exercise, index) => (
                   <ExerciseCard key={`warmup-${index}`} exercise={exercise} />
                 ))}
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Main workout</h3>
                 {routineData.main.map((exercise, index) => (
                   <ExerciseCard key={`main-${index}`} exercise={exercise} />
                 ))}
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Cooldown</h3>
                 {routineData.cooldown.map((exercise, index) => (
                   <ExerciseCard key={`cooldown-${index}`} exercise={exercise} />
                 ))}
               </div>
-
               <div style={dailyCard}>
                 <p style={sectionLabel}>Walking suggestion</p>
                 <p style={bodyTextLast}>{routineData.walking}</p>
               </div>
-
               <div style={feedbackRow}>
                 <button
                   style={{
@@ -2564,7 +2561,6 @@ const appStyles = {
                 >
                   👍
                 </button>
-
                 <button
                   style={{
                     ...feedbackButton,
@@ -2586,7 +2582,6 @@ const appStyles = {
                   👎
                 </button>
               </div>
-
               {routineFeedback && (
                 <>
                   <p style={feedbackQuestion}>
@@ -2617,10 +2612,11 @@ const appStyles = {
                   />
                 </>
               )}
-                <button style={secondaryButton} onClick={() => setActiveTab("home")}>
-                  Back to Home
-                </button>
-            )}
+              <button style={secondaryButton} onClick={() => setActiveTab("home")}>
+                Back to Home
+              </button>
+            </>
+          )}
             {activeTab === "chat" && (
             <>
               <div style={coachCard}>
