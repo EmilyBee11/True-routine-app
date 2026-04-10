@@ -2868,40 +2868,40 @@ const appStyles = {
               </div>
             </>
           )}
-          </div>
+        </div>
 
-          <div style={bottomNav}>
-            <button
-              style={activeTab === "home" ? navButtonActive : navButton}
-              onClick={() => setActiveTab("home")}
-            >
-              Home
-            </button>
-            <button
-              style={activeTab === "routine" ? navButtonActive : navButton}
-              onClick={() => setActiveTab("routine")}
-            >
-              Routine
-            </button>
-            <button
-              style={activeTab === "chat" ? navButtonActive : navButton}
-              onClick={() => setActiveTab("chat")}
-            >
-              Chat
-            </button>
-            <button
-              style={activeTab === "progress" ? navButtonActive : navButton}
-              onClick={() => setActiveTab("progress")}
-            >
-              Progress
-            </button>
-            <button
-              style={activeTab === "food" ? navButtonActive : navButton}
-              onClick={() => setActiveTab("food")}
-            >
-              Food
-            </button>
-          </div>
+        <div style={bottomNav}>
+          <button
+            style={activeTab === "home" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("home")}
+          >
+            Home
+          </button>
+          <button
+            style={activeTab === "routine" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("routine")}
+          >
+            Routine
+          </button>
+          <button
+            style={activeTab === "chat" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("chat")}
+          >
+            Chat
+          </button>
+          <button
+            style={activeTab === "progress" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("progress")}
+          >
+            Progress
+          </button>
+          <button
+            style={activeTab === "food" ? navButtonActive : navButton}
+            onClick={() => setActiveTab("food")}
+          >
+            Food
+          </button>
+        </div>
 
         {showSettings && (
           <div style={tourOverlay} onClick={() => setShowSettings(false)}>
@@ -2985,7 +2985,6 @@ const appStyles = {
             </div>
           </div>
         )}
-        </div>
       </div>
     </div>
   );
@@ -2995,29 +2994,39 @@ const quickReplyWrap = {
   display: "grid",
   gap: 8,
 };
-
 const quickReplyButton = {
   border: "1px solid rgba(0,0,0,0.08)",
   background: "rgba(255,255,255,0.9)",
   color: "#111",
-const diagramCard = {
-  background: "#f8fafc",
   borderRadius: 18,
   padding: "14px 16px",
   textAlign: "left",
-  cursor: "pointer",
   fontWeight: 600,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+  cursor: "pointer",
+};
+
+const diagramCard = {
+  background: "#f8fafc",
+  borderRadius: 18,
   padding: 14,
+  textAlign: "left",
 };
 
 const tourOverlay = {
-const tourOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.45)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   padding: 18,
+  zIndex: 50,
 };
 
-const tourModal = {
 const settingsModal = {
   width: "100%",
+  maxWidth: 420,
   maxHeight: "80vh",
   overflowY: "auto",
   background: "white",
@@ -3025,13 +3034,6 @@ const settingsModal = {
   borderRadius: 24,
   padding: 18,
   boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
-};
-
-const measurementMiniCard = {
-  background: "#f8fafc",
-  borderRadius: 18,
-  padding: 14,
-  marginBottom: 14,
 };
 
 const mealCard = {
@@ -3055,8 +3057,6 @@ const dangerButton = {
   padding: "15px 18px",
   background: "#111111",
   color: "white",
-  borderRadius: 14,
-  padding: "10px 14px",
   fontWeight: 700,
   fontSize: 16,
   cursor: "pointer",
