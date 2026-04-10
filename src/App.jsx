@@ -2848,7 +2848,6 @@ const appStyles = {
               </div>
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Saved food memory</h3>
-
                 <p style={bodyText}>
                   <strong>Preferred foods:</strong>{" "}
                   {profile.coachMemory?.preferredFoods?.length
@@ -2872,7 +2871,7 @@ const appStyles = {
           )}
         </div>
 
-          <div style={bottomNav}>
+        <div style={bottomNav}>
             <button
               style={activeTab === "home" ? navButtonActive : navButton}
               onClick={() => setActiveTab("home")}
