@@ -1762,7 +1762,6 @@ const [editingSetup, setEditingSetup] = useState(false);
   }, [profile]);
 
   useEffect(() => {
-  useEffect(() => {
     localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
   }, [selectedTheme]);
 
@@ -2973,6 +2972,9 @@ const appStyles = {
 }
 
 const quickReplyWrap = {
+  display: "grid",
+  gap: 8,
+};
 
 const quickReplyButton = {
   border: "1px solid rgba(0,0,0,0.08)",
