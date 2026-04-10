@@ -2388,7 +2388,6 @@ const appStyles = {
             color: "#fff",
           }}
         >
-        >
           <div style={headerTopRow}>
             <button
               onClick={() => setShowSettings(true)}
@@ -2419,7 +2418,6 @@ const appStyles = {
                   <strong>Today’s action:</strong> {coach.action}
                 </p>
               </div>
-
               <div style={dailyCard}>
                 <p style={sectionLabel}>Today’s Routine</p>
                 <h3 style={cardTitle}>{routineData.title}</h3>
@@ -2431,7 +2429,6 @@ const appStyles = {
                   Open full routine
                 </button>
               </div>
-
               <div style={verseCard}>
                 <p style={sectionLabel}>Daily verse</p>
                 <h3 style={cardTitle}>{todayVerseCard.verse}</h3>
@@ -2443,12 +2440,10 @@ const appStyles = {
                 </p>
                 <h3 style={cardTitle}>{VERSES[verseIndex]}</h3>
               </div>
-
               <div style={dailyCard}>
                 <p style={sectionLabel}>Food guidance</p>
                 <p style={bodyTextLast}>{foodGuidance}</p>
               </div>
-
               <div style={dailyCard}>
                 <p style={sectionLabel}>Coach language memory</p>
                 <p style={bodyText}>
@@ -2464,7 +2459,6 @@ const appStyles = {
                   Coach mirrors language lightly, clearly, and without cursing.
                 </p>
               </div>
-
               <div style={buttonGrid}>
                 <button style={actionCard} onClick={() => setActiveTab("routine")}>
                   Today’s Routine
@@ -2476,7 +2470,6 @@ const appStyles = {
                   Progress
                 </button>
               </div>
-
               <button
                 style={primaryDarkButton}
                 onClick={() => {
@@ -2987,7 +2980,6 @@ const appStyles = {
     </div>
   );
 }
-
 const quickReplyWrap = {
   display: "grid",
   gap: 8,
