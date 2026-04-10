@@ -1684,7 +1684,7 @@ function buildMeasurementSnapshot(profile) {
 }
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
-  const [screen, setScreen] = useState("welcome");
+ const [screen, setScreen] = useState("onboarding");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [activeTab, setActiveTab] = useState("home");
@@ -2083,7 +2083,21 @@ const appStyles = {
   background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
   position: "relative",
 };
-
+if (!completedOnboarding && screen === "welcome") {
+  return (
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div style={themeWrap}>
+          <h2>Christian Fitness</h2>
+          <p style={subtleText}>Ready to set up your app?</p>
+          <button style={primaryButton} onClick={startOnboarding}>
+            Start
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
   if (!completedOnboarding && screen === "onboarding") {
     return (
       <div style={appStyles}>
