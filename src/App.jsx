@@ -2902,7 +2902,7 @@ const appStyles = {
           </button>
         </div>
 
-                {showSettings && (
+        {showSettings && (
           <div style={tourOverlay} onClick={() => setShowSettings(false)}>
             <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
               <p style={sectionLabel}>Settings</p>
