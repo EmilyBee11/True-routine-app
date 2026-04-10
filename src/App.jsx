@@ -1125,7 +1125,6 @@ function parseFoodSignals(text = "") {
       if (lower.includes(item)) allergies.push(item);
     });
   }
-
   return { preferred, avoided, allergies };
 }
 
