@@ -1682,6 +1682,21 @@ function buildMeasurementSnapshot(profile) {
     },
   };
 }
+
+function updateLanguageMemory(profile, text = "") {
+  const slangWords = detectSlang(text);
+  return {
+    ...profile,
+    coachMemory: {
+      ...profile.coachMemory,
+      slangWords: [
+        ...new Set([...(profile.coachMemory?.slangWords || []), ...slangWords]),
+      ].slice(-12),
+      toneStyle: detectToneStyle(text, profile.age),
+    },
+  };
+}
+
 export default function App() {
   const [verseIndex, setVerseIndex] = useState(0);
  const [screen, setScreen] = useState("onboarding");
@@ -2002,7 +2017,7 @@ function sendChatMessage(text) {
   const cleanText = text.trim();
   if (!cleanText) return;
 
-  let nextProfile = updateLanguageMemory(profile, cleanText);
+let nextProfile = normalizeProfile(updateLanguageMemory(profile, cleanText));
   const foodSignals = parseFoodSignals(cleanText);
 
   nextProfile = {
@@ -2050,14 +2065,12 @@ function saveMeasurementValue(fieldKey, value) {
       ...current.measurements,
       [fieldKey]: value,
     };
-
     const now = new Date().toISOString();
     const lastUpdate = current.coachMemory?.lastMeasurementUpdate;
     const shouldCreateSnapshot =
       !lastUpdate ||
       new Date(now).getTime() - new Date(lastUpdate).getTime() >
         1000 * 60 * 60 * 24;
-
     return {
       ...current,
       measurements: nextMeasurements,
@@ -2076,6 +2089,57 @@ function saveMeasurementValue(fieldKey, value) {
       },
     };
   });
+}
+
+function resetApp() {
+  localStorage.removeItem("christian-fitness-profile");
+  localStorage.removeItem("christian-fitness-messages");
+  localStorage.removeItem("christian-fitness-chat");
+  localStorage.removeItem("christian-fitness-theme");
+
+  const freshProfile = normalizeProfile({
+    coachName: "",
+    firstName: "",
+    age: "",
+    state: "",
+    gender: "",
+    pregnancyStatus: "",
+    mainGoal: "",
+    activityLevel: "",
+    foodPreferences: "",
+    measurements: {},
+    measurementHistory: [],
+    measurementUnit: "Inches",
+    onboardingComplete: false,
+    activeMeasurementField: "",
+    coachMemory: {},
+  });
+
+  setProfile(freshProfile);
+  setMessages([
+    {
+      role: "ai",
+      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+    },
+    {
+      role: "ai",
+      text: "We’ll keep this simple and take it one step at a time.",
+    },
+  ]);
+  setChatMessages([]);
+  setSelectedTheme(COLOR_OPTIONS[0]);
+  setScreen("onboarding");
+  setQuestionIndex(0);
+  setInputValue("");
+  setActiveTab("home");
+  setRoutineFeedback("");
+  setFeedbackReason("");
+  setChatInput("");
+  setTourStep(0);
+  setShowTour(false);
+  setWeeklyReportDismissed(false);
+  setEditingSetup(false);
+  setShowSettings(false);
 }
 
 const appStyles = {
@@ -3056,4 +3120,492 @@ const dangerButton = {
   fontWeight: 700,
   fontSize: 16,
   cursor: "pointer",
+};
+
+const phoneStyles = {
+  width: "100%",
+  maxWidth: 430,
+  minHeight: "100vh",
+  margin: "0 auto",
+  background: "#ffffff",
+  boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 20px 80px rgba(0,0,0,0.35)",
+  position: "relative",
+  overflow: "hidden",
+};
+
+const topBar = {
+  padding: "20px 18px 10px",
+  background: "#111827",
+  color: "white",
+};
+
+const subtleText = {
+  margin: "6px 0 0",
+  color: "rgba(255,255,255,0.72)",
+  fontSize: 14,
+  lineHeight: 1.45,
+};
+
+const bubbleBase = {
+  borderRadius: 18,
+  padding: "12px 14px",
+  fontSize: 15,
+  lineHeight: 1.5,
+  whiteSpace: "pre-wrap",
+};
+
+const aiBubble = {
+  background: "rgba(255,255,255,0.12)",
+  color: "white",
+};
+
+const userBubble = {
+  background: "#ffffff",
+  color: "#111111",
+};
+
+const aiBubbleSolid = {
+  background: "#111111",
+  color: "white",
+};
+
+const userBubbleLight = {
+  background: "#ffffff",
+  color: "#111111",
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const inputArea = {
+  padding: 16,
+  display: "grid",
+  gap: 10,
+  background: "#0f172a",
+};
+
+const onboardingChatArea = {
+  display: "grid",
+  gap: 12,
+  padding: 16,
+  minHeight: 420,
+  background: "linear-gradient(180deg, #111827 0%, #1f2937 100%)",
+};
+
+const choiceWrap = {
+  display: "grid",
+  gap: 8,
+};
+
+const choiceButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const selectInput = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "14px 16px",
+  fontSize: 16,
+};
+
+const textInput = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "14px 16px",
+  fontSize: 16,
+  outline: "none",
+  background: "#ffffff",
+  color: "#111111",
+};
+
+const textInputLight = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "14px 16px",
+  fontSize: 15,
+  outline: "none",
+  background: "#ffffff",
+  color: "#111111",
+};
+
+const primaryButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "#111111",
+  color: "white",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const primaryDarkButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "#111111",
+  color: "white",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const secondaryButton = {
+  width: "100%",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  fontSize: 15,
+  cursor: "pointer",
+};
+
+const secondaryOnboardingButton = {
+  width: "100%",
+  border: "1px solid rgba(255,255,255,0.18)",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "transparent",
+  color: "white",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const themeWrap = {
+  minHeight: "100vh",
+  padding: 20,
+  display: "grid",
+  alignContent: "center",
+  gap: 16,
+  background: "#0f172a",
+  color: "white",
+};
+
+const homeHeader = {
+  padding: "18px 16px 14px",
+};
+
+const headerTopRow = {
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+};
+
+const settingsIconButton = {
+  width: 42,
+  height: 42,
+  border: "1px solid rgba(255,255,255,0.2)",
+  borderRadius: 999,
+  background: "rgba(255,255,255,0.12)",
+  display: "grid",
+  placeItems: "center",
+  cursor: "pointer",
+};
+
+const homeBrandTitle = {
+  margin: 0,
+  fontSize: 22,
+  fontWeight: 900,
+  lineHeight: 1.05,
+};
+
+const tickerViewportHome = {
+  padding: 16,
+  display: "grid",
+  gap: 14,
+  minHeight: "calc(100vh - 150px)",
+};
+
+const coachCard = {
+  borderRadius: 22,
+  padding: 18,
+  background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
+  color: "white",
+};
+
+const dailyCard = {
+  background: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 22,
+  padding: 18,
+};
+
+const verseCard = {
+  background: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 22,
+  padding: 18,
+};
+
+const sectionLabel = {
+  margin: "0 0 8px",
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "#64748b",
+};
+
+const sectionLabelWhite = {
+  margin: "0 0 8px",
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "rgba(255,255,255,0.76)",
+};
+
+const cardTitle = {
+  margin: "0 0 10px",
+  fontSize: 22,
+  lineHeight: 1.15,
+  fontWeight: 900,
+  color: "inherit",
+};
+
+const bodyText = {
+  margin: "0 0 8px",
+  color: "#111111",
+  lineHeight: 1.55,
+};
+
+const bodyTextWhite = {
+  margin: "0 0 8px",
+  color: "white",
+  lineHeight: 1.55,
+};
+
+const bodyTextLast = {
+  margin: 0,
+  color: "#111111",
+  lineHeight: 1.55,
+};
+
+const buttonGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, 1fr)",
+  gap: 10,
+};
+
+const actionCard = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 18,
+  padding: "16px 12px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const routineSectionCard = {
+  background: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 22,
+  padding: 18,
+};
+
+const routineSectionTitle = {
+  margin: "0 0 12px",
+  fontSize: 18,
+  fontWeight: 900,
+  color: "#111111",
+};
+
+const exerciseCard = {
+  display: "grid",
+  gap: 12,
+  background: "#f8fafc",
+  border: "1px solid rgba(0,0,0,0.06)",
+  borderRadius: 18,
+  padding: 14,
+  marginBottom: 12,
+};
+
+const exerciseTitle = {
+  margin: "0 0 6px",
+  fontSize: 17,
+  fontWeight: 800,
+  color: "#111111",
+};
+
+const exerciseMeta = {
+  margin: "0 0 6px",
+  color: "#111111",
+  lineHeight: 1.45,
+};
+
+const exerciseNote = {
+  margin: 0,
+  color: "#475569",
+  lineHeight: 1.45,
+};
+
+const videoWrap = {
+  width: "100%",
+};
+
+const videoFrame = {
+  border: "none",
+  borderRadius: 14,
+  display: "block",
+};
+
+const feedbackRow = {
+  display: "flex",
+  gap: 10,
+};
+
+const feedbackButton = {
+  flex: 1,
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 16,
+  padding: "14px 16px",
+  fontSize: 22,
+  cursor: "pointer",
+};
+
+const feedbackQuestion = {
+  margin: "4px 0 8px",
+  fontWeight: 800,
+  color: "#111111",
+};
+
+const appChatHistory = {
+  display: "grid",
+  gap: 12,
+  maxHeight: 340,
+  overflowY: "auto",
+  padding: 4,
+};
+
+const chatInputRow = {
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 10,
+  alignItems: "center",
+};
+
+const unitToggleWrap = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 8,
+  marginBottom: 14,
+};
+
+const unitToggleButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 14,
+  padding: "12px 14px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const unitToggleActive = {
+  ...unitToggleButton,
+  background: "#111111",
+  color: "white",
+};
+
+const measurementGrid = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
+};
+
+const measurementCard = {
+  background: "#f8fafc",
+  borderRadius: 16,
+  padding: 12,
+  border: "1px solid rgba(0,0,0,0.06)",
+};
+
+const measurementLabelRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 8,
+  marginBottom: 10,
+};
+
+const measurementLabel = {
+  fontWeight: 800,
+  color: "#111111",
+};
+
+const measurementTip = {
+  fontSize: 12,
+  color: "#64748b",
+};
+
+const measurementInputRow = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+};
+
+const measurementSmallInput = {
+  width: "100%",
+  borderRadius: 12,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "10px 12px",
+  fontSize: 15,
+};
+
+const measurementUnitText = {
+  minWidth: 28,
+  fontWeight: 700,
+  color: "#475569",
+};
+
+const bottomNav = {
+  position: "sticky",
+  bottom: 0,
+  display: "grid",
+  gridTemplateColumns: "repeat(5, 1fr)",
+  gap: 8,
+  padding: 12,
+  background: "rgba(255,255,255,0.96)",
+  borderTop: "1px solid rgba(0,0,0,0.08)",
+};
+
+const navButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 14,
+  padding: "12px 8px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const navButtonActive = {
+  ...navButton,
+  background: "#111111",
+  color: "white",
+};
+
+const themeOptionButton = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  borderRadius: 16,
+  padding: "12px 14px",
+  background: "#ffffff",
+  color: "#111111",
+  cursor: "pointer",
+  fontWeight: 700,
 };
