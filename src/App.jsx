@@ -2992,7 +2992,6 @@ const appStyles = {
   );
 }
 
-};
 const quickReplyWrap = {
   display: "grid",
   gap: 8,
