@@ -2866,7 +2866,8 @@ const appStyles = {
                     : "none yet"}
                 </p>
               </div>
-            )}
+            </>
+          )}
           </div>
 
           <div style={bottomNav}>
