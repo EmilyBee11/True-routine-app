@@ -2985,6 +2985,7 @@ const appStyles = {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
