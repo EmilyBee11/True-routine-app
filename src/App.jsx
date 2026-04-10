@@ -2989,6 +2989,7 @@ const appStyles = {
   );
 }
 
+};
 const quickReplyWrap = {
   display: "grid",
   gap: 8,
@@ -3004,14 +3005,12 @@ const quickReplyButton = {
   boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
   cursor: "pointer",
 };
-
 const diagramCard = {
   background: "#f8fafc",
   borderRadius: 18,
   padding: 14,
   textAlign: "left",
 };
-
 const tourOverlay = {
   position: "fixed",
   inset: 0,
@@ -3022,7 +3021,6 @@ const tourOverlay = {
   padding: 18,
   zIndex: 50,
 };
-
 const settingsModal = {
   width: "100%",
   maxWidth: 420,
@@ -3034,7 +3032,6 @@ const settingsModal = {
   padding: 18,
   boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
 };
-
 const mealCard = {
   background: "#fff",
   border: "1px solid rgba(0,0,0,0.08)",
@@ -3042,13 +3039,11 @@ const mealCard = {
   padding: 14,
   marginBottom: 10,
 };
-
 const mealTitle = {
   margin: "0 0 8px",
   fontWeight: 800,
   fontSize: 16,
 };
-
 const dangerButton = {
   width: "100%",
   border: "none",
