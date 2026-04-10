@@ -2377,7 +2377,8 @@ const appStyles = {
     </div>
   );
 }
-  const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
+
+      const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
   return (
     <div style={appStyles}>
       <div style={phoneStyles}>
@@ -2405,7 +2406,9 @@ const appStyles = {
             </div>
             <div style={{ width: 42 }} />
           </div>
-          <div style={tickerViewportHome}>
+        </div>
+
+        <div style={{ ...tickerViewportHome, background: homeBodyBackground }}>
           {activeTab === "home" && (
             <>
               <div style={coachCard}>
@@ -2610,7 +2613,8 @@ const appStyles = {
               </button>
             </>
           )}
-            {activeTab === "chat" && (
+
+          {activeTab === "chat" && (
             <>
               <div style={coachCard}>
                 <p style={sectionLabelWhite}>
@@ -2624,9 +2628,7 @@ const appStyles = {
                 <p style={bodyTextWhite}>Let’s stay steady today.</p>
                 <p style={bodyTextWhite}>Tell me what you need.</p>
               </div>
-
               <div ref={appChatRef} style={appChatHistory}>
-
                 {chatMessages.map((msg, index) => (
                   <div
                     key={`${msg.role}-${index}`}
@@ -2657,7 +2659,6 @@ const appStyles = {
                   </div>
                 ))}
               </div>
-
               <div style={quickReplyWrap}>
                 {QUICK_REPLIES.map((item) => (
                   <button
@@ -2669,7 +2670,6 @@ const appStyles = {
                   </button>
                 ))}
               </div>
-
               <div style={chatInputRow}>
                 <input
                   style={textInput}
@@ -2694,7 +2694,6 @@ const appStyles = {
                 <h2 style={cardTitle}>Measurements</h2>
                 <p style={bodyTextLast}>Add or update your measurements below.</p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Your Measurements</h3>
                 <div style={unitToggleWrap}>
@@ -2784,8 +2783,8 @@ const appStyles = {
               </div>
             </>
           )}
-          {activeTab === "food" && (
 
+          {activeTab === "food" && (
             <>
               <div style={dailyCard}>
                 <p style={sectionLabel}>Food</p>
@@ -2797,7 +2796,6 @@ const appStyles = {
                   <strong>Main goal:</strong> {profile.mainGoal || "Not set yet"}
                 </p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Daily targets</h3>
                 <p style={bodyText}><strong>Calories:</strong> about {nutrition.calories} daily</p>
@@ -2806,7 +2804,6 @@ const appStyles = {
                 <p style={bodyText}><strong>Carb focus:</strong> {nutrition.carbsFocus}</p>
                 <p style={bodyTextLast}><strong>Fat focus:</strong> {nutrition.fatsFocus}</p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Why this matters</h3>
                 <p style={bodyText}>
@@ -2819,7 +2816,6 @@ const appStyles = {
                   <strong>Water:</strong> supports energy, recovery, and how you feel through the day.
                 </p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Meal ideas</h3>
                 {mealIdeas.map((meal) => (
@@ -2896,7 +2892,6 @@ const appStyles = {
             <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
               <p style={sectionLabel}>Settings</p>
               <h3 style={{ marginTop: 8, marginBottom: 12 }}>App settings</h3>
-
               <div style={routineSectionCard}>
                 <p style={bodyText}>
                   <strong>Coach name:</strong> {capitalizeName(profile.coachName) || "Coach"}
@@ -2911,7 +2906,6 @@ const appStyles = {
                   <strong>Activity:</strong> {profile.activityLevel || "Not set"}
                 </p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Theme</h3>
                 <div style={{ display: "grid", gap: 8 }}>
@@ -2941,7 +2935,6 @@ const appStyles = {
                   ))}
                 </div>
               </div>
-
               <button
                 style={secondaryButton}
                 onClick={() =>
@@ -2962,11 +2955,9 @@ const appStyles = {
               >
                 Clear coach memory
               </button>
-
               <button style={dangerButton} onClick={resetApp}>
                 Reset App
               </button>
-
               <button
                 style={primaryDarkButton}
                 onClick={() => setShowSettings(false)}
