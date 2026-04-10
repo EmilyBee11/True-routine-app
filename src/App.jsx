@@ -2966,7 +2966,6 @@ const appStyles = {
               </button>
             </div>
         )}
-      </div>
     </div>
   );
 }
