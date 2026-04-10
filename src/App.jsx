@@ -2979,7 +2979,8 @@ const appStyles = {
       </div>
     </div>
   );
-}
+};
+
 const quickReplyWrap = {
   display: "grid",
   gap: 8,
