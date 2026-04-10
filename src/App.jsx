@@ -2978,7 +2978,10 @@ const appStyles = {
                 Reset App
               </button>
 
-              <button style={primaryDarkButton} onClick={() => setShowSettings(false)}>
+              <button
+                style={primaryDarkButton}
+                onClick={() => setShowSettings(false)}
+              >
                 Close
               </button>
             </div>
