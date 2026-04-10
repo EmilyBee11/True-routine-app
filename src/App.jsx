@@ -2907,6 +2907,7 @@ const appStyles = {
             <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
               <p style={sectionLabel}>Settings</p>
               <h3 style={{ marginTop: 8, marginBottom: 12 }}>App settings</h3>
+
               <div style={routineSectionCard}>
                 <p style={bodyText}>
                   <strong>Coach name:</strong> {capitalizeName(profile.coachName) || "Coach"}
@@ -2921,6 +2922,7 @@ const appStyles = {
                   <strong>Activity:</strong> {profile.activityLevel || "Not set"}
                 </p>
               </div>
+
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Theme</h3>
                 <div style={{ display: "grid", gap: 8 }}>
@@ -2950,6 +2952,7 @@ const appStyles = {
                   ))}
                 </div>
               </div>
+
               <button
                 style={secondaryButton}
                 onClick={() =>
@@ -2970,9 +2973,11 @@ const appStyles = {
               >
                 Clear coach memory
               </button>
+
               <button style={dangerButton} onClick={resetApp}>
                 Reset App
               </button>
+
               <button style={primaryDarkButton} onClick={() => setShowSettings(false)}>
                 Close
               </button>
@@ -2988,7 +2993,6 @@ const quickReplyWrap = {
   display: "grid",
   gap: 8,
 };
-
 const quickReplyButton = {
   border: "1px solid rgba(0,0,0,0.08)",
   background: "rgba(255,255,255,0.9)",
