@@ -2618,12 +2618,11 @@ const appStyles = {
                   />
                 </>
               )}
-              <button style={secondaryButton} onClick={() => setActiveTab("home")}>
-                Back to Home
-              </button>
-            </>
-          )}
-          {activeTab === "chat" && (
+                <button style={secondaryButton} onClick={() => setActiveTab("home")}>
+                  Back to Home
+                </button>
+            )}
+            {activeTab === "chat" && (
             <>
               <div style={coachCard}>
                 <p style={sectionLabelWhite}>
@@ -2772,6 +2771,7 @@ const appStyles = {
                   Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
                 </p>
               </div>
+              <div style={routineSectionCard}>
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Measurement guide</h3>
                 {getMeasurementGuide(profile.measurementUnit).map((item) => (
