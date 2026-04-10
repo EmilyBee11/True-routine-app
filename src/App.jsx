@@ -2902,12 +2902,11 @@ const appStyles = {
           </button>
         </div>
 
-        {showSettings && (
+                {showSettings && (
           <div style={tourOverlay} onClick={() => setShowSettings(false)}>
             <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
               <p style={sectionLabel}>Settings</p>
               <h3 style={{ marginTop: 8, marginBottom: 12 }}>App settings</h3>
-
               <div style={routineSectionCard}>
                 <p style={bodyText}>
                   <strong>Coach name:</strong> {capitalizeName(profile.coachName) || "Coach"}
@@ -2922,7 +2921,6 @@ const appStyles = {
                   <strong>Activity:</strong> {profile.activityLevel || "Not set"}
                 </p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Theme</h3>
                 <div style={{ display: "grid", gap: 8 }}>
@@ -2952,7 +2950,6 @@ const appStyles = {
                   ))}
                 </div>
               </div>
-
               <button
                 style={secondaryButton}
                 onClick={() =>
@@ -2973,27 +2970,25 @@ const appStyles = {
               >
                 Clear coach memory
               </button>
-
               <button style={dangerButton} onClick={resetApp}>
                 Reset App
               </button>
-
               <button style={primaryDarkButton} onClick={() => setShowSettings(false)}>
                 Close
               </button>
             </div>
           </div>
         )}
+      </div>
     </div>
-  </div>
   );
 }
 
-};
 const quickReplyWrap = {
   display: "grid",
   gap: 8,
 };
+
 const quickReplyButton = {
   border: "1px solid rgba(0,0,0,0.08)",
   background: "rgba(255,255,255,0.9)",
@@ -3005,12 +3000,14 @@ const quickReplyButton = {
   boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
   cursor: "pointer",
 };
+
 const diagramCard = {
   background: "#f8fafc",
   borderRadius: 18,
   padding: 14,
   textAlign: "left",
 };
+
 const tourOverlay = {
   position: "fixed",
   inset: 0,
@@ -3021,6 +3018,7 @@ const tourOverlay = {
   padding: 18,
   zIndex: 50,
 };
+
 const settingsModal = {
   width: "100%",
   maxWidth: 420,
@@ -3032,6 +3030,7 @@ const settingsModal = {
   padding: 18,
   boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
 };
+
 const mealCard = {
   background: "#fff",
   border: "1px solid rgba(0,0,0,0.08)",
@@ -3039,11 +3038,13 @@ const mealCard = {
   padding: 14,
   marginBottom: 10,
 };
+
 const mealTitle = {
   margin: "0 0 8px",
   fontWeight: 800,
   fontSize: 16,
 };
+
 const dangerButton = {
   width: "100%",
   border: "none",
