@@ -2595,7 +2595,6 @@ const appStyles = {
                       ? "What did you like?"
                       : "What did you dislike?"}
                   </p>
-
                   <input
                     style={textInputLight}
                     placeholder={
@@ -2619,10 +2618,11 @@ const appStyles = {
                   />
                 </>
               )}
-
               <button style={secondaryButton} onClick={() => setActiveTab("home")}>
                 Back to Home
               </button>
+            </>
+          )}
           {activeTab === "chat" && (
             <>
               <div style={coachCard}>
@@ -2710,7 +2710,6 @@ const appStyles = {
 
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Your Measurements</h3>
-
                 <div style={unitToggleWrap}>
                   <button
                     style={profile.measurementUnit === "Inches" ? unitToggleActive : unitToggleButton}
@@ -2735,7 +2734,6 @@ const appStyles = {
                     Centimeters
                   </button>
                 </div>
-
                 <div style={measurementGrid}>
                   {MEASUREMENT_FIELDS.map((field) => (
                     <div key={field.key} style={measurementCard}>
@@ -2767,13 +2765,13 @@ const appStyles = {
                     </div>
                   ))}
                 </div>
-
                 <p style={{ ...bodyText, marginTop: 12 }}>
                   These save on this device automatically.
                 </p>
                 <p style={bodyTextLast}>
                   Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
                 </p>
+              </div>
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Measurement guide</h3>
                 {getMeasurementGuide(profile.measurementUnit).map((item) => (
@@ -2785,27 +2783,22 @@ const appStyles = {
                   Tip: measure at about the same time of day each time for cleaner tracking.
                 </p>
               </div>
-
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>How to measure</h3>
                 <TourMeasurementDiagram
-                  gender={profile.gender}
                   activePart={profile.activeMeasurementField}
                   onSelectPart={(part) =>
                     setProfile((current) => ({
-                        ...current,
-                        activeMeasurementField: part,
-                      }))
-                    }
-                  />
-                </div>
+                      ...current,
+                      activeMeasurementField: part,
+                    }))
+                  }
+                />
               </div>
             </>
           )}
-            </>
-          )}
-
           {activeTab === "food" && (
+
             <>
               <div style={dailyCard}>
                 <p style={sectionLabel}>Food</p>
@@ -2852,9 +2845,10 @@ const appStyles = {
                     </p>
                   </div>
                 ))}
-
+              </div>
               <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Saved food memory</h3>
+
                 <p style={bodyText}>
                   <strong>Preferred foods:</strong>{" "}
                   {profile.coachMemory?.preferredFoods?.length
@@ -2874,42 +2868,42 @@ const appStyles = {
                     : "none yet"}
                 </p>
               </div>
-            )}
-          </div>
+            </>
+          )}
+        </div>
 
           <div style={bottomNav}>
-          <button
-            style={activeTab === "home" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("home")}
-          >
-          <button style={activeTab === "home" ? navButtonActive : navButton} onClick={() => setActiveTab("home")}>
-            Home
-          </button>
-          <button
-            style={activeTab === "routine" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("routine")}
-          >
-          <button style={activeTab === "routine" ? navButtonActive : navButton} onClick={() => setActiveTab("routine")}>
-            Routine
-          </button>
-          <button
-            style={activeTab === "chat" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("chat")}
-          >
-          <button style={activeTab === "chat" ? navButtonActive : navButton} onClick={() => setActiveTab("chat")}>
-            Chat
-          </button>
-          <button
-            style={activeTab === "progress" ? navButtonActive : navButton}
-            onClick={() => setActiveTab("progress")}
-          >
-          <button style={activeTab === "progress" ? navButtonActive : navButton} onClick={() => setActiveTab("progress")}>
-            Progress
-          </button>
-          <button style={activeTab === "food" ? navButtonActive : navButton} onClick={() => setActiveTab("food")}>
-            Food
-          </button>
-        </div>
+            <button
+              style={activeTab === "home" ? navButtonActive : navButton}
+              onClick={() => setActiveTab("home")}
+            >
+              Home
+            </button>
+            <button
+              style={activeTab === "routine" ? navButtonActive : navButton}
+              onClick={() => setActiveTab("routine")}
+            >
+              Routine
+            </button>
+            <button
+              style={activeTab === "chat" ? navButtonActive : navButton}
+              onClick={() => setActiveTab("chat")}
+            >
+              Chat
+            </button>
+            <button
+              style={activeTab === "progress" ? navButtonActive : navButton}
+              onClick={() => setActiveTab("progress")}
+            >
+              Progress
+            </button>
+            <button
+              style={activeTab === "food" ? navButtonActive : navButton}
+              onClick={() => setActiveTab("food")}
+            >
+              Food
+            </button>
+          </div>
 
         {showSettings && (
           <div style={tourOverlay} onClick={() => setShowSettings(false)}>
