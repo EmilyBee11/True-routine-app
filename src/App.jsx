@@ -2771,7 +2771,6 @@ const appStyles = {
                 </p>
               </div>
               <div style={routineSectionCard}>
-              <div style={routineSectionCard}>
                 <h3 style={routineSectionTitle}>Measurement guide</h3>
                 {getMeasurementGuide(profile.measurementUnit).map((item) => (
                   <p key={item} style={bodyText}>
@@ -2794,8 +2793,9 @@ const appStyles = {
                   }
                 />
               </div>
-            )}
-            {activeTab === "food" && (
+            </>
+          )}
+          {activeTab === "food" && (
 
             <>
               <div style={dailyCard}>
