@@ -2965,17 +2965,12 @@ const appStyles = {
                 Close
               </button>
             </div>
-          </div>
         )}
       </div>
     </div>
   );
 }
-
 const quickReplyWrap = {
-  display: "grid",
-  gap: 8,
-};
 
 const quickReplyButton = {
   border: "1px solid rgba(0,0,0,0.08)",
