@@ -2378,7 +2378,7 @@ const appStyles = {
   );
 }
 
-      const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
+  const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
   return (
     <div style={appStyles}>
       <div style={phoneStyles}>
@@ -2965,10 +2965,13 @@ const appStyles = {
                 Close
               </button>
             </div>
+          </div>
         )}
+      </div>
     </div>
   );
 }
+
 const quickReplyWrap = {
 
 const quickReplyButton = {
