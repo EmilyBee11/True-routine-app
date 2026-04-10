@@ -2979,7 +2979,7 @@ const appStyles = {
       </div>
     </div>
   );
-};
+}
 
 const quickReplyWrap = {
   display: "grid",
