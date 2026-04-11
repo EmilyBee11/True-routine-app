@@ -1356,16 +1356,16 @@ const [screen, setScreen] = useState("welcome");
   }
 if (!completedOnboarding && screen === "welcome") {
   return (
-    <div style={styles.appStyles}>
-      <div style={styles.phoneStyles}>
-        <div style={styles.themeWrap}>
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div style={themeWrap}>
           <h2 style={{ marginBottom: 8 }}>Christian Fitness</h2>
-          <p style={styles.subtleText}>
+          <p style={subtleText}>
             A faith-based fitness coach with onboarding, routines, food guidance,
             chat, progress tracking, and measurements.
           </p>
           <button
-            style={styles.primaryButton}
+            style={primaryButton}
             onClick={() => setScreen("onboarding")}
           >
             Start setup
