@@ -79,19 +79,18 @@ const QUESTION_FLOW = [
     label: "How old are you?",
     type: "number",
   },
-{
-  key: "state",
-  label: "What state do you live in?",
-  type: "select",
-  options: ALL_STATES,
-},
+  {
+    key: "state",
+    label: "What state do you live in?",
+    type: "select",
+    options: ALL_STATES,
+  },
   {
     key: "gender",
     label: "Are you a man or a woman?",
     type: "choice",
     options: ["Woman", "Man"],
   },
-
   {
     key: "pregnancyStatus",
     label: "Are you currently pregnant, postpartum, or neither?",
@@ -137,7 +136,8 @@ const QUESTION_FLOW = [
   },
   {
     key: "postpartumConcerns",
-    label: "Any core, pelvic floor, back, bleeding, or recovery issues I should know about?",
+    label:
+      "Any core, pelvic floor, back, bleeding, or recovery issues I should know about?",
     type: "text",
     showIf: (profile) =>
       profile.gender === "Woman" && profile.pregnancyStatus === "Postpartum",
@@ -162,7 +162,6 @@ const QUESTION_FLOW = [
     label: "What are you hoping changes in your life because of this?",
     type: "text",
   },
-
   {
     key: "activityLevel",
     label: "How active are you right now?",
@@ -178,7 +177,8 @@ const QUESTION_FLOW = [
   },
   {
     key: "limitationType",
-    label: "Is it more of an injury, a disability, chronic pain, or something else?",
+    label:
+      "Is it more of an injury, a disability, chronic pain, or something else?",
     type: "text",
     showIf: (profile) => profile.hasLimitations === "Yes",
   },
@@ -207,7 +207,8 @@ const QUESTION_FLOW = [
   },
   {
     key: "bodyFocus",
-    label: "What part of your body, routine, or fitness do you want to improve first?",
+    label:
+      "What part of your body, routine, or fitness do you want to improve first?",
     type: "text",
   },
   {
@@ -252,7 +253,6 @@ const COLOR_OPTIONS = [
     accent: "#e11d48",
     tint: "#ffe4e6",
   },
-
 ];
 
 const MEASUREMENT_FIELDS = [
@@ -266,18 +266,72 @@ const MEASUREMENT_FIELDS = [
   { key: "calf", label: "Calf", tip: "around the fullest part of the calf" },
 ];
 
-const fadeStyle = `
-  @keyframes verseFade {
-    0% {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`;
+const STORAGE_KEYS = {
+  profile: "christian-fitness-profile",
+  messages: "christian-fitness-messages",
+  chat: "christian-fitness-chat",
+  theme: "christian-fitness-theme",
+};
+
+const DEFAULT_PROFILE = {
+  coachName: "",
+  firstName: "",
+  age: "",
+  state: "",
+  gender: "",
+  pregnancyStatus: "",
+  pregnancyTrimester: "",
+  pregnancyRestrictions: "",
+  pregnancySymptoms: "",
+  postpartumTime: "",
+  deliveryType: "",
+  postpartumConcerns: "",
+  relationshipStatus: "",
+  denomination: "",
+  whyStarted: "",
+  lifeChange: "",
+  activityLevel: "",
+  hasLimitations: "",
+  limitationType: "",
+  limitationName: "",
+  limitationDuration: "",
+  activityLimit: "",
+  mainGoal: "",
+  bodyFocus: "",
+  foodPreferences: "",
+  measurements: {},
+  measurementHistory: [],
+  measurementUnit: "Inches",
+  onboardingComplete: false,
+  onboardingStage: "",
+  activeMeasurementField: "",
+  createdAt: "",
+  coachMemory: {
+    recurringTopics: [],
+    preferredFoods: [],
+    avoidedFoods: [],
+    allergies: [],
+    slangWords: [],
+    phrasePatterns: [],
+    toneStyle: "balanced",
+    ageStyle: "neutral",
+    lastMeasurementUpdate: "",
+    lastRoutineFeedback: "",
+    lastRoutineFeedbackReason: "",
+    weeklyCheckins: [],
+  },
+};
+
+const DEFAULT_MESSAGES = [
+  {
+    role: "ai",
+    text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+  },
+  {
+    role: "ai",
+    text: "We’ll keep this simple and take it one step at a time.",
+  },
+];
 
 function capitalizeName(value) {
   if (!value) return "";
@@ -291,6 +345,7 @@ function capitalizeName(value) {
 
 function normalizeProfile(profile) {
   return {
+    ...DEFAULT_PROFILE,
     ...profile,
     firstName: capitalizeName(profile.firstName),
     coachName: capitalizeName(profile.coachName),
@@ -300,15 +355,8 @@ function normalizeProfile(profile) {
     measurementHistory: profile.measurementHistory || [],
     measurementUnit: profile.measurementUnit || "Inches",
     coachMemory: {
-      recurringTopics: [],
-      preferredFoods: [],
-      avoidedFoods: [],
-      allergies: [],
-      slangWords: [],
-      phrasePatterns: [],
-      toneStyle: "balanced",
-      ageStyle: "neutral",
-      ...profile.coachMemory,
+      ...DEFAULT_PROFILE.coachMemory,
+      ...(profile.coachMemory || {}),
     },
   };
 }
@@ -323,7 +371,7 @@ function getVisibleQuestionFlow(profile) {
 }
 
 function isClarifyMessage(value) {
-  const lower = value.toLowerCase().trim();
+  const lower = String(value || "").toLowerCase().trim();
   return (
     lower.includes("what do you mean") ||
     lower.includes("clarify") ||
@@ -345,22 +393,18 @@ function getClarificationForQuestion(question) {
     gender: "Choose the option that fits you.",
     pregnancyStatus:
       "This helps the Coach guide you safely if needed. Choose what applies to you.",
-    pregnancyTrimester:
-      "Pick which trimester you are currently in.",
+    pregnancyTrimester: "Pick which trimester you are currently in.",
     pregnancyRestrictions:
       "Anything your doctor told you to avoid. You can type skip if none.",
     pregnancySymptoms:
       "Any discomfort like pain, dizziness, or pressure you’ve noticed.",
-    postpartumTime:
-      "You can say something like 2 weeks, 3 months, etc.",
-    deliveryType:
-      "You can say vaginal, C-section, or skip.",
+    postpartumTime: "You can say something like 2 weeks, 3 months, etc.",
+    deliveryType: "You can say vaginal, C-section, or skip.",
     postpartumConcerns:
       "Anything related to recovery like core, pelvic floor, pain, or bleeding.",
     relationshipStatus:
       "You can answer however you want here. It is open-ended.",
-    denomination:
-      "You can be specific, broad, or just say none.",
+    denomination: "You can be specific, broad, or just say none.",
     whyStarted:
       "I mean what made you decide this is the right time to begin.",
     lifeChange:
@@ -371,100 +415,60 @@ function getClarificationForQuestion(question) {
       "This includes injuries, disabilities, chronic pain, or anything affecting movement.",
     limitationType:
       "You can describe if it’s injury, disability, pain, or something else.",
-    limitationName:
-      "Just describe what it is called or feels like.",
-    limitationDuration:
-      "How long you’ve had it (days, months, years).",
-    activityLimit:
-      "Describe what you can comfortably do right now.",
+    limitationName: "Just describe what it is called or feels like.",
+    limitationDuration: "How long you’ve had it (days, months, years).",
+    activityLimit: "Describe what you can comfortably do right now.",
     mainGoal:
       "Example: lose weight, build strength, discipline, energy, or feel better.",
-    bodyFocus:
-      "This can be a body part, habit, or type of fitness.",
-    foodPreferences:
-      "Include allergies, dislikes, or how you usually eat.",
+    bodyFocus: "This can be a body part, habit, or type of fitness.",
+    foodPreferences: "Include allergies, dislikes, or how you usually eat.",
   };
 
   return (
-    map[question.key] ||
+    map[question?.key] ||
     "Answer in the way that feels most true for you. It does not have to be perfect."
   );
 }
 
 function getSupportMessage(profile) {
   const coachName = capitalizeName(profile.coachName) || "Coach";
+
   if (profile.gender === "Woman" && profile.pregnancyStatus === "Pregnant") {
     return `${coachName}: You’re in the right place. We’ll keep this safe, steady, faith-centered, and calisthenics-focused with gentle movement, walking, posture, breathing, and wise progress.`;
   }
+
   if (profile.gender === "Woman" && profile.pregnancyStatus === "Postpartum") {
     return `${coachName}: You’re in the right place. We’ll rebuild gently and safely with simple movement, walking, breathing, posture, and steady calisthenics-based recovery.`;
   }
+
   return "";
 }
 
 function detectSlang(text = "") {
   const lower = text.toLowerCase();
   const candidates = [
-    "fr", "lowkey", "highkey", "bet", "nah", "yall", "omg", "ngl", "tbh",
-    "idk", "rn", "bc", "tho", "yep", "nope", "kinda", "lemme", "gonna", "wanna",
+    "fr",
+    "lowkey",
+    "highkey",
+    "bet",
+    "nah",
+    "yall",
+    "omg",
+    "ngl",
+    "tbh",
+    "idk",
+    "rn",
+    "bc",
+    "tho",
+    "yep",
+    "nope",
+    "kinda",
+    "lemme",
+    "gonna",
+    "wanna",
   ];
-  return candidates.filter((word) => lower.includes(word));
-}
 
-function getStateFunFact(state) {
-  const facts = {
-    Alabama: "Fun fact: Alabama is home to the U.S. Space & Rocket Center.",
-    Alaska: "Fun fact: Alaska has more coastline than all the other U.S. states combined.",
-    Arizona: "Fun fact: Arizona is home to the Grand Canyon.",
-    Arkansas: "Fun fact: Arkansas is known as The Natural State.",
-    California: "Fun fact: California is home to both the highest and lowest points in the contiguous U.S.",
-    Colorado: "Fun fact: Colorado is known for the Rocky Mountains and high elevation.",
-    Connecticut: "Fun fact: Connecticut is one of the original 13 colonies.",
-    Delaware: "Fun fact: Delaware was the first state to ratify the Constitution.",
-    Florida: "Fun fact: Florida is home to the Everglades and the southernmost point in the continental U.S.",
-    Georgia: "Fun fact: Georgia is known as the Peach State.",
-    Hawaii: "Fun fact: Hawaii is the only U.S. state made entirely of islands.",
-    Idaho: "Fun fact: Idaho is famous for its potatoes and mountain landscapes.",
-    Illinois: "Fun fact: Illinois is home to Chicago and the Willis Tower.",
-    Indiana: "Fun fact: Indiana is famous for the Indianapolis 500.",
-    Iowa: "Fun fact: Iowa is known for its farmland and rolling plains.",
-    Kansas: "Fun fact: Kansas is near the geographic center of the contiguous United States.",
-    Kentucky: "Fun fact: Kentucky is known for horse racing and Mammoth Cave.",
-    Louisiana: "Fun fact: Louisiana is known for its unique Cajun and Creole culture.",
-    Maine: "Fun fact: Maine is famous for its rocky coastline and lobster.",
-    Maryland: "Fun fact: Maryland is known for blue crabs and Chesapeake Bay.",
-    Massachusetts: "Fun fact: Massachusetts played a huge role in early American history.",
-    Michigan: "Fun fact: Michigan touches four of the five Great Lakes.",
-    Minnesota: "Fun fact: Minnesota is known as the Land of 10,000 Lakes.",
-    Mississippi: "Fun fact: The Mississippi River helped shape much of the state’s identity.",
-    Missouri: "Fun fact: Missouri is known as the Show-Me State.",
-    Montana: "Fun fact: Montana is known for wide-open spaces and Glacier National Park.",
-    Nebraska: "Fun fact: Nebraska is the only state with a unicameral legislature.",
-    Nevada: "Fun fact: Nevada is home to Las Vegas and vast desert landscapes.",
-    "New Hampshire": "Fun fact: New Hampshire’s state motto is 'Live Free or Die.'",
-    "New Jersey": "Fun fact: New Jersey has more diners than any other state.",
-    "New Mexico": "Fun fact: New Mexico is known for its desert beauty and rich Native and Hispanic heritage.",
-    "New York": "Fun fact: New York is home to the Statue of Liberty and Niagara Falls.",
-    "North Carolina": "Fun fact: North Carolina is where the Wright brothers made their first powered flight.",
-    "North Dakota": "Fun fact: North Dakota is known for its plains and strong farming roots.",
-    Ohio: "Fun fact: Ohio has produced many U.S. presidents and astronauts.",
-    Oklahoma: "Fun fact: Oklahoma has a deep Native American history and heritage.",
-    Oregon: "Fun fact: Oregon is known for its forests, coastline, and Crater Lake.",
-    Pennsylvania: "Fun fact: Pennsylvania is home to Independence Hall and the Liberty Bell.",
-    "Rhode Island": "Fun fact: Rhode Island is the smallest U.S. state.",
-    "South Carolina": "Fun fact: South Carolina is known for its coastal cities and historic charm.",
-    "South Dakota": "Fun fact: South Dakota is home to Mount Rushmore.",
-    Tennessee: "Fun fact: Tennessee is known for Nashville, Memphis, and a rich music history.",
-    Texas: "Fun fact: Texas is the second-largest U.S. state by both area and population.",
-    Utah: "Fun fact: Utah is known for its red rock landscapes and five national parks.",
-    Vermont: "Fun fact: Vermont is famous for maple syrup and beautiful fall color.",
-    Virginia: "Fun fact: Virginia is home to many important early American landmarks.",
-    Washington: "Fun fact: Washington is known for coffee, mountains, and evergreen forests.",
-    "West Virginia": "Fun fact: West Virginia is known for its mountains and outdoor beauty.",
-    Wisconsin: "Fun fact: Wisconsin is famous for cheese and dairy farming.",
-    Wyoming: "Fun fact: Wyoming is home to Yellowstone National Park.",
-  };
-  return facts[state] || `Fun fact: ${state} has its own unique history, people, and beauty.`;
+  return candidates.filter((word) => lower.includes(word));
 }
 
 function detectToneStyle(text = "", age) {
@@ -475,14 +479,102 @@ function detectToneStyle(text = "", age) {
   return "balanced";
 }
 
+function updateLanguageMemory(profile, text = "") {
+  const slangWords = detectSlang(text);
+
+  return {
+    ...profile,
+    coachMemory: {
+      ...profile.coachMemory,
+      slangWords: [
+        ...new Set([...(profile.coachMemory?.slangWords || []), ...slangWords]),
+      ].slice(-12),
+      toneStyle: detectToneStyle(text, profile.age),
+    },
+  };
+}
+
+function getStateFunFact(state) {
+  const facts = {
+    Alabama: "Fun fact: Alabama is home to the U.S. Space & Rocket Center.",
+    Alaska:
+      "Fun fact: Alaska has more coastline than all the other U.S. states combined.",
+    Arizona: "Fun fact: Arizona is home to the Grand Canyon.",
+    Arkansas: "Fun fact: Arkansas is known as The Natural State.",
+    California:
+      "Fun fact: California is home to both the highest and lowest points in the contiguous U.S.",
+    Colorado: "Fun fact: Colorado is known for the Rocky Mountains and high elevation.",
+    Connecticut: "Fun fact: Connecticut is one of the original 13 colonies.",
+    Delaware: "Fun fact: Delaware was the first state to ratify the Constitution.",
+    Florida:
+      "Fun fact: Florida is home to the Everglades and the southernmost point in the continental U.S.",
+    Georgia: "Fun fact: Georgia is known as the Peach State.",
+    Hawaii: "Fun fact: Hawaii is the only U.S. state made entirely of islands.",
+    Idaho: "Fun fact: Idaho is famous for its potatoes and mountain landscapes.",
+    Illinois: "Fun fact: Illinois is home to Chicago and the Willis Tower.",
+    Indiana: "Fun fact: Indiana is famous for the Indianapolis 500.",
+    Iowa: "Fun fact: Iowa is known for its farmland and rolling plains.",
+    Kansas:
+      "Fun fact: Kansas is near the geographic center of the contiguous United States.",
+    Kentucky: "Fun fact: Kentucky is known for horse racing and Mammoth Cave.",
+    Louisiana: "Fun fact: Louisiana is known for its unique Cajun and Creole culture.",
+    Maine: "Fun fact: Maine is famous for its rocky coastline and lobster.",
+    Maryland: "Fun fact: Maryland is known for blue crabs and Chesapeake Bay.",
+    Massachusetts: "Fun fact: Massachusetts played a huge role in early American history.",
+    Michigan: "Fun fact: Michigan touches four of the five Great Lakes.",
+    Minnesota: "Fun fact: Minnesota is known as the Land of 10,000 Lakes.",
+    Mississippi:
+      "Fun fact: The Mississippi River helped shape much of the state’s identity.",
+    Missouri: "Fun fact: Missouri is known as the Show-Me State.",
+    Montana: "Fun fact: Montana is known for wide-open spaces and Glacier National Park.",
+    Nebraska: "Fun fact: Nebraska is the only state with a unicameral legislature.",
+    Nevada: "Fun fact: Nevada is home to Las Vegas and vast desert landscapes.",
+    "New Hampshire": "Fun fact: New Hampshire’s state motto is 'Live Free or Die.'",
+    "New Jersey": "Fun fact: New Jersey has more diners than any other state.",
+    "New Mexico":
+      "Fun fact: New Mexico is known for its desert beauty and rich Native and Hispanic heritage.",
+    "New York": "Fun fact: New York is home to the Statue of Liberty and Niagara Falls.",
+    "North Carolina":
+      "Fun fact: North Carolina is where the Wright brothers made their first powered flight.",
+    "North Dakota":
+      "Fun fact: North Dakota is known for its plains and strong farming roots.",
+    Ohio: "Fun fact: Ohio has produced many U.S. presidents and astronauts.",
+    Oklahoma: "Fun fact: Oklahoma has a deep Native American history and heritage.",
+    Oregon: "Fun fact: Oregon is known for its forests, coastline, and Crater Lake.",
+    Pennsylvania: "Fun fact: Pennsylvania is home to Independence Hall and the Liberty Bell.",
+    "Rhode Island": "Fun fact: Rhode Island is the smallest U.S. state.",
+    "South Carolina":
+      "Fun fact: South Carolina is known for its coastal cities and historic charm.",
+    "South Dakota": "Fun fact: South Dakota is home to Mount Rushmore.",
+    Tennessee:
+      "Fun fact: Tennessee is known for Nashville, Memphis, and a rich music history.",
+    Texas:
+      "Fun fact: Texas is the second-largest U.S. state by both area and population.",
+    Utah: "Fun fact: Utah is known for its red rock landscapes and five national parks.",
+    Vermont: "Fun fact: Vermont is famous for maple syrup and beautiful fall color.",
+    Virginia: "Fun fact: Virginia is home to many important early American landmarks.",
+    Washington: "Fun fact: Washington is known for coffee, mountains, and evergreen forests.",
+    "West Virginia":
+      "Fun fact: West Virginia is known for its mountains and outdoor beauty.",
+    Wisconsin: "Fun fact: Wisconsin is famous for cheese and dairy farming.",
+    Wyoming: "Fun fact: Wyoming is home to Yellowstone National Park.",
+  };
+
+  return facts[state] || `Fun fact: ${state} has its own unique history, people, and beauty.`;
+}
+
 function getBibleLinkForName(firstName) {
   const clean = capitalizeName(firstName);
+
   const directMatches = {
-    Aaron: "Aaron was chosen for spiritual leadership and service. That name can remind you that God can use your life to encourage and guide others.",
-    Abigail: "Abigail is remembered for wisdom, discernment, and peace-making. That name can remind you that wisdom is powerful.",
+    Aaron:
+      "Aaron was chosen for spiritual leadership and service. That name can remind you that God can use your life to encourage and guide others.",
+    Abigail:
+      "Abigail is remembered for wisdom, discernment, and peace-making. That name can remind you that wisdom is powerful.",
     Anna: "Anna was known for faithfulness and devotion. That name can remind you that steady faith matters.",
     Benjamin: "Benjamin can remind you that you are deeply loved and remembered by God.",
-    Caleb: "Caleb is remembered for courage and wholehearted faith. That name can remind you to stay strong and trust God fully.",
+    Caleb:
+      "Caleb is remembered for courage and wholehearted faith. That name can remind you to stay strong and trust God fully.",
     Daniel: "Daniel is remembered for courage, discipline, and faithfulness under pressure.",
     David: "David reminds us that God looks at the heart and can grow someone into a leader over time.",
     Deborah: "Deborah is remembered for courage, wisdom, and leadership.",
@@ -490,53 +582,36 @@ function getBibleLinkForName(firstName) {
     Elijah: "Elijah is linked to bold faith and trusting God in hard seasons.",
     Esther: "Esther reminds us of courage, purpose, and being placed where you are for a reason.",
     Ethan: "Ethan is connected with wisdom and praise.",
-    Eve: "Eve can point to life, beginnings, and the importance of walking closely with God.",
-    Ezra: "Ezra is remembered for love of God’s Word and spiritual rebuilding.",
-    Gabriel: "Gabriel reminds us of carrying important messages with purpose.",
     Grace: "Grace points directly to one of the most beautiful truths in Scripture — God’s unearned favor and kindness.",
     Hannah: "Hannah reminds us of prayer, surrender, and trusting God deeply.",
     Isaiah: "Isaiah is linked with calling, vision, and speaking truth.",
     Jacob: "Jacob reminds us that God can transform a life over time.",
     James: "James is strongly linked to spiritual maturity, wisdom, and living out faith.",
     Jeremiah: "Jeremiah reminds us that God knows and calls people with purpose.",
-    Joanna: "Joanna is remembered as someone who supported God’s work faithfully.",
     John: "John strongly connects to love, truth, and staying close to Jesus.",
-    Jonah: "Jonah can remind you that God is patient and still works through imperfect people.",
-    Jonathan: "Jonathan is remembered for loyalty, friendship, and courage.",
-    Jordan: "Jordan can remind you of crossing into new ground with God’s help.",
     Joseph: "Joseph is remembered for integrity, endurance, and trusting God through delay.",
-    Joshua: "Joshua is remembered for courage and obedience. 'Be strong and courageous' fits beautifully here.",
+    Joshua:
+      "Joshua is remembered for courage and obedience. 'Be strong and courageous' fits beautifully here.",
     Leah: "Leah can remind you that God sees the overlooked and gives real worth.",
-    Luke: "Luke is linked with carefulness, compassion, and sharing truth clearly.",
     Lydia: "Lydia is remembered for hospitality, faith, and open-hearted response to God.",
-    Martha: "Martha can remind you to serve faithfully while also staying close to Jesus.",
     Mary: "Mary is tied to humility, surrender, and trusting God’s calling.",
-    Matthew: "Matthew reminds us that Jesus calls people into a new story.",
     Michael: "Michael is linked with strength and spiritual courage.",
-    Miriam: "Miriam is remembered for worship, leadership, and boldness.",
     Naomi: "Naomi reminds us that God is still present even through grief and change.",
-    Nathan: "Nathan is linked to truth, wisdom, and speaking faithfully.",
     Noah: "Noah is remembered for obedience and steady faith over a long season.",
     Paul: "Paul reminds us of transformation, endurance, and bold purpose.",
     Peter: "Peter reminds us that even imperfect people can become strong and faithful over time.",
-    Rachel: "Rachel can remind you of love, hope, and God’s care through long seasons.",
-    Rebecca: "Rebecca can remind you of willingness and stepping forward in faith.",
-    Rebekah: "Rebekah can remind you of willingness and stepping forward in faith.",
     Ruth: "Ruth is remembered for loyalty, humility, and faithful love.",
     Samuel: "Samuel reminds us of listening for God’s voice and responding faithfully.",
     Sarah: "Sarah reminds us that God keeps His promises, even when the wait feels long.",
     Solomon: "Solomon is strongly connected to wisdom.",
-    Stephen: "Stephen is remembered for courage and unwavering faith.",
-    Susanna: "Susanna is remembered as faithful and supportive in God’s work.",
-    Thomas: "Thomas reminds us that honest questions can still lead to strong faith.",
     Timothy: "Timothy is linked with spiritual growth, courage, and faithful leadership.",
   };
 
-  if (directMatches[clean]) {
-    return directMatches[clean];
-  }
+  if (directMatches[clean]) return directMatches[clean];
 
-  return `${clean || "Your name"} can still be a reminder that God gave you purpose, dignity, and gifts that can grow with faithfulness. Scripture shows again and again that your identity is not random — you were made on purpose and for a purpose.`;
+  return `${
+    clean || "Your name"
+  } can still be a reminder that God gave you purpose, dignity, and gifts that can grow with faithfulness. Scripture shows again and again that your identity is not random — you were made on purpose and for a purpose.`;
 }
 
 function getConversationalReply(profile, justAnsweredKey) {
@@ -576,14 +651,17 @@ function getConversationalReply(profile, justAnsweredKey) {
 
   return map[justAnsweredKey] || "Got it.";
 }
+
 function cleanCoachBubbleText(text, coachName = "Coach") {
   if (!text || typeof text !== "string") return "";
   const cleanName = capitalizeName(coachName) || "Coach";
+
   return text
     .replace(new RegExp(`^Coach ${cleanName}:\\s*`, "i"), "")
     .replace(new RegExp(`^${cleanName}:\\s*`, "i"), "")
     .replace(/^Coach:\s*/i, "");
 }
+
 function getUserVoicePrefix(profile) {
   const slang = profile.coachMemory?.slangWords || [];
   const tone = profile.coachMemory?.toneStyle || "balanced";
@@ -593,27 +671,8 @@ function getUserVoicePrefix(profile) {
   if (slang.includes("lowkey")) return "Lowkey";
   if (slang.includes("fr")) return "For real";
   if (slang.includes("ngl")) return "Ngl";
+
   return "Okay";
-}
-
-function getRoutineLength(profile) {
-  const feedback = profile.coachMemory?.lastRoutineFeedback;
-  const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
-  const goal = (profile.mainGoal || "").toLowerCase();
-  const activity = profile.activityLevel || "";
-
-  if (feedback === "down" && reason.includes("long")) {
-    return "15–20 min";
-  }
-  if (activity === "Beginner") return "18–24 min";
-  if (activity === "Active") {
-    if (goal.includes("muscle") || goal.includes("strength")) return "35–45 min";
-    if (goal.includes("discipline")) return "25–35 min";
-    return "30–40 min";
-  }
-  if (goal.includes("weight")) return "28–36 min";
-  if (goal.includes("mental")) return "22–30 min";
-  return "24–32 min";
 }
 
 function getGoalType(profile) {
@@ -624,20 +683,1584 @@ function getGoalType(profile) {
   return "general";
 }
 
+function getRoutineLength(profile) {
+  const feedback = profile.coachMemory?.lastRoutineFeedback;
+  const reason = (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
+  const goal = (profile.mainGoal || "").toLowerCase();
+  const activity = profile.activityLevel || "";
+
+  if (feedback === "down" && reason.includes("long")) return "15–20 min";
+  if (activity === "Beginner") return "18–24 min";
+
+  if (activity === "Active") {
+    if (goal.includes("muscle") || goal.includes("strength")) return "35–45 min";
+    if (goal.includes("discipline")) return "25–35 min";
+    return "30–40 min";
+  }
+
+  if (goal.includes("weight")) return "28–36 min";
+  if (goal.includes("mental")) return "22–30 min";
+
+  return "24–32 min";
+}
+
+function parseFoodSignals(text = "") {
+  const lower = text.toLowerCase();
+  const preferred = [];
+  const avoided = [];
+  const allergies = [];
+
+  ["chicken", "eggs", "fruit", "rice", "yogurt", "oats", "beef", "salmon"].forEach(
+    (food) => {
+      if (lower.includes(food)) preferred.push(food);
+    }
+  );
+
+  if (lower.includes("don't like") || lower.includes("dont like") || lower.includes("hate")) {
+    ["fish", "broccoli", "eggs", "oatmeal"].forEach((food) => {
+      if (lower.includes(food)) avoided.push(food);
+    });
+  }
+
+  if (lower.includes("allergic")) {
+    ["dairy", "gluten", "peanut", "peanuts", "nuts", "eggs"].forEach((item) => {
+      if (lower.includes(item)) allergies.push(item);
+    });
+  }
+
+  return { preferred, avoided, allergies };
+}
+
+function getNutritionTargets(profile) {
+  const age = Number(profile.age) || 18;
+  const goalType = getGoalType(profile);
+  const activity = profile.activityLevel || "Somewhat active";
+  const weight = Number(profile.measurements?.weight) || 140;
+  const pregnant = profile.pregnancyStatus === "Pregnant";
+  const postpartum = profile.pregnancyStatus === "Postpartum";
+
+  let protein = Math.round(weight * 0.7);
+  let water = Math.max(64, Math.round(weight * 0.5));
+  let calories = 1800;
+
+  if (activity === "Active") calories += 300;
+  if (activity === "Beginner") calories -= 100;
+
+  if (goalType === "strength") {
+    protein = Math.round(weight * 0.85);
+    calories += 200;
+  }
+
+  if (goalType === "weight-loss") {
+    protein = Math.round(weight * 0.8);
+    calories -= 200;
+  }
+
+  if (pregnant) {
+    calories += 250;
+    protein += 20;
+    water += 16;
+  }
+
+  if (postpartum) {
+    protein += 15;
+    water += 16;
+  }
+
+  if (age < 18) calories += 100;
+
+  return {
+    calories,
+    protein,
+    water,
+    carbsFocus: goalType === "strength" ? "moderate to higher" : "moderate",
+    fatsFocus: "steady healthy fats",
+  };
+}
+
+function getFoodGuidance(profile) {
+  const targets = getNutritionTargets(profile);
+  return `Aim for about ${targets.protein}g protein, around ${targets.water} oz water, and meals built around protein, carbs for energy, and steady healthy fats.`;
+}
+
+function getMealIdeas(profile) {
+  const goalType = getGoalType(profile);
+  const allergiesText = (profile.foodPreferences || "").toLowerCase();
+  const avoidDairy = allergiesText.includes("dairy");
+  const avoidEggs = allergiesText.includes("egg");
+  const avoidGluten = allergiesText.includes("gluten");
+
+  const recipes = [
+    {
+      title: "Protein Oat Bowl",
+      fit: "breakfast",
+      why: "Easy protein and carbs to start the day.",
+      items: [
+        avoidGluten ? "gluten-free oats" : "oats",
+        avoidDairy ? "almond milk" : "milk or yogurt",
+        "berries",
+        avoidEggs ? "protein powder or nut butter" : "eggs on the side",
+      ],
+    },
+    {
+      title: "Chicken Rice Plate",
+      fit: "lunch",
+      why: "Simple, high-protein, and easy to repeat.",
+      items: ["grilled chicken", "rice", "vegetables", "olive oil or avocado"],
+    },
+    {
+      title: "Greek Yogurt Snack",
+      fit: "snack",
+      why: "Quick protein option.",
+      items: avoidDairy
+        ? ["fruit", "turkey slices", "nuts if tolerated"]
+        : ["greek yogurt", "fruit", "granola"],
+    },
+    {
+      title: "Salmon or Beef Dinner",
+      fit: "dinner",
+      why: "Protein plus filling carbs and micronutrients.",
+      items: ["salmon or lean beef", "potatoes or rice", "vegetables"],
+    },
+  ];
+
+  if (goalType === "weight-loss") {
+    recipes.push({
+      title: "High-Protein Wrap Bowl",
+      fit: "easy meal",
+      why: "Keeps you full without overcomplicating things.",
+      items: ["lean protein", "lettuce or rice", "beans", "salsa", "veggies"],
+    });
+  }
+
+  if (goalType === "strength") {
+    recipes.push({
+      title: "Post-Workout Plate",
+      fit: "recovery",
+      why: "Protein plus carbs for recovery.",
+      items: ["chicken or beef", "rice or potatoes", "fruit", "water"],
+    });
+  }
+
+  return recipes;
+}
+
+function buildMeasurementSnapshot(profile) {
+  return {
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    measurements: {
+      ...(profile.measurements || {}),
+    },
+  };
+}
+function getWeeklyReport(profile) {
+  const reports = profile.coachMemory?.weeklyCheckins || [];
+  return reports.length ? reports[reports.length - 1] : null;
+}
+
+function getMeasurementGuide(unit) {
+  const u = unit === "Centimeters" ? "cm" : "in";
+  return [
+    `Chest: wrap the tape around the fullest part of your chest. Write it down in ${u}.`,
+    `Waist: wrap the tape around the narrowest part of your waist and keep it level.`,
+    "High Hip: measure just above the fullest part of your hips.",
+    "Hip: measure around the fullest part of your hips and glutes.",
+    "Thigh: measure around the widest part of one upper thigh.",
+    "Arm: measure around the fullest part of your upper arm while relaxed.",
+    "Calf: measure around the fullest part of your calf.",
+  ];
+}
+
+function getAIResponse(input, profile) {
+  const lower = input.toLowerCase();
+  const coachName = capitalizeName(profile.coachName) || "Coach";
+  const prefix = getUserVoicePrefix(profile);
+  const name = capitalizeName(profile.firstName);
+
+  if (
+    lower.includes("food") ||
+    lower.includes("meal") ||
+    lower.includes("protein") ||
+    lower.includes("recipe")
+  ) {
+    const targets = getNutritionTargets(profile);
+    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — for today, aim for about ${targets.protein}g protein and ${targets.water} oz water. Keep meals simple and built around protein first.`;
+  }
+
+  if (
+    lower.includes("routine") ||
+    lower.includes("workout") ||
+    lower.includes("today")
+  ) {
+    const routine = getRoutineData(profile);
+    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — your routine today is ${routine.title}. Start with: ${routine.main
+      .slice(0, 3)
+      .map((item) => item.name)
+      .join(", ")}.`;
+  }
+
+  if (
+    lower.includes("discouraged") ||
+    lower.includes("behind") ||
+    lower.includes("tired")
+  ) {
+    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — a rough day does not erase your progress. Smaller still counts.`;
+  }
+
+  if (lower.includes("pray")) {
+    return `${coachName}: Lord, give ${name || "them"} peace, strength, wisdom, and steady faith today. Amen.`;
+  }
+
+  if (lower.includes("measurement")) {
+    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — your measurements are in the Progress tab.`;
+  }
+
+  return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — tell me if you want help with routine, food, progress, or prayer.`;
+}
+
+function GearIcon({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
+      <defs>
+        <linearGradient id="gearGrad" x1="0" x2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#cbd5e1" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Zm8 3.4-.98-.3a7.71 7.71 0 0 0-.38-.92l.52-.89a1 1 0 0 0-.15-1.22l-1.58-1.58a1 1 0 0 0-1.22-.15l-.89.52c-.3-.14-.6-.27-.92-.38L14 4a1 1 0 0 0-.98-.75h-2.04A1 1 0 0 0 10 4l-.3.98c-.32.1-.62.24-.92.38l-.89-.52a1 1 0 0 0-1.22.15L5.1 6.57a1 1 0 0 0-.15 1.22l.52.89c-.14.3-.27.6-.38.92L4 10a1 1 0 0 0-.75.98v2.04A1 1 0 0 0 4 14l.98.3c.1.32.24.62.38.92l-.52.89a1 1 0 0 0 .15 1.22l1.58 1.58a1 1 0 0 0 1.22.15l.89-.52c.3.14.6.27.92.38l.3.98a1 1 0 0 0 .98.75h2.04A1 1 0 0 0 14 20l.3-.98c.32-.1.62-.24.92-.38l.89.52a1 1 0 0 0 1.22-.15l1.58-1.58a1 1 0 0 0 .15-1.22l-.52-.89c.14-.3.27-.6.38-.92l.98-.3a1 1 0 0 0 .75-.98v-2.04A1 1 0 0 0 20 12Z"
+        fill="url(#gearGrad)"
+        stroke="#64748b"
+        strokeWidth="1.2"
+      />
+    </svg>
+  );
+}
+
+function TourMeasurementDiagram({ activePart, onSelectPart }) {
+  const accent = "#4f8edc";
+
+  return (
+    <div style={diagramCard}>
+      <svg viewBox="0 0 360 420" style={{ width: "100%", display: "block" }}>
+        <circle cx="180" cy="70" r="26" fill="none" stroke="#222" strokeWidth="2" />
+        <path d="M180 96 L180 250" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M130 135 L230 135" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M145 135 L130 210 L142 270" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M215 135 L230 210 L218 270" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M160 250 L152 345 L163 385" stroke="#222" strokeWidth="2" fill="none" />
+        <path d="M200 250 L208 345 L197 385" stroke="#222" strokeWidth="2" fill="none" />
+
+        {[
+          { key: "chest", label: "CHEST", y: 90 },
+          { key: "waist", label: "WAIST", y: 128 },
+          { key: "highHip", label: "HIGH HIP", y: 166 },
+          { key: "hip", label: "HIPS", y: 204 },
+          { key: "thigh", label: "THIGH", y: 242 },
+          { key: "calf", label: "CALF", y: 280 },
+        ].map((item) => (
+          <g
+            key={item.key}
+            onClick={() => onSelectPart?.(item.key)}
+            style={{ cursor: "pointer" }}
+          >
+            <rect
+              x="18"
+              y={item.y}
+              width="92"
+              height="26"
+              rx="6"
+              fill={activePart === item.key ? `${accent}22` : "#ffffff"}
+              stroke={accent}
+              strokeWidth="2"
+            />
+            <text
+              x="64"
+              y={item.y + 17}
+              textAnchor="middle"
+              style={{
+                fill: activePart === item.key ? "#111111" : accent,
+                fontSize: 11,
+                fontWeight: 800,
+              }}
+            >
+              {item.label}
+            </text>
+          </g>
+        ))}
+
+        {[
+          { label: "HEAD", y: 90 },
+          { label: "CHEST", y: 128 },
+          { label: "WAIST", y: 166 },
+          { label: "HIPS", y: 204 },
+          { label: "THIGH", y: 242 },
+          { label: "CALF", y: 280 },
+        ].map((item) => (
+          <g key={item.label}>
+            <rect
+              x="250"
+              y={item.y}
+              width="92"
+              height="26"
+              rx="6"
+              fill="#ffffff"
+              stroke={accent}
+              strokeWidth="2"
+            />
+            <text
+              x="296"
+              y={item.y + 17}
+              textAnchor="middle"
+              style={{ fill: "#111111", fontSize: 11, fontWeight: 800 }}
+            >
+              {item.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function ExerciseCard({ exercise }) {
+  return (
+    <div style={exerciseCard}>
+      <div>
+        <h4 style={exerciseTitle}>{exercise.name}</h4>
+        <p style={exerciseMeta}>
+          <strong>Reps:</strong> {exercise.reps}
+        </p>
+        <p style={exerciseMeta}>
+          <strong>Time:</strong> {exercise.time}
+        </p>
+        {exercise.note ? <p style={exerciseNote}>{exercise.note}</p> : null}
+      </div>
+
+      <div style={videoWrap}>
+        <iframe
+          width="100%"
+          height="190"
+          src={exercise.video}
+          title={exercise.name}
+          style={videoFrame}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [verseIndex, setVerseIndex] = useState(0);
+  const [screen, setScreen] = useState("onboarding");
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [inputValue, setInputValue] = useState("");
+  const [activeTab, setActiveTab] = useState("home");
+  const [routineFeedback, setRoutineFeedback] = useState("");
+  const [feedbackReason, setFeedbackReason] = useState("");
+  const [chatInput, setChatInput] = useState("");
+  const [tourStep, setTourStep] = useState(0);
+  const [showTour, setShowTour] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const onboardingChatRef = useRef(null);
+  const appChatRef = useRef(null);
+
+  const [profile, setProfile] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.profile);
+    return saved ? normalizeProfile(JSON.parse(saved)) : normalizeProfile(DEFAULT_PROFILE);
+  });
+
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.messages);
+    return saved ? JSON.parse(saved) : DEFAULT_MESSAGES;
+  });
+
+  const [chatMessages, setChatMessages] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.chat);
+    return saved
+      ? JSON.parse(saved).map((msg) => ({
+          ...msg,
+          speaker: capitalizeName(msg.speaker),
+        }))
+      : [];
+  });
+
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.theme);
+    return saved ? JSON.parse(saved) : COLOR_OPTIONS[0];
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(normalizeProfile(profile)));
+  }, [profile]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.chat, JSON.stringify(chatMessages));
+  }, [chatMessages]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.theme, JSON.stringify(selectedTheme));
+  }, [selectedTheme]);
+
+  useEffect(() => {
+    const el = onboardingChatRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [messages]);
+
+  useEffect(() => {
+    const el = appChatRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [chatMessages]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVerseIndex((current) => (current + 1) % VERSES.length);
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const visibleQuestionFlow = useMemo(() => getVisibleQuestionFlow(profile), [profile]);
+  const currentQuestion = visibleQuestionFlow[questionIndex];
+  const canEditPreviousQuestion = questionIndex > 0;
+  const completedOnboarding = Boolean(profile.onboardingComplete);
+
+  const routineData = useMemo(() => getRoutineData(profile), [profile]);
+  const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
+  const mealIdeas = useMemo(() => getMealIdeas(profile), [profile]);
+  const nutrition = useMemo(() => getNutritionTargets(profile), [profile]);
+  const routineLength = useMemo(() => getRoutineLength(profile), [profile]);
+  const latestWeeklyReport = useMemo(() => getWeeklyReport(profile), [profile]);
+
+  const todayVerseCard = useMemo(() => {
+    const verse = VERSES[verseIndex];
+
+    if (verse.includes("Colossians 3:23")) {
+      return {
+        verse,
+        meaning: "Show up with discipline and effort, even in the small things.",
+        action: "Give today’s plan your full effort, even if it’s simple.",
+      };
+    }
+
+    if (verse.includes("Philippians 4:13")) {
+      return {
+        verse,
+        meaning: "You do not have to rely only on your own strength.",
+        action: "Take the next healthy step today instead of waiting to feel ready.",
+      };
+    }
+
+    if (verse.includes("Galatians 6:9")) {
+      return {
+        verse,
+        meaning: "Consistency matters, even when progress feels slow.",
+        action: "Stay steady today and do not quit just because it feels imperfect.",
+      };
+    }
+
+    return {
+      verse,
+      meaning: "Fitness matters, but your deeper growth matters too.",
+      action: "Choose one action today that strengthens both body and spirit.",
+    };
+  }, [verseIndex]);
+
+  const coach = useMemo(() => {
+    const firstName = capitalizeName(profile.firstName) || "";
+    const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
+    const goal = (profile.mainGoal || "").toLowerCase();
+    const activity = profile.activityLevel || "";
+    const whyStarted = profile.whyStarted || "";
+    const name = capitalizeName(profile.firstName);
+    const goalType = getGoalType(profile);
+    const prefix = getUserVoicePrefix(profile);
+
+    let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
+    let focus = "Consistency over perfection.";
+    let action = "Finish today’s core routine and keep your meals simple.";
+
+    if (goal.includes("discipline")) {
+      message = `Let’s build trust with yourself${greetingName} by following through today.`;
+      focus = "Discipline grows through repeatable action.";
+      action = "Complete the routine even if you need to scale parts of it down.";
+    } else if (goal.includes("muscle") || goal.includes("strength")) {
+      message = `Today is a strength day${greetingName} — control your reps and move with intention.`;
+      focus = "Effort and tension matter more than rushing.";
+      action = "Give your main sets full focus and recover well after.";
+    } else if (goal.includes("weight")) {
+      message = `Let’s keep today active and clean${greetingName}.`;
+      focus = "Simple movement plus simple food choices add up.";
+      action = "Finish the workout and add a walk if your energy is there.";
+    } else if (goal.includes("mental")) {
+      message = `We’re aiming for strength and steadiness today${greetingName}.`;
+      focus = "Movement should support your mind, not just your body.";
+      action = "Finish the session, breathe slowly, and do not chase perfection.";
+    }
+
+    if (activity === "Beginner") {
+      message = `We’re keeping this approachable${greetingName} and building from where you are now.`;
+    }
+
+    if (goalType === "strength") {
+      focus = "Controlled reps and honest effort.";
+      action = "Hit your main sets and make protein a priority.";
+    } else if (goalType === "weight-loss") {
+      focus = "Simple movement plus simple food choices.";
+      action = "Get the workout done and add a walk if you can.";
+    } else if (goalType === "discipline") {
+      focus = "Follow-through matters more than perfect feelings.";
+      action = "Finish the plan even if you scale it down.";
+    }
+
+    if (whyStarted && whyStarted.length > 10) {
+      action = `Remember why you started: ${whyStarted.slice(0, 55)}${
+        whyStarted.length > 55 ? "..." : ""
+      }`;
+    }
+
+    return {
+      speaker: capitalizeName(profile.coachName) || "Coach",
+      message,
+      focus,
+      action,
+    };
+  }, [profile]);
+    const handleAnswer = (value) => {
+    if (!currentQuestion) return;
+
+    const key = currentQuestion.key;
+
+    const updatedProfile = {
+      ...profile,
+      [key]: value,
+    };
+
+    setProfile(updatedProfile);
+
+    const nextIndex = questionIndex + 1;
+
+    if (nextIndex < visibleQuestionFlow.length) {
+      setQuestionIndex(nextIndex);
+    } else {
+      setProfile({
+        ...updatedProfile,
+        onboardingComplete: true,
+      });
+      setScreen("app");
+      setShowTour(true);
+    }
+  };
+
+  const handleBack = () => {
+    if (questionIndex === 0) return;
+    setQuestionIndex((prev) => prev - 1);
+  };
+
+  const sendChatMessage = () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage = {
+      speaker: capitalizeName(profile.firstName) || "You",
+      text: chatInput,
+    };
+
+    const aiMessage = {
+      speaker: capitalizeName(profile.coachName) || "Coach",
+      text: getAIResponse(chatInput, profile),
+    };
+
+    setChatMessages((prev) => [...prev, userMessage, aiMessage]);
+    setChatInput("");
+  };
+
+  const completeWeeklyCheckIn = (data) => {
+    const updated = {
+      ...profile,
+      coachMemory: {
+        ...profile.coachMemory,
+        weeklyCheckins: [
+          ...(profile.coachMemory?.weeklyCheckins || []),
+          data,
+        ],
+      },
+    };
+
+    setProfile(updated);
+  };
+
+  const renderOnboarding = () => {
+    return (
+      <div style={onboardingContainer}>
+        <div ref={onboardingChatRef} style={chatWindow}>
+          {messages.map((msg, index) => (
+            <div key={index} style={messageBubble(msg.role)}>
+              {msg.text}
+            </div>
+          ))}
+        </div>
+
+        {currentQuestion && (
+          <div style={inputArea}>
+            <p style={questionText}>{currentQuestion.question}</p>
+
+            {currentQuestion.type === "text" && (
+              <input
+                style={input}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              />
+            )}
+
+            {currentQuestion.type === "select" &&
+              currentQuestion.options.map((opt) => (
+                <button
+                  key={opt}
+                  style={button}
+                  onClick={() => handleAnswer(opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+
+            {currentQuestion.type === "text" && (
+              <button
+                style={button}
+                onClick={() => {
+                  handleAnswer(inputValue);
+                  setInputValue("");
+                }}
+              >
+                Continue
+              </button>
+            )}
+
+            {canEditPreviousQuestion && (
+              <button style={secondaryButton} onClick={handleBack}>
+                Back
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderHome = () => {
+    return (
+      <div style={screenContainer}>
+        <div style={verseCard}>
+          <h3>{todayVerseCard.verse}</h3>
+          <p>{todayVerseCard.meaning}</p>
+          <p><strong>Action:</strong> {todayVerseCard.action}</p>
+        </div>
+
+        <div style={coachCard}>
+          <h3>{coach.speaker}</h3>
+          <p>{coach.message}</p>
+          <p><strong>Focus:</strong> {coach.focus}</p>
+          <p><strong>Action:</strong> {coach.action}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderRoutine = () => {
+    return (
+      <div style={screenContainer}>
+        <h2>{routineData.title}</h2>
+
+        {routineData.main.map((exercise, i) => (
+          <ExerciseCard key={i} exercise={exercise} />
+        ))}
+
+        <textarea
+          style={textarea}
+          placeholder="How did it feel?"
+          value={routineFeedback}
+          onChange={(e) => setRoutineFeedback(e.target.value)}
+        />
+
+        <button style={button} onClick={() => setRoutineFeedback("")}>
+          Save Feedback
+        </button>
+      </div>
+    );
+  };
+
+  const renderFood = () => {
+    return (
+      <div style={screenContainer}>
+        <h2>Nutrition Targets</h2>
+        <p><strong>Protein:</strong> {nutrition.protein}g</p>
+        <p><strong>Water:</strong> {nutrition.water} oz</p>
+
+        <h3>Meal Ideas</h3>
+        {mealIdeas.map((meal, i) => (
+          <div key={i} style={mealCard}>
+            <h4>{meal.title}</h4>
+            <p>{meal.description}</p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderProgress = () => {
+    return (
+      <div style={screenContainer}>
+        <h2>Progress</h2>
+
+        <TourMeasurementDiagram />
+
+        {latestWeeklyReport && (
+          <div style={reportCard}>
+            <h4>Latest Check-In</h4>
+            <pre>{JSON.stringify(latestWeeklyReport, null, 2)}</pre>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderChat = () => {
+    return (
+      <div style={screenContainer}>
+        <div ref={appChatRef} style={chatWindow}>
+          {chatMessages.map((msg, i) => (
+            <div key={i} style={messageBubble("user")}>
+              <strong>{msg.speaker}:</strong> {msg.text}
+            </div>
+          ))}
+        </div>
+
+        <div style={inputArea}>
+          <input
+            style={input}
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button style={button} onClick={sendChatMessage}>
+            Send
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSettings = () => {
+    return (
+      <div style={screenContainer}>
+        <h2>Settings</h2>
+
+        {COLOR_OPTIONS.map((color) => (
+          <button
+            key={color.name}
+            style={{
+              ...button,
+              background: color.value,
+              color: "#fff",
+            }}
+            onClick={() => setSelectedTheme(color)}
+          >
+            {color.name}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  if (screen === "onboarding") return renderOnboarding();
+
+  return (
+    <div style={{ ...appContainer, background: selectedTheme.value }}>
+      <div style={topBar}>
+        <h2>Faith Fitness</h2>
+        <button style={iconButton} onClick={() => setShowSettings(true)}>
+          <GearIcon />
+        </button>
+      </div>
+
+      <div style={tabContainer}>
+        {activeTab === "home" && renderHome()}
+        {activeTab === "routine" && renderRoutine()}
+        {activeTab === "food" && renderFood()}
+        {activeTab === "progress" && renderProgress()}
+        {activeTab === "chat" && renderChat()}
+      </div>
+
+      <div style={bottomNav}>
+        {["home", "routine", "food", "progress", "chat"].map((tab) => (
+          <button
+            key={tab}
+            style={navButton(activeTab === tab)}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {showSettings && (
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <button style={closeButton} onClick={() => setShowSettings(false)}>
+              Close
+            </button>
+            {renderSettings()}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+const appContainer = {
+  minHeight: "100vh",
+  width: "100%",
+  color: "#111",
+  fontFamily: "Arial, sans-serif",
+};
+
+const onboardingContainer = {
+  minHeight: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  padding: 20,
+  background: "#f8fafc",
+};
+
+const screenContainer = {
+  padding: 20,
+  paddingBottom: 100,
+};
+
+const topBar = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "16px 20px",
+  background: "#111827",
+  color: "white",
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+};
+
+const iconButton = {
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  color: "white",
+};
+
+const tabContainer = {
+  minHeight: "calc(100vh - 130px)",
+};
+
+const bottomNav = {
+  position: "fixed",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  display: "grid",
+  gridTemplateColumns: "repeat(5, 1fr)",
+  gap: 8,
+  padding: 12,
+  background: "white",
+  borderTop: "1px solid rgba(0,0,0,0.08)",
+};
+
+const navButton = (active) => ({
+  border: "none",
+  borderRadius: 12,
+  padding: "12px 8px",
+  background: active ? "#111827" : "#e5e7eb",
+  color: active ? "white" : "#111",
+  fontWeight: 700,
+  fontSize: 12,
+  cursor: "pointer",
+});
+
+const chatWindow = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
+  maxHeight: "50vh",
+  overflowY: "auto",
+  padding: 12,
+  background: "white",
+  borderRadius: 16,
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const messageBubble = (role) => ({
+  alignSelf: role === "ai" ? "flex-start" : "stretch",
+  background: role === "ai" ? "#111827" : "#e5e7eb",
+  color: role === "ai" ? "white" : "#111",
+  padding: "12px 14px",
+  borderRadius: 14,
+  lineHeight: 1.45,
+});
+
+const inputArea = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
+  marginTop: 16,
+};
+
+const input = {
+  width: "100%",
+  border: "1px solid rgba(0,0,0,0.12)",
+  borderRadius: 12,
+  padding: "12px 14px",
+  fontSize: 16,
+  boxSizing: "border-box",
+};
+
+const textarea = {
+  width: "100%",
+  minHeight: 100,
+  border: "1px solid rgba(0,0,0,0.12)",
+  borderRadius: 12,
+  padding: "12px 14px",
+  fontSize: 16,
+  boxSizing: "border-box",
+};
+
+const button = {
+  border: "none",
+  borderRadius: 12,
+  padding: "12px 16px",
+  background: "#111827",
+  color: "white",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const secondaryButton = {
+  border: "1px solid rgba(0,0,0,0.12)",
+  borderRadius: 12,
+  padding: "12px 16px",
+  background: "white",
+  color: "#111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const questionText = {
+  fontSize: 18,
+  fontWeight: 700,
+  margin: 0,
+};
+
+const verseCard = {
+  background: "white",
+  borderRadius: 18,
+  padding: 18,
+  marginBottom: 16,
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const coachCard = {
+  background: "white",
+  borderRadius: 18,
+  padding: 18,
+  marginBottom: 16,
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const reportCard = {
+  background: "white",
+  borderRadius: 18,
+  padding: 18,
+  marginTop: 16,
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const mealCard = {
+  background: "white",
+  borderRadius: 18,
+  padding: 16,
+  marginBottom: 12,
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const modalOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.45)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 20,
+  zIndex: 100,
+};
+
+const modalContent = {
+  width: "100%",
+  maxWidth: 420,
+  maxHeight: "85vh",
+  overflowY: "auto",
+  background: "white",
+  borderRadius: 20,
+  padding: 20,
+};
+
+const closeButton = {
+  ...button,
+  width: "100%",
+  marginBottom: 12,
+};
+
+const diagramCard = {
+  background: "#f8fafc",
+  borderRadius: 18,
+  padding: 14,
+  textAlign: "left",
+};
+
+const exerciseCard = {
+  background: "white",
+  borderRadius: 18,
+  padding: 16,
+  marginBottom: 14,
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const exerciseTitle = {
+  margin: "0 0 8px",
+  fontSize: 18,
+  fontWeight: 800,
+};
+
+const exerciseMeta = {
+  margin: "0 0 6px",
+  lineHeight: 1.4,
+};
+
+const exerciseNote = {
+  margin: "8px 0 0",
+  color: "#475569",
+  lineHeight: 1.45,
+};
+
+const videoWrap = {
+  marginTop: 12,
+};
+
+const videoFrame = {
+  border: "none",
+  borderRadius: 14,
+  display: "block",
+};
+
+const themeWrap = {
+  minHeight: "100vh",
+  padding: 20,
+  background: "#111827",
+  color: "white",
+};
+
+const subtleText = {
+  color: "rgba(255,255,255,0.76)",
+  lineHeight: 1.5,
+};
+
+const phoneStyles = {
+  width: "100%",
+};
+
+const topBarDark = {
+  padding: 20,
+  background: "#111827",
+  color: "white",
+};
+
+const onboardingChatArea = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+  padding: 16,
+};
+
+const bubbleBase = {
+  padding: "12px 14px",
+  borderRadius: 14,
+  lineHeight: 1.45,
+};
+
+const aiBubble = {
+  background: "#111827",
+  color: "white",
+};
+
+const userBubble = {
+  background: "#e5e7eb",
+  color: "#111",
+};
+const textInput = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "14px 16px",
+  fontSize: 16,
+  outline: "none",
+  background: "#ffffff",
+  color: "#111111",
+};
+
+const primaryButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "#111111",
+  color: "white",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const secondaryOnboardingButton = {
+  width: "100%",
+  border: "1px solid rgba(255,255,255,0.18)",
+  borderRadius: 16,
+  padding: "14px 16px",
+  background: "transparent",
+  color: "white",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const appStyles = {
+  minHeight: "100vh",
+  background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
+  position: "relative",
+};
+
+const homeHeader = {
+  padding: "18px 18px 14px",
+  borderBottomLeftRadius: 24,
+  borderBottomRightRadius: 24,
+};
+
+const headerTopRow = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+};
+
+const settingsIconButton = {
+  width: 42,
+  height: 42,
+  borderRadius: 999,
+  border: "1px solid rgba(255,255,255,0.16)",
+  background: "rgba(255,255,255,0.08)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+};
+
+const homeBrandTitle = {
+  margin: 0,
+  fontSize: 24,
+  fontWeight: 900,
+  lineHeight: 0.95,
+};
+
+const tickerViewportHome = {
+  padding: 16,
+  display: "grid",
+  gap: 14,
+};
+
+const sectionLabel = {
+  margin: "0 0 8px",
+  fontSize: 12,
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "#64748b",
+};
+
+const sectionLabelWhite = {
+  margin: "0 0 8px",
+  fontSize: 12,
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "rgba(255,255,255,0.76)",
+};
+
+const dailyCard = {
+  background: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 22,
+  padding: 18,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+};
+
+const coachCard = {
+  background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
+  color: "white",
+  borderRadius: 22,
+  padding: 18,
+  boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
+};
+
+const verseCard = {
+  background: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 22,
+  padding: 18,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+};
+
+const cardTitle = {
+  margin: "0 0 10px",
+  fontSize: 20,
+  fontWeight: 900,
+  lineHeight: 1.15,
+};
+
+const bodyText = {
+  margin: "0 0 8px",
+  color: "#111111",
+  lineHeight: 1.55,
+};
+
+const bodyTextWhite = {
+  margin: "0 0 8px",
+  color: "white",
+  lineHeight: 1.55,
+};
+
+const bodyTextLast = {
+  margin: 0,
+  color: "#111111",
+  lineHeight: 1.55,
+};
+
+const buttonGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, 1fr)",
+  gap: 10,
+};
+
+const actionCard = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 18,
+  padding: "16px 12px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 800,
+  cursor: "pointer",
+  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+};
+
+const primaryDarkButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 18,
+  padding: "15px 18px",
+  background: "#111111",
+  color: "white",
+  fontWeight: 800,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const secondaryButton = {
+  width: "100%",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 18,
+  padding: "15px 18px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const routineSectionCard = {
+  background: "#ffffff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 22,
+  padding: 18,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+};
+
+const routineSectionTitle = {
+  margin: "0 0 12px",
+  fontSize: 18,
+  fontWeight: 900,
+  color: "#111111",
+};
+
+const feedbackRow = {
+  display: "flex",
+  gap: 10,
+};
+
+const feedbackButton = {
+  flex: 1,
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 18,
+  padding: "14px 18px",
+  fontSize: 22,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const feedbackQuestion = {
+  margin: "0 0 8px",
+  fontWeight: 800,
+  color: "#111111",
+};
+
+const textInputLight = {
+  width: "100%",
+  borderRadius: 14,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "14px 16px",
+  fontSize: 15,
+  outline: "none",
+  background: "#ffffff",
+  color: "#111111",
+};
+
+const appChatHistory = {
+  display: "grid",
+  gap: 12,
+  maxHeight: 360,
+  overflowY: "auto",
+  padding: 4,
+};
+
+const aiBubbleSolid = {
+  background: "#111111",
+  color: "white",
+};
+
+const userBubbleLight = {
+  background: "#ffffff",
+  color: "#111111",
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const chatInputRow = {
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 10,
+  alignItems: "center",
+};
+
+const unitToggleWrap = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 8,
+  marginBottom: 14,
+};
+
+const unitToggleButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 14,
+  padding: "12px 14px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const unitToggleActive = {
+  ...unitToggleButton,
+  background: "#111111",
+  color: "white",
+};
+
+const measurementGrid = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
+};
+
+const measurementCard = {
+  background: "#f8fafc",
+  borderRadius: 16,
+  padding: 12,
+  border: "1px solid rgba(0,0,0,0.06)",
+};
+
+const measurementLabelRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 8,
+  marginBottom: 10,
+};
+
+const measurementLabel = {
+  fontWeight: 800,
+  color: "#111111",
+};
+
+const measurementTip = {
+  fontSize: 12,
+  color: "#64748b",
+};
+
+const measurementInputRow = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+};
+
+const measurementSmallInput = {
+  width: "100%",
+  borderRadius: 12,
+  border: "1px solid rgba(0,0,0,0.12)",
+  padding: "10px 12px",
+  fontSize: 15,
+};
+
+const measurementUnitText = {
+  minWidth: 28,
+  fontWeight: 700,
+  color: "#475569",
+};
+
+const bottomNav = {
+  position: "sticky",
+  bottom: 0,
+  display: "grid",
+  gridTemplateColumns: "repeat(5, 1fr)",
+  gap: 8,
+  padding: 12,
+  background: "rgba(255,255,255,0.96)",
+  borderTop: "1px solid rgba(0,0,0,0.08)",
+  backdropFilter: "blur(10px)",
+};
+
+const navButton = {
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 14,
+  padding: "12px 8px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const navButtonActive = {
+  ...navButton,
+  background: "#111111",
+  color: "white",
+};
+
+const themeOptionButton = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  borderRadius: 16,
+  padding: "12px 14px",
+  background: "#ffffff",
+  color: "#111111",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const mealCard = {
+  background: "#fff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 18,
+  padding: 14,
+  marginBottom: 10,
+};
+
+const mealTitle = {
+  margin: "0 0 8px",
+  fontWeight: 800,
+  fontSize: 16,
+};
+
+const dangerButton = {
+  width: "100%",
+  border: "none",
+  borderRadius: 18,
+  padding: "15px 18px",
+  background: "#111111",
+  color: "white",
+  fontWeight: 700,
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const exerciseCard = {
+  background: "#fff",
+  border: "1px solid rgba(0,0,0,0.08)",
+  borderRadius: 18,
+  padding: 14,
+  marginBottom: 12,
+};
+
+const exerciseTitle = {
+  margin: "0 0 8px",
+  fontWeight: 800,
+  fontSize: 16,
+  color: "#111111",
+};
+
+const exerciseMeta = {
+  margin: "0 0 6px",
+  color: "#111111",
+};
+
+const exerciseNote = {
+  margin: "8px 0 0",
+  color: "#475569",
+  lineHeight: 1.45,
+};
+
+const videoWrap = {
+  marginTop: 12,
+};
+
+const videoFrame = {
+  border: "none",
+  borderRadius: 14,
+  display: "block",
+};
 function getRoutineData(profile) {
   const feedback = profile.coachMemory?.lastRoutineFeedback;
   const feedbackReason =
     (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
 
-  let adjust = {
+  const adjust = {
     easier: false,
     harder: false,
     shorter: false,
   };
 
-  const goalType = getGoalType(profile);
   const goal = (profile.mainGoal || "").toLowerCase();
-  const beginner = profile.activityLevel === "Beginner";
+  const activity = profile.activityLevel || "Somewhat active";
   const pregnant = profile.pregnancyStatus === "Pregnant";
   const postpartum = profile.pregnancyStatus === "Postpartum";
 
@@ -650,13 +2273,10 @@ function getRoutineData(profile) {
     }
   }
 
-  if (feedback === "up") {
-    if (feedbackReason.includes("easy")) {
-      adjust.harder = true;
-    }
+  if (feedback === "up" && feedbackReason.includes("easy")) {
+    adjust.harder = true;
   }
 
-  const activity = profile.activityLevel || "Somewhat active";
   const limitationText = [
     profile.hasLimitations,
     profile.limitationType,
@@ -1039,156 +2659,56 @@ function getRoutineData(profile) {
 
   return balancedRoutine;
 }
+function buildWeeklyReport(profile) {
+  const feedback = profile.coachMemory?.lastRoutineFeedback;
+  const feedbackReason =
+    (profile.coachMemory?.lastRoutineFeedbackReason || "").toLowerCase();
 
-function getCoachMessage(profile) {
-  const firstName = capitalizeName(profile.firstName) || "";
-  const coachName = capitalizeName(profile.coachName) || "Coach";
-  const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
-  const goal = (profile.mainGoal || "").toLowerCase();
-  const activity = profile.activityLevel || "";
-  const whyStarted = profile.whyStarted || "";
-  const name = capitalizeName(profile.firstName);
-  const goalType = getGoalType(profile);
-  const prefix = getUserVoicePrefix(profile);
+  let summary =
+    "You kept showing up this week — and that consistency is what actually builds results.";
+  let nextStep = "Stay steady and complete your next planned workout.";
+  let wins = ["You stayed engaged.", "You kept moving forward."];
 
-  let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
-  let focus = "Consistency over perfection.";
-  let action = "Finish today’s core routine and keep your meals simple.";
-
-  if (goal.includes("discipline")) {
-    message = `Let’s build trust with yourself${greetingName} by following through today.`;
-    focus = "Discipline grows through repeatable action.";
-    action = "Complete the routine even if you need to scale parts of it down.";
-  } else if (goal.includes("muscle") || goal.includes("strength")) {
-    message = `Today is a strength day${greetingName} — control your reps and move with intention.`;
-    focus = "Effort and tension matter more than rushing.";
-    action = "Give your main sets full focus and recover well after.";
-  } else if (goal.includes("weight")) {
-    message = `Let’s keep today active and clean${greetingName}.`;
-    focus = "Simple movement plus simple food choices add up.";
-    action = "Finish the workout and add a walk if your energy is there.";
-  } else if (goal.includes("mental")) {
-    message = `We’re aiming for strength and steadiness today${greetingName}.`;
-    focus = "Movement should support your mind, not just your body.";
-    action = "Finish the session, breathe slowly, and do not chase perfection.";
-  }
-
-  if (activity === "Beginner") {
-    message = `We’re keeping this approachable${greetingName} and building from where you are now.`;
-  }
-
-  if (goalType === "strength") {
-    focus = "Controlled reps and honest effort.";
-    action = "Hit your main sets and make protein a priority.";
-  } else if (goalType === "weight-loss") {
-    focus = "Simple movement plus simple food choices.";
-    action = "Get the workout done and add a walk if you can.";
-  } else if (goalType === "discipline") {
-    focus = "Follow-through matters more than perfect feelings.";
-    action = "Finish the plan even if you scale it down.";
-  }
-
-  if (whyStarted && whyStarted.length > 10) {
-    action = `Remember why you started: ${whyStarted.slice(0, 55)}${whyStarted.length > 55 ? "..." : ""}`;
+  if (feedback === "up") {
+    summary =
+      "You had a strong week — you followed through and handled your routine well.";
+    nextStep = "Keep building on that momentum and stay consistent this week.";
+    wins = [
+      "You responded well to your routine.",
+      "You gave clear feedback about what worked.",
+    ];
+  } else if (feedback === "down") {
+    summary =
+      "You stayed honest this week and learned what needs to change — that’s real progress.";
+    nextStep =
+      feedbackReason.includes("long")
+        ? "Keep your next workout a little shorter and easier to finish."
+        : feedbackReason.includes("hard") || feedbackReason.includes("pain")
+        ? "Scale the next workout down and keep it gentler."
+        : "Keep the next workout simple and manageable.";
+    wins = [
+      "You paid attention to what felt off.",
+      "You kept learning instead of quitting.",
+    ];
   }
 
   return {
-    speaker: capitalizeName(profile.coachName) || "Coach",
-    message,
-    focus,
-    action,
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    summary,
+    nextStep,
+    wins,
   };
 }
 
-function parseFoodSignals(text = "") {
-  const lower = text.toLowerCase();
-  const preferred = [];
-  const avoided = [];
-  const allergies = [];
-
-  ["chicken", "eggs", "fruit", "rice", "yogurt", "oats", "beef", "salmon"].forEach((food) => {
-    if (lower.includes(food)) preferred.push(food);
-  });
-
-  if (
-    lower.includes("don't like") ||
-    lower.includes("dont like") ||
-    lower.includes("hate")
-  ) {
-    ["fish", "broccoli", "eggs", "oatmeal"].forEach((food) => {
-      if (lower.includes(food)) avoided.push(food);
-    });
-  }
-
-  if (lower.includes("allergic")) {
-    ["dairy", "gluten", "peanut", "peanuts", "nuts", "eggs"].forEach((item) => {
-      if (lower.includes(item)) allergies.push(item);
-    });
-  }
-  return { preferred, avoided, allergies };
-}
-
-function getNutritionTargets(profile) {
-  const age = Number(profile.age) || 18;
-  const goalType = getGoalType(profile);
-  const activity = profile.activityLevel || "Somewhat active";
-  const weight = Number(profile.measurements?.weight) || 140;
-  const pregnant = profile.pregnancyStatus === "Pregnant";
-  const postpartum = profile.pregnancyStatus === "Postpartum";
-
-  let protein = Math.round(weight * 0.7);
-  let water = Math.max(64, Math.round(weight * 0.5));
-  let calories = 1800;
-
-  if (activity === "Active") calories += 300;
-  if (activity === "Beginner") calories -= 100;
-
-  if (goalType === "strength") {
-    protein = Math.round(weight * 0.85);
-    calories += 200;
-  }
-
-  if (goalType === "weight-loss") {
-    protein = Math.round(weight * 0.8);
-    calories -= 200;
-  }
-
-  if (pregnant) {
-    calories += 250;
-    protein += 20;
-    water += 16;
-  }
-
-  if (postpartum) {
-    protein += 15;
-    water += 16;
-  }
-
-  if (age < 18) {
-    calories += 100;
-  }
-
-  return {
-    calories,
-    protein,
-    water,
-    carbsFocus: goalType === "strength" ? "moderate to higher" : "moderate",
-    fatsFocus: "steady healthy fats",
-  };
-}
-
-function detectChatTopic(text) {
+function detectChatTopic(text = "") {
   const lower = text.toLowerCase();
 
   if (
     lower.includes("food") ||
     lower.includes("meal") ||
     lower.includes("eat") ||
-    lower.includes("eating") ||
-    lower.includes("snack") ||
-    lower.includes("breakfast") ||
-    lower.includes("lunch") ||
-    lower.includes("dinner")
+    lower.includes("snack")
   ) {
     return "food";
   }
@@ -1218,8 +2738,7 @@ function detectChatTopic(text) {
     lower.includes("routine") ||
     lower.includes("workout") ||
     lower.includes("exercise") ||
-    lower.includes("training") ||
-    lower.includes("session")
+    lower.includes("training")
   ) {
     return "routine";
   }
@@ -1228,11 +2747,7 @@ function detectChatTopic(text) {
     lower.includes("discouraged") ||
     lower.includes("sad") ||
     lower.includes("tired") ||
-    lower.includes("exhausted") ||
-    lower.includes("unmotivated") ||
-    lower.includes("behind") ||
-    lower.includes("fell off") ||
-    lower.includes("missed")
+    lower.includes("behind")
   ) {
     return "emotion";
   }
@@ -1240,466 +2755,953 @@ function detectChatTopic(text) {
   return "general";
 }
 
-function detectMood(text) {
-  const lower = text.toLowerCase();
+function sendCoachReply(cleanText, nextProfile) {
+  const topic = detectChatTopic(cleanText);
+  const coachName = capitalizeName(nextProfile.coachName) || "Coach";
+  const firstName = capitalizeName(nextProfile.firstName);
 
-  if (
-    lower.includes("discouraged") ||
-    lower.includes("sad") ||
-    lower.includes("unmotivated") ||
-    lower.includes("feel bad") ||
-    lower.includes("behind") ||
-    lower.includes("fell off")
-  ) {
-    return "discouraged";
+  if (topic === "food") {
+    return {
+      role: "ai",
+      speaker: coachName,
+      text: getAIResponse(cleanText, nextProfile),
+    };
   }
 
-  if (
-    lower.includes("tired") ||
-    lower.includes("exhausted") ||
-    lower.includes("worn out") ||
-    lower.includes("no energy")
-  ) {
-    return "tired";
+  if (topic === "progress") {
+    return {
+      role: "ai",
+      speaker: coachName,
+      text: `${coachName}: ${
+        firstName ? `${firstName}, ` : ""
+      }your measurements are in the Progress tab. Tap the body diagram to match each body part more easily.`,
+    };
   }
 
-  if (
-    lower.includes("good") ||
-    lower.includes("great") ||
-    lower.includes("strong") ||
-    lower.includes("better") ||
-    lower.includes("proud")
-  ) {
-    return "positive";
+  if (topic === "faith") {
+    return {
+      role: "ai",
+      speaker: coachName,
+      text: getAIResponse(cleanText, nextProfile),
+    };
   }
 
-  return "neutral";
+  if (topic === "emotion") {
+    return {
+      role: "ai",
+      speaker: coachName,
+      text: `${coachName}: ${
+        firstName ? `${firstName}, ` : ""
+      }a hard day does not erase your progress. We can make today smaller and still move forward.`,
+    };
+  }
+
+  return {
+    role: "ai",
+    speaker: coachName,
+    text: getAIResponse(cleanText, nextProfile),
+  };
 }
 
-function detectPreferredHelpStyle(text) {
-  const lower = text.toLowerCase();
+function resetAppState(setProfile, setMessages, setChatMessages, setSelectedTheme, setScreen, setQuestionIndex, setInputValue, setActiveTab, setShowSettings, setShowTour, setTourStep) {
+  localStorage.removeItem(STORAGE_KEYS.profile);
+  localStorage.removeItem(STORAGE_KEYS.messages);
+  localStorage.removeItem(STORAGE_KEYS.chat);
+  localStorage.removeItem(STORAGE_KEYS.theme);
 
-  if (
-    lower.includes("simple") ||
-    lower.includes("simplify") ||
-    lower.includes("short") ||
-    lower.includes("quick")
-  ) {
-    return "simple";
-  }
-
-  if (
-    lower.includes("detailed") ||
-    lower.includes("explain more") ||
-    lower.includes("more detail")
-  ) {
-    return "detailed";
-  }
-
-  return "balanced";
+  setProfile(normalizeProfile(DEFAULT_PROFILE));
+  setMessages(DEFAULT_MESSAGES);
+  setChatMessages([]);
+  setSelectedTheme(COLOR_OPTIONS[0]);
+  setScreen("onboarding");
+  setQuestionIndex(0);
+  setInputValue("");
+  setActiveTab("home");
+  setShowSettings(false);
+  setShowTour(false);
+  setTourStep(0);
 }
 
-function detectCurrentStruggle(text) {
-  const lower = text.toLowerCase();
-
-  if (
-    lower.includes("too hard") ||
-    lower.includes("hard") ||
-    lower.includes("pain")
-  ) {
-    return "routine difficulty";
-  }
-
-  if (
-    lower.includes("too long") ||
-    lower.includes("long") ||
-    lower.includes("no time")
-  ) {
-    return "time consistency";
-  }
-
-  if (
-    lower.includes("food") ||
-    lower.includes("meal") ||
-    lower.includes("snack") ||
-    lower.includes("hungry")
-  ) {
-    return "food consistency";
-  }
-
-  if (
-    lower.includes("discouraged") ||
-    lower.includes("unmotivated") ||
-    lower.includes("fell off") ||
-    lower.includes("behind")
-  ) {
-    return "motivation";
-  }
-
-  if (
-    lower.includes("tired") ||
-    lower.includes("exhausted") ||
-    lower.includes("no energy")
-  ) {
-    return "low energy";
-  }
-
-  return "";
-}
-
-function detectWin(text) {
-  const lower = text.toLowerCase();
-
-  if (
-    lower.includes("i did it") ||
-    lower.includes("finished") ||
-    lower.includes("completed") ||
-    lower.includes("got it done") ||
-    lower.includes("i worked out") ||
-    lower.includes("i trained") ||
-    lower.includes("i walked")
-  ) {
-    return "followed through";
-  }
-
-  if (
-    lower.includes("ate well") ||
-    lower.includes("good meal") ||
-    lower.includes("hit my protein") ||
-    lower.includes("drank water")
-  ) {
-    return "made a strong food choice";
-  }
-
-  return "";
-}
-
-function getFoodGuidance(profile) {
-  const targets = getNutritionTargets(profile);
-  return `Aim for about ${targets.protein}g protein, around ${targets.water} oz water, and meals built around protein, carbs for energy, and steady healthy fats.`;
-}
-
-function getMealIdeas(profile) {
-  const goalType = getGoalType(profile);
-  const allergiesText = (profile.foodPreferences || "").toLowerCase();
-  const avoidDairy = allergiesText.includes("dairy");
-  const avoidEggs = allergiesText.includes("egg");
-  const avoidGluten = allergiesText.includes("gluten");
-
-  const recipes = [
-    {
-      title: "Protein Oat Bowl",
-      fit: "breakfast",
-      why: "Easy protein and carbs to start the day.",
-      items: [
-        avoidGluten ? "gluten-free oats" : "oats",
-        avoidDairy ? "almond milk" : "milk or yogurt",
-        "berries",
-        avoidEggs ? "protein powder or nut butter" : "eggs on the side",
-      ],
-    },
-    {
-      title: "Chicken Rice Plate",
-      fit: "lunch",
-      why: "Simple, high-protein, and easy to repeat.",
-      items: ["grilled chicken", "rice", "vegetables", "olive oil or avocado"],
-    },
-    {
-      title: "Greek Yogurt Snack",
-      fit: "snack",
-      why: "Quick protein option.",
-      items: avoidDairy
-        ? ["fruit", "turkey slices", "nuts if tolerated"]
-        : ["greek yogurt", "fruit", "granola"],
-    },
-    {
-      title: "Salmon or Beef Dinner",
-      fit: "dinner",
-      why: "Protein plus filling carbs and micronutrients.",
-      items: ["salmon or lean beef", "potatoes or rice", "vegetables"],
-    },
-  ];
-
-  if (goalType === "weight-loss") {
-    recipes.push({
-      title: "High-Protein Wrap Bowl",
-      fit: "easy meal",
-      why: "Keeps you full without overcomplicating things.",
-      items: ["lean protein", "lettuce or rice", "beans", "salsa", "veggies"],
-    });
-  }
-
-  if (goalType === "strength") {
-    recipes.push({
-      title: "Post-Workout Plate",
-      fit: "recovery",
-      why: "Protein plus carbs for recovery.",
-      items: ["chicken or beef", "rice or potatoes", "fruit", "water"],
-    });
-  }
-
-  return recipes;
-}
-
-
-function getAIResponse(input, profile) {
-  const lower = input.toLowerCase();
-  const coachName = capitalizeName(profile.coachName) || "Coach";
-  const prefix = getUserVoicePrefix(profile);
-  const name = capitalizeName(profile.firstName);
-
-  if (
-    lower.includes("food") ||
-    lower.includes("meal") ||
-    lower.includes("protein") ||
-    lower.includes("recipe")
-  ) {
-    const targets = getNutritionTargets(profile);
-    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — for today, aim for about ${targets.protein}g protein and ${targets.water} oz water. Keep meals simple and built around protein first.`;
-  }
-
-  if (
-    lower.includes("routine") ||
-    lower.includes("workout") ||
-    lower.includes("today")
-  ) {
-    const routine = getRoutineData(profile);
-    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — your routine today is ${routine.title}. Start with: ${routine.main.slice(0, 3).map((item) => item.name).join(", ")}.`;
-  }
-
-  if (
-    lower.includes("discouraged") ||
-    lower.includes("behind") ||
-    lower.includes("tired")
-  ) {
-    return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — a rough day does not erase your progress. Smaller still counts.`;
-  }
-
-  if (lower.includes("pray")) {
-    return `${coachName}: Lord, give ${name || "them"} peace, strength, wisdom, and steady faith today. Amen.`;
-  }
-
-  return `${coachName}: ${prefix}${name ? `, ${name}` : ""} — tell me if you want help with routine, food, progress, or prayer.`;
-}
-
-function getMeasurementGuide(unit) {
-  const u = unit === "Centimeters" ? "cm" : "in";
-
+function getTourSteps() {
   return [
-    `Chest: wrap the tape around the fullest part of your chest. Write it down in ${u}.`,
-    `Waist: wrap the tape around the narrowest part of your waist and keep it level.`,
-    "High Hip: measure just above the fullest part of your hips.",
-    "Hip: measure around the fullest part of your hips and glutes.",
-    "Thigh: measure around the widest part of one upper thigh.",
-    "Arm: measure around the fullest part of your upper arm while relaxed.",
-    "Calf: measure around the fullest part of your calf.",
+    {
+      title: "Home",
+      body: "This is your daily main screen. It shows what matters most today.",
+    },
+    {
+      title: "Today’s Routine",
+      body: "This is where your workout lives, with warmup, main work, cooldown, and videos.",
+    },
+    {
+      title: "Chat",
+      body: "You can talk to your Coach here anytime. It can answer questions and adapt over time.",
+    },
+    {
+      title: "Progress",
+      body: "This is where your measurement boxes live. Tap the body diagram to match each box more easily.",
+    },
   ];
 }
+function AppTour({ showTour, tourStep, setTourStep, setShowTour, setActiveTab }) {
+  const tourSteps = getTourSteps();
 
-function GearIcon({ size = 18 }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
-      <defs>
-        <linearGradient id="gearGrad" x1="0" x2="1">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#cbd5e1" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Zm8 3.4-.98-.3a7.71 7.71 0 0 0-.38-.92l.52-.89a1 1 0 0 0-.15-1.22l-1.58-1.58a1 1 0 0 0-1.22-.15l-.89.52c-.3-.14-.6-.27-.92-.38L14 4a1 1 0 0 0-.98-.75h-2.04A1 1 0 0 0 10 4l-.3.98c-.32.1-.62.24-.92.38l-.89-.52a1 1 0 0 0-1.22.15L5.1 6.57a1 1 0 0 0-.15 1.22l.52.89c-.14.3-.27.6-.38.92L4 10a1 1 0 0 0-.75.98v2.04A1 1 0 0 0 4 14l.98.3c.1.32.24.62.38.92l-.52.89a1 1 0 0 0 .15 1.22l1.58 1.58a1 1 0 0 0 1.22.15l.89-.52c.3.14.6.27.92.38l.3.98a1 1 0 0 0 .98.75h2.04A1 1 0 0 0 14 20l.3-.98c.32-.1.62-.24.92-.38l.89.52a1 1 0 0 0 1.22-.15l1.58-1.58a1 1 0 0 0 .15-1.22l-.52-.89c.14-.3.27-.6.38-.92l.98-.3a1 1 0 0 0 .75-.98v-2.04A1 1 0 0 0 20 12Z"
-        fill="url(#gearGrad)"
-        stroke="#64748b"
-        strokeWidth="1.2"
-      />
-    </svg>
-  );
-}
+  useEffect(() => {
+    if (!showTour) return;
 
-function TourMeasurementDiagram({ activePart, onSelectPart }) {
-  const accent = "#4f8edc";
+    if (tourStep === 0) setActiveTab("home");
+    if (tourStep === 1) setActiveTab("routine");
+    if (tourStep === 2) setActiveTab("chat");
+    if (tourStep === 3) setActiveTab("progress");
+  }, [showTour, tourStep, setActiveTab]);
+
+  if (!showTour) return null;
+
+  const current = tourSteps[tourStep];
 
   return (
-    <div style={diagramCard}>
-      <svg viewBox="0 0 360 420" style={{ width: "100%", display: "block" }}>
-        <circle cx="180" cy="70" r="26" fill="none" stroke="#222" strokeWidth="2" />
-        <path d="M180 96 L180 250" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M130 135 L230 135" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M145 135 L130 210 L142 270" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M215 135 L230 210 L218 270" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M160 250 L152 345 L163 385" stroke="#222" strokeWidth="2" fill="none" />
-        <path d="M200 250 L208 345 L197 385" stroke="#222" strokeWidth="2" fill="none" />
+    <div style={tourOverlay} onClick={() => setShowTour(false)}>
+      <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
+        <p style={sectionLabel}>Quick tour</p>
+        <h3 style={{ marginTop: 8, marginBottom: 12 }}>{current.title}</h3>
+        <p style={bodyTextLast}>{current.body}</p>
 
-        {[
-          { key: "chest", label: "CHEST", y: 90 },
-          { key: "waist", label: "WAIST", y: 128 },
-          { key: "highHip", label: "HIGH HIP", y: 166 },
-          { key: "hip", label: "HIPS", y: 204 },
-          { key: "thigh", label: "THIGH", y: 242 },
-          { key: "calf", label: "CALF", y: 280 },
-        ].map((item) => (
-          <g
-            key={item.key}
-            onClick={() => onSelectPart?.(item.key)}
-            style={{ cursor: "pointer" }}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 18 }}>
+          <button
+            style={secondaryButton}
+            onClick={() => {
+              if (tourStep === 0) return;
+              setTourStep((prev) => prev - 1);
+            }}
           >
-            <rect
-              x="18"
-              y={item.y}
-              width="92"
-              height="26"
-              rx="6"
-              fill={activePart === item.key ? `${accent}22` : "#ffffff"}
-              stroke={accent}
-              strokeWidth="2"
-            />
-            <text
-              x="64"
-              y={item.y + 17}
-              textAnchor="middle"
-              style={{
-                fill: activePart === item.key ? "#111111" : accent,
-                fontSize: 11,
-                fontWeight: 800,
-              }}
-            >
-              {item.label}
-            </text>
-          </g>
-        ))}
+            Back
+          </button>
 
-        {[
-          { label: "HEAD", y: 90 },
-          { label: "CHEST", y: 128 },
-          { label: "WAIST", y: 166 },
-          { label: "HIPS", y: 204 },
-          { label: "THIGH", y: 242 },
-          { label: "CALF", y: 280 },
-        ].map((item) => (
-          <g key={item.label}>
-            <rect
-              x="250"
-              y={item.y}
-              width="92"
-              height="26"
-              rx="6"
-              fill="#ffffff"
-              stroke={accent}
-              strokeWidth="2"
-            />
-            <text
-              x="296"
-              y={item.y + 17}
-              textAnchor="middle"
-              style={{ fill: "#111111", fontSize: 11, fontWeight: 800 }}
-            >
-              {item.label}
-            </text>
-          </g>
-        ))}
-      </svg>
+          <button
+            style={primaryDarkButton}
+            onClick={() => {
+              if (tourStep >= tourSteps.length - 1) {
+                setShowTour(false);
+                setActiveTab("home");
+                return;
+              }
+              setTourStep((prev) => prev + 1);
+            }}
+          >
+            {tourStep >= tourSteps.length - 1 ? "Finish" : "Next"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function ExerciseCard({ exercise }) {
+function WelcomeScreen({ onStart }) {
   return (
-    <div style={exerciseCard}>
-      <div>
-        <h4 style={exerciseTitle}>{exercise.name}</h4>
-        <p style={exerciseMeta}>
-          <strong>Reps:</strong> {exercise.reps}
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div style={themeWrap}>
+          <h2 style={{ marginBottom: 8 }}>Christian Fitness</h2>
+          <p style={subtleText}>
+            A faith-based fitness coach with onboarding, routines, food guidance,
+            chat, progress tracking, and measurements.
+          </p>
+          <button style={primaryButton} onClick={onStart}>
+            Start setup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getInitialMessages() {
+  return [
+    {
+      role: "ai",
+      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+    },
+    {
+      role: "ai",
+      text: "We’ll keep this simple and take it one step at a time.",
+    },
+    {
+      role: "ai",
+      text: QUESTION_FLOW[0].label,
+    },
+  ];
+}
+function HomeScreen({
+  activeTab,
+  setActiveTab,
+  coach,
+  routineData,
+  routineLength,
+  todayVerseCard,
+  verseIndex,
+  foodGuidance,
+  profile,
+  setProfile,
+  setChatMessages,
+}) {
+  if (activeTab !== "home") return null;
+
+  return (
+    <>
+      <div style={coachCard}>
+        <p style={sectionLabelWhite}>{coach.speaker}</p>
+        <h2 style={cardTitle}>{coach.message}</h2>
+        <p style={bodyTextWhite}>
+          <strong>Daily focus:</strong> {coach.focus}
         </p>
-        <p style={exerciseMeta}>
-          <strong>Time:</strong> {exercise.time}
+        <p style={bodyTextWhite}>
+          <strong>Today’s action:</strong> {coach.action}
         </p>
-        {exercise.note ? <p style={exerciseNote}>{exercise.note}</p> : null}
       </div>
 
-      <div style={videoWrap}>
-        <iframe
-          width="100%"
-          height="190"
-          src={exercise.video}
-          title={exercise.name}
-          style={videoFrame}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Today’s Routine</p>
+        <h3 style={cardTitle}>{routineData.title}</h3>
+        <p style={bodyText}>{routineData.summary}</p>
+        <p style={bodyTextLast}>
+          <strong>Estimated length:</strong> {routineLength}
+        </p>
+        <button style={secondaryButton} onClick={() => setActiveTab("routine")}>
+          Open full routine
+        </button>
+      </div>
+
+      <div style={verseCard}>
+        <p style={sectionLabel}>Daily verse</p>
+        <h3 style={cardTitle}>{todayVerseCard.verse}</h3>
+        <p style={bodyText}>
+          <strong>What this means today:</strong> {todayVerseCard.meaning}
+        </p>
+        <p style={bodyTextLast}>
+          <strong>Today’s action:</strong> {todayVerseCard.action}
+        </p>
+        <h3 style={cardTitle}>{VERSES[verseIndex]}</h3>
+      </div>
+
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Food guidance</p>
+        <p style={bodyTextLast}>{foodGuidance}</p>
+      </div>
+
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Coach language memory</p>
+        <p style={bodyText}>
+          <strong>Tone style:</strong> {profile.coachMemory?.toneStyle || "balanced"}
+        </p>
+        <p style={bodyText}>
+          <strong>Detected slang:</strong>{" "}
+          {profile.coachMemory?.slangWords?.length
+            ? profile.coachMemory.slangWords.join(", ")
+            : "none yet"}
+        </p>
+        <p style={bodyTextLast}>
+          Coach mirrors language lightly, clearly, and without cursing.
+        </p>
+      </div>
+
+      <div style={buttonGrid}>
+        <button style={actionCard} onClick={() => setActiveTab("routine")}>
+          Today’s Routine
+        </button>
+        <button style={actionCard} onClick={() => setActiveTab("chat")}>
+          Chat
+        </button>
+        <button style={actionCard} onClick={() => setActiveTab("progress")}>
+          Progress
+        </button>
+      </div>
+
+      <button
+        style={primaryDarkButton}
+        onClick={() => {
+          const nextProfile = {
+            ...profile,
+            coachMemory: {
+              ...profile.coachMemory,
+              toneStyle: "direct",
+            },
+          };
+
+          setProfile(nextProfile);
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              role: "ai",
+              speaker: capitalizeName(profile.coachName) || "Coach",
+              text: getAIResponse("simplify my day", nextProfile),
+            },
+          ]);
+          setActiveTab("routine");
+        }}
+      >
+        Simplify My Day
+      </button>
+    </>
+  );
+}
+
+function RoutineScreen({
+  activeTab,
+  routineData,
+  routineLength,
+  routineFeedback,
+  setRoutineFeedback,
+  feedbackReason,
+  setFeedbackReason,
+  profile,
+  setProfile,
+  setActiveTab,
+}) {
+  if (activeTab !== "routine") return null;
+
+  return (
+    <>
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Generated routine</p>
+        <h2 style={cardTitle}>{routineData.title}</h2>
+        <p style={bodyText}>{routineData.summary}</p>
+        <p style={bodyText}>
+          <strong>Estimated length:</strong> {routineLength}
+        </p>
+        <p style={bodyTextLast}>
+          This plan stays neutral when something is unknown. If it feels off,
+          tap thumbs up or down and say why.
+        </p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Warmup</h3>
+        {routineData.warmup.map((exercise, index) => (
+          <ExerciseCard key={`warmup-${index}`} exercise={exercise} />
+        ))}
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Main workout</h3>
+        {routineData.main.map((exercise, index) => (
+          <ExerciseCard key={`main-${index}`} exercise={exercise} />
+        ))}
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Cooldown</h3>
+        {routineData.cooldown.map((exercise, index) => (
+          <ExerciseCard key={`cooldown-${index}`} exercise={exercise} />
+        ))}
+      </div>
+
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Walking suggestion</p>
+        <p style={bodyTextLast}>{routineData.walking}</p>
+      </div>
+
+      <div style={feedbackRow}>
+        <button
+          style={{
+            ...feedbackButton,
+            background: routineFeedback === "up" ? "#22c55e" : "#ffffff",
+            color: routineFeedback === "up" ? "white" : "#111",
+          }}
+          onClick={() => {
+            setRoutineFeedback("up");
+            setFeedbackReason("");
+            setProfile((current) => ({
+              ...current,
+              coachMemory: {
+                ...current.coachMemory,
+                lastRoutineFeedback: "up",
+              },
+            }));
+          }}
+        >
+          👍
+        </button>
+
+        <button
+          style={{
+            ...feedbackButton,
+            background: routineFeedback === "down" ? "#ef4444" : "#ffffff",
+            color: routineFeedback === "down" ? "white" : "#111",
+          }}
+          onClick={() => {
+            setRoutineFeedback("down");
+            setFeedbackReason("");
+            setProfile((current) => ({
+              ...current,
+              coachMemory: {
+                ...current.coachMemory,
+                lastRoutineFeedback: "down",
+              },
+            }));
+          }}
+        >
+          👎
+        </button>
+      </div>
+
+      {routineFeedback && (
+        <>
+          <p style={feedbackQuestion}>
+            {routineFeedback === "up" ? "What did you like?" : "What did you dislike?"}
+          </p>
+          <input
+            style={textInputLight}
+            placeholder={
+              routineFeedback === "up"
+                ? "Example: good pace, liked the structure, felt strong"
+                : "Example: too hard, too long, painful, confusing"
+            }
+            value={feedbackReason}
+            onChange={(e) => {
+              const value = e.target.value;
+              setFeedbackReason(value);
+              setProfile((current) => ({
+                ...current,
+                coachMemory: {
+                  ...current.coachMemory,
+                  lastRoutineFeedback: routineFeedback,
+                  lastRoutineFeedbackReason: value,
+                },
+              }));
+            }}
+          />
+        </>
+      )}
+
+      <button style={secondaryButton} onClick={() => setActiveTab("home")}>
+        Back to Home
+      </button>
+    </>
+  );
+}
+function ChatScreen({
+  activeTab,
+  profile,
+  chatMessages,
+  chatInput,
+  setChatInput,
+  setChatMessages,
+  setProfile,
+}) {
+  if (activeTab !== "chat") return null;
+
+  return (
+    <>
+      <div style={coachCard}>
+        <p style={sectionLabelWhite}>
+          {capitalizeName(profile.coachName) || "Coach"}
+        </p>
+        <h2 style={cardTitle}>
+          {profile.firstName
+            ? `Welcome back, ${capitalizeName(profile.firstName)}.`
+            : "Welcome back."}
+        </h2>
+        <p style={bodyTextWhite}>Let’s stay steady today.</p>
+        <p style={bodyTextWhite}>Tell me what you need.</p>
+      </div>
+
+      <div ref={appChatRef} style={appChatHistory}>
+        {chatMessages.map((msg, index) => (
+          <div
+            key={`${msg.role}-${index}`}
+            style={{
+              display: "flex",
+              justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
+            }}
+          >
+            <div style={{ maxWidth: "82%" }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  opacity: 0.78,
+                  marginBottom: 6,
+                  color: "#111",
+                  textAlign: msg.role === "ai" ? "left" : "right",
+                }}
+              >
+                {msg.role === "ai"
+                  ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
+                  : capitalizeName(profile.firstName) || "You"}
+              </div>
+
+              <div
+                style={{
+                  ...bubbleBase,
+                  ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight),
+                }}
+              >
+                {msg.role === "ai"
+                  ? cleanCoachBubbleText(msg.text, profile.coachName)
+                  : msg.text}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={quickReplyWrap}>
+        {QUICK_REPLIES.map((item) => (
+          <button
+            key={item}
+            style={quickReplyButton}
+            onClick={() => {
+              const cleanText = item.trim();
+              if (!cleanText) return;
+
+              let nextProfile = updateLanguageMemory(profile, cleanText);
+              const foodSignals = parseFoodSignals(cleanText);
+
+              nextProfile = {
+                ...nextProfile,
+                coachMemory: {
+                  ...nextProfile.coachMemory,
+                  preferredFoods: [
+                    ...new Set([
+                      ...(nextProfile.coachMemory.preferredFoods || []),
+                      ...foodSignals.preferred,
+                    ]),
+                  ].slice(-12),
+                  avoidedFoods: [
+                    ...new Set([
+                      ...(nextProfile.coachMemory.avoidedFoods || []),
+                      ...foodSignals.avoided,
+                    ]),
+                  ].slice(-12),
+                  allergies: [
+                    ...new Set([
+                      ...(nextProfile.coachMemory.allergies || []),
+                      ...foodSignals.allergies,
+                    ]),
+                  ].slice(-12),
+                },
+              };
+
+              setProfile(nextProfile);
+
+              const coachReply = sendCoachReply(cleanText, nextProfile);
+
+              setChatMessages((prev) => [
+                ...prev,
+                { role: "user", text: cleanText },
+                coachReply,
+              ]);
+            }}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+
+      <div style={chatInputRow}>
+        <input
+          style={textInput}
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          placeholder="Type a message..."
+        />
+        <button
+          style={primaryDarkButton}
+          onClick={() => {
+            const cleanText = chatInput.trim();
+            if (!cleanText) return;
+
+            let nextProfile = updateLanguageMemory(profile, cleanText);
+            const foodSignals = parseFoodSignals(cleanText);
+
+            nextProfile = {
+              ...nextProfile,
+              coachMemory: {
+                ...nextProfile.coachMemory,
+                preferredFoods: [
+                  ...new Set([
+                    ...(nextProfile.coachMemory.preferredFoods || []),
+                    ...foodSignals.preferred,
+                  ]),
+                ].slice(-12),
+                avoidedFoods: [
+                  ...new Set([
+                    ...(nextProfile.coachMemory.avoidedFoods || []),
+                    ...foodSignals.avoided,
+                  ]),
+                ].slice(-12),
+                allergies: [
+                  ...new Set([
+                    ...(nextProfile.coachMemory.allergies || []),
+                    ...foodSignals.allergies,
+                  ]),
+                ].slice(-12),
+              },
+            };
+
+            setProfile(nextProfile);
+
+            const coachReply = sendCoachReply(cleanText, nextProfile);
+
+            setChatMessages((prev) => [
+              ...prev,
+              { role: "user", text: cleanText },
+              coachReply,
+            ]);
+
+            setChatInput("");
+          }}
+        >
+          Send
+        </button>
+      </div>
+    </>
+  );
+}
+
+function ProgressScreen({ activeTab, profile, setProfile }) {
+  if (activeTab !== "progress") return null;
+
+  return (
+    <>
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Progress</p>
+        <h2 style={cardTitle}>Measurements</h2>
+        <p style={bodyTextLast}>Add or update your measurements below.</p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Your Measurements</h3>
+
+        <div style={unitToggleWrap}>
+          <button
+            style={
+              profile.measurementUnit === "Inches"
+                ? unitToggleActive
+                : unitToggleButton
+            }
+            onClick={() =>
+              setProfile((current) => ({
+                ...current,
+                measurementUnit: "Inches",
+              }))
+            }
+          >
+            Inches
+          </button>
+
+          <button
+            style={
+              profile.measurementUnit === "Centimeters"
+                ? unitToggleActive
+                : unitToggleButton
+            }
+            onClick={() =>
+              setProfile((current) => ({
+                ...current,
+                measurementUnit: "Centimeters",
+              }))
+            }
+          >
+            Centimeters
+          </button>
+        </div>
+
+        <div style={measurementGrid}>
+          {MEASUREMENT_FIELDS.map((field) => (
+            <div key={field.key} style={measurementCard}>
+              <div style={measurementLabelRow}>
+                <span style={measurementLabel}>{field.label}</span>
+                <span style={measurementTip}>? {field.tip}</span>
+              </div>
+
+              <div style={measurementInputRow}>
+                <input
+                  style={measurementSmallInput}
+                  value={profile.measurements?.[field.key] || ""}
+                  onFocus={() =>
+                    setProfile((current) => ({
+                      ...current,
+                      activeMeasurementField: field.key,
+                    }))
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setProfile((current) => {
+                      const nextMeasurements = {
+                        ...current.measurements,
+                        [field.key]: value,
+                      };
+
+                      const now = new Date().toISOString();
+                      const lastUpdate = current.coachMemory?.lastMeasurementUpdate;
+                      const shouldCreateSnapshot =
+                        !lastUpdate ||
+                        new Date(now).getTime() - new Date(lastUpdate).getTime() >
+                          1000 * 60 * 60 * 24;
+
+                      return {
+                        ...current,
+                        measurements: nextMeasurements,
+                        measurementHistory: shouldCreateSnapshot
+                          ? [
+                              ...(current.measurementHistory || []),
+                              buildMeasurementSnapshot({
+                                ...current,
+                                measurements: nextMeasurements,
+                              }),
+                            ].slice(-24)
+                          : current.measurementHistory || [],
+                        coachMemory: {
+                          ...current.coachMemory,
+                          lastMeasurementUpdate: now,
+                        },
+                      };
+                    });
+                  }}
+                  placeholder="0"
+                />
+                <span style={measurementUnitText}>
+                  {profile.measurementUnit === "Centimeters"
+                    ? "cm"
+                    : field.key === "weight"
+                    ? "lb"
+                    : "in"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ ...bodyText, marginTop: 12 }}>
+          These save on this device automatically.
+        </p>
+        <p style={bodyTextLast}>
+          Saved measurement snapshots:{" "}
+          <strong>{profile.measurementHistory?.length || 0}</strong>
+        </p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Measurement guide</h3>
+        {getMeasurementGuide(profile.measurementUnit).map((item) => (
+          <p key={item} style={bodyText}>
+            {item}
+          </p>
+        ))}
+        <p style={bodyTextLast}>
+          Tip: measure at about the same time of day each time for cleaner tracking.
+        </p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>How to measure</h3>
+        <TourMeasurementDiagram
+          activePart={profile.activeMeasurementField}
+          onSelectPart={(part) =>
+            setProfile((current) => ({
+              ...current,
+              activeMeasurementField: part,
+            }))
+          }
         />
       </div>
+    </>
+  );
+}
+function FoodScreen({ activeTab, profile, nutrition, mealIdeas }) {
+  if (activeTab !== "food") return null;
+
+  return (
+    <>
+      <div style={dailyCard}>
+        <p style={sectionLabel}>Food</p>
+        <h2 style={cardTitle}>Nutrition built for you</h2>
+        <p style={bodyText}>
+          This page uses your age, goal, activity level, food preferences, and any
+          pregnancy or postpartum info.
+        </p>
+        <p style={bodyTextLast}>
+          <strong>Main goal:</strong> {profile.mainGoal || "Not set yet"}
+        </p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Daily targets</h3>
+        <p style={bodyText}>
+          <strong>Calories:</strong> about {nutrition.calories} daily
+        </p>
+        <p style={bodyText}>
+          <strong>Protein:</strong> about {nutrition.protein}g daily
+        </p>
+        <p style={bodyText}>
+          <strong>Water:</strong> about {nutrition.water} oz daily
+        </p>
+        <p style={bodyText}>
+          <strong>Carb focus:</strong> {nutrition.carbsFocus}
+        </p>
+        <p style={bodyTextLast}>
+          <strong>Fat focus:</strong> {nutrition.fatsFocus}
+        </p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Why this matters</h3>
+        <p style={bodyText}>
+          <strong>Protein:</strong> helps recovery, muscle support, fullness, and
+          steady progress.
+        </p>
+        <p style={bodyText}>
+          <strong>Carbs:</strong> help with energy for workouts and daily life.
+        </p>
+        <p style={bodyTextLast}>
+          <strong>Water:</strong> supports energy, recovery, and how you feel
+          through the day.
+        </p>
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Meal ideas</h3>
+        {mealIdeas.map((meal) => (
+          <div key={meal.title} style={mealCard}>
+            <p style={mealTitle}>{meal.title}</p>
+            <p style={bodyText}>
+              <strong>Best for:</strong> {meal.fit}
+            </p>
+            <p style={bodyText}>
+              <strong>Why:</strong> {meal.why}
+            </p>
+            <p style={bodyTextLast}>
+              <strong>Build it with:</strong> {meal.items.join(", ")}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div style={routineSectionCard}>
+        <h3 style={routineSectionTitle}>Saved food memory</h3>
+        <p style={bodyText}>
+          <strong>Preferred foods:</strong>{" "}
+          {profile.coachMemory?.preferredFoods?.length
+            ? profile.coachMemory.preferredFoods.join(", ")
+            : "none yet"}
+        </p>
+        <p style={bodyText}>
+          <strong>Avoided foods:</strong>{" "}
+          {profile.coachMemory?.avoidedFoods?.length
+            ? profile.coachMemory.avoidedFoods.join(", ")
+            : "none yet"}
+        </p>
+        <p style={bodyTextLast}>
+          <strong>Allergies:</strong>{" "}
+          {profile.coachMemory?.allergies?.length
+            ? profile.coachMemory.allergies.join(", ")
+            : "none yet"}
+        </p>
+      </div>
+    </>
+  );
+}
+
+function SettingsModal({
+  showSettings,
+  setShowSettings,
+  profile,
+  selectedTheme,
+  setSelectedTheme,
+  setProfile,
+  resetApp,
+}) {
+  if (!showSettings) return null;
+
+  return (
+    <div style={tourOverlay} onClick={() => setShowSettings(false)}>
+      <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
+        <p style={sectionLabel}>Settings</p>
+        <h3 style={{ marginTop: 8, marginBottom: 12 }}>App settings</h3>
+
+        <div style={routineSectionCard}>
+          <p style={bodyText}>
+            <strong>Coach name:</strong>{" "}
+            {capitalizeName(profile.coachName) || "Coach"}
+          </p>
+          <p style={bodyText}>
+            <strong>User name:</strong>{" "}
+            {capitalizeName(profile.firstName) || "Not set"}
+          </p>
+          <p style={bodyText}>
+            <strong>Goal:</strong> {profile.mainGoal || "Not set"}
+          </p>
+          <p style={bodyTextLast}>
+            <strong>Activity:</strong> {profile.activityLevel || "Not set"}
+          </p>
+        </div>
+
+        <div style={routineSectionCard}>
+          <h3 style={routineSectionTitle}>Theme</h3>
+          <div style={{ display: "grid", gap: 8 }}>
+            {COLOR_OPTIONS.map((option) => (
+              <button
+                key={option.name}
+                onClick={() => setSelectedTheme(option)}
+                style={{
+                  ...themeOptionButton,
+                  border:
+                    selectedTheme.name === option.name
+                      ? `2px solid ${option.accent}`
+                      : "1px solid rgba(0,0,0,0.08)",
+                }}
+              >
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 999,
+                    background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
+                    display: "inline-block",
+                  }}
+                />
+                {option.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          style={secondaryButton}
+          onClick={() =>
+            setProfile((current) => ({
+              ...current,
+              coachMemory: {
+                ...current.coachMemory,
+                recurringTopics: [],
+                preferredFoods: [],
+                avoidedFoods: [],
+                allergies: [],
+                slangWords: [],
+                phrasePatterns: [],
+                toneStyle: "balanced",
+              },
+            }))
+          }
+        >
+          Clear coach memory
+        </button>
+
+        <button style={dangerButton} onClick={resetApp}>
+          Reset App
+        </button>
+
+        <button style={primaryDarkButton} onClick={() => setShowSettings(false)}>
+          Close
+        </button>
+      </div>
     </div>
   );
 }
-function buildWeeklyReport(profile) {
-  const feedback = profile.coachMemory?.lastRoutineFeedback;
-  const feedbackReason = (
-    profile.coachMemory?.lastRoutineFeedbackReason || ""
-  ).toLowerCase();
-
-  let summary =
-    "You kept showing up this week — and that consistency is what actually builds results.";
-  let nextStep = "Stay steady and complete your next planned workout.";
-  let wins = ["You stayed engaged.", "You kept moving forward."];
-
-  if (feedback === "up") {
-    summary =
-      "You had a strong week — you followed through and handled your routine well.";
-    nextStep =
-      "Keep building on that momentum and stay consistent this week.";
-    wins = [
-      "You responded well to your routine.",
-      "You gave clear feedback about what worked.",
-    ];
-  } else if (feedback === "down") {
-    summary =
-      "You stayed honest this week and learned what needs to change — that’s real progress.";
-    nextStep =
-      feedbackReason.includes("long")
-        ? "Keep your next workout a little shorter and easier to finish."
-        : feedbackReason.includes("hard") || feedbackReason.includes("pain")
-        ? "Scale the next workout down and keep it gentler."
-        : "Keep the next workout simple and manageable.";
-    wins = [
-      "You paid attention to what felt off.",
-      "You kept learning instead of quitting.",
-    ];
-  }
-
-  return {
-    id: Date.now(),
-    createdAt: new Date().toISOString(),
-    summary,
-    nextStep,
-    wins,
-  };
-}
-
-function buildMeasurementSnapshot(profile) {
-  return {
-    id: Date.now(),
-    createdAt: new Date().toISOString(),
-    measurements: {
-      ...(profile.measurements || {}),
-    },
-  };
-}
-
-function updateLanguageMemory(profile, text = "") {
-  const slangWords = detectSlang(text);
-  return {
-    ...profile,
-    coachMemory: {
-      ...profile.coachMemory,
-      slangWords: [
-        ...new Set([...(profile.coachMemory?.slangWords || []), ...slangWords]),
-      ].slice(-12),
-      toneStyle: detectToneStyle(text, profile.age),
-    },
-  };
-}
-
-export default function App() {
+function MainAppContent() {
   const [verseIndex, setVerseIndex] = useState(0);
- const [screen, setScreen] = useState("onboarding");
+  const [screen, setScreen] = useState("onboarding");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [activeTab, setActiveTab] = useState("home");
@@ -1707,55 +3709,24 @@ export default function App() {
   const [feedbackReason, setFeedbackReason] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [tourStep, setTourStep] = useState(0);
-const [showTour, setShowTour] = useState(false);
-const [weeklyReportDismissed, setWeeklyReportDismissed] = useState(false);
-const [editingSetup, setEditingSetup] = useState(false);
-  const onboardingChatRef = useRef(null);
-
+  const [showTour, setShowTour] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  const onboardingChatRef = useRef(null);
   const appChatRef = useRef(null);
 
   const [profile, setProfile] = useState(() => {
-    const saved = localStorage.getItem("christian-fitness-profile");
-    return saved
-      ? normalizeProfile(JSON.parse(saved))
-      : normalizeProfile({
-          coachName: "",
-          firstName: "",
-          age: "",
-          state: "",
-          gender: "",
-          pregnancyStatus: "",
-          mainGoal: "",
-          activityLevel: "",
-          foodPreferences: "",
-          measurements: {},
-          measurementHistory: [],
-          measurementUnit: "Inches",
-          onboardingComplete: false,
-          activeMeasurementField: "",
-          coachMemory: {},
-        });
+    const saved = localStorage.getItem(STORAGE_KEYS.profile);
+    return saved ? normalizeProfile(JSON.parse(saved)) : normalizeProfile(DEFAULT_PROFILE);
   });
 
   const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem("christian-fitness-messages");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            role: "ai",
-            text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
-          },
-          {
-            role: "ai",
-            text: "We’ll keep this simple and take it one step at a time.",
-          },
-        ];
+    const saved = localStorage.getItem(STORAGE_KEYS.messages);
+    return saved ? JSON.parse(saved) : getInitialMessages();
   });
 
   const [chatMessages, setChatMessages] = useState(() => {
-    const saved = localStorage.getItem("christian-fitness-chat");
+    const saved = localStorage.getItem(STORAGE_KEYS.chat);
     return saved
       ? JSON.parse(saved).map((msg) => ({
           ...msg,
@@ -1765,20 +3736,33 @@ const [editingSetup, setEditingSetup] = useState(false);
   });
 
   const [selectedTheme, setSelectedTheme] = useState(() => {
-    const saved = localStorage.getItem("christian-fitness-theme");
+    const saved = localStorage.getItem(STORAGE_KEYS.theme);
     return saved ? JSON.parse(saved) : COLOR_OPTIONS[0];
   });
 
   useEffect(() => {
-    localStorage.setItem(
-      "christian-fitness-profile",
-      JSON.stringify(normalizeProfile(profile))
-    );
+    localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(normalizeProfile(profile)));
   }, [profile]);
 
   useEffect(() => {
-    localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
+    localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.chat, JSON.stringify(chatMessages));
+  }, [chatMessages]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.theme, JSON.stringify(selectedTheme));
   }, [selectedTheme]);
+
+  useEffect(() => {
+    const el = onboardingChatRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [messages]);
 
   useEffect(() => {
     const el = appChatRef.current;
@@ -1788,18 +3772,24 @@ const [editingSetup, setEditingSetup] = useState(false);
     });
   }, [chatMessages]);
 
-  const visibleQuestionFlow = getVisibleQuestionFlow(profile);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVerseIndex((current) => (current + 1) % VERSES.length);
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const visibleQuestionFlow = useMemo(() => getVisibleQuestionFlow(profile), [profile]);
   const currentQuestion = visibleQuestionFlow[questionIndex];
   const canEditPreviousQuestion = questionIndex > 0;
   const completedOnboarding = Boolean(profile.onboardingComplete);
+
   const routineData = useMemo(() => getRoutineData(profile), [profile]);
-  const coach = useMemo(() => getCoachMessage(profile), [profile]);
   const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
+  const mealIdeas = useMemo(() => getMealIdeas(profile), [profile]);
+  const nutrition = useMemo(() => getNutritionTargets(profile), [profile]);
   const routineLength = useMemo(() => getRoutineLength(profile), [profile]);
-  const latestWeeklyReport = useMemo(() => {
-    const reports = profile.coachMemory?.weeklyCheckins || [];
-    return reports.length ? reports[reports.length - 1] : null;
-  }, [profile]);
 
   const todayVerseCard = useMemo(() => {
     const verse = VERSES[verseIndex];
@@ -1835,36 +3825,67 @@ const [editingSetup, setEditingSetup] = useState(false);
     };
   }, [verseIndex]);
 
-  const tourSteps = [
-    {
-      title: "Home",
-      body: "This is your daily main screen. It shows what matters most today.",
-    },
-    {
-      title: "Today’s Routine",
-      body: "This is where your workout lives, with warmup, main work, cooldown, and videos.",
-    },
-    {
-      title: "Chat",
-      body: "You can talk to your Coach here anytime. It can answer questions and adapt over time.",
-    },
-    {
-      title: "Progress",
-      body: "This is where your measurement boxes live. Tap the body diagram to match each box more easily.",
-    },
-  ];
-  const nutrition = useMemo(() => getNutritionTargets(profile), [profile]);
-  const mealIdeas = useMemo(() => getMealIdeas(profile), [profile]);
+  const coach = useMemo(() => {
+    const firstName = capitalizeName(profile.firstName) || "";
+    const greetingName = Math.random() > 0.5 && firstName ? ` ${firstName}` : "";
+    const goal = (profile.mainGoal || "").toLowerCase();
+    const activity = profile.activityLevel || "";
+    const whyStarted = profile.whyStarted || "";
+    const name = capitalizeName(profile.firstName);
+    const goalType = getGoalType(profile);
+    const prefix = getUserVoicePrefix(profile);
 
-  function startOnboarding() {
-    setScreen("onboarding");
-    if (messages.length <= 2) {
-      setMessages((current) => [
-        ...current,
-        { role: "ai", text: QUESTION_FLOW[0].label },
-      ]);
+    let message = `${prefix}${name ? `, ${name}` : ""} — let’s keep today steady.`;
+    let focus = "Consistency over perfection.";
+    let action = "Finish today’s core routine and keep your meals simple.";
+
+    if (goal.includes("discipline")) {
+      message = `Let’s build trust with yourself${greetingName} by following through today.`;
+      focus = "Discipline grows through repeatable action.";
+      action = "Complete the routine even if you need to scale parts of it down.";
+    } else if (goal.includes("muscle") || goal.includes("strength")) {
+      message = `Today is a strength day${greetingName} — control your reps and move with intention.`;
+      focus = "Effort and tension matter more than rushing.";
+      action = "Give your main sets full focus and recover well after.";
+    } else if (goal.includes("weight")) {
+      message = `Let’s keep today active and clean${greetingName}.`;
+      focus = "Simple movement plus simple food choices add up.";
+      action = "Finish the workout and add a walk if your energy is there.";
+    } else if (goal.includes("mental")) {
+      message = `We’re aiming for strength and steadiness today${greetingName}.`;
+      focus = "Movement should support your mind, not just your body.";
+      action = "Finish the session, breathe slowly, and do not chase perfection.";
     }
-  }
+
+    if (activity === "Beginner") {
+      message = `We’re keeping this approachable${greetingName} and building from where you are now.`;
+    }
+
+    if (goalType === "strength") {
+      focus = "Controlled reps and honest effort.";
+      action = "Hit your main sets and make protein a priority.";
+    } else if (goalType === "weight-loss") {
+      focus = "Simple movement plus simple food choices.";
+      action = "Get the workout done and add a walk if you can.";
+    } else if (goalType === "discipline") {
+      focus = "Follow-through matters more than perfect feelings.";
+      action = "Finish the plan even if you scale it down.";
+    }
+
+    if (whyStarted && whyStarted.length > 10) {
+      action = `Remember why you started: ${whyStarted.slice(0, 55)}${
+        whyStarted.length > 55 ? "..." : ""
+      }`;
+    }
+
+    return {
+      speaker: capitalizeName(profile.coachName) || "Coach",
+      message,
+      focus,
+      action,
+    };
+  }, [profile]);
+
   function submitAnswer(answerOverride) {
     const answer =
       typeof answerOverride === "string" ? answerOverride : inputValue.trim();
@@ -1878,10 +3899,7 @@ const [editingSetup, setEditingSetup] = useState(false);
       setMessages((current) => [
         ...current,
         { role: "user", text: answer },
-        {
-          role: "ai",
-          text: getClarificationForQuestion(currentQuestion),
-        },
+        { role: "ai", text: getClarificationForQuestion(currentQuestion) },
       ]);
       setInputValue("");
       return;
@@ -1958,7 +3976,6 @@ const [editingSetup, setEditingSetup] = useState(false);
           },
         ]);
       }, 250);
-
       return;
     }
 
@@ -1972,7 +3989,7 @@ const [editingSetup, setEditingSetup] = useState(false);
         },
         {
           role: "ai",
-          text: `As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month. To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.`,
+          text: "As we go, we’ll keep things simple with a weekly check-in, and build a fuller progress report each month. To make that accurate, try to remeasure about once a month — it helps us see what’s actually changing.",
         },
       ]);
     }, 250);
@@ -1985,188 +4002,44 @@ const [editingSetup, setEditingSetup] = useState(false);
 
     setScreen("theme");
   }
-function finishThemeAndTour() {
-  setProfile((current) => ({
-    ...current,
-    onboardingComplete: true,
-    onboardingStage: "done",
-    createdAt: current.createdAt || new Date().toISOString(),
-  }));
-  setScreen("home");
-  setActiveTab("home");
-  setShowTour(true);
-  setTourStep(0);
-}
 
-function nextTourStep() {
-  if (tourStep >= tourSteps.length - 1) {
-    setShowTour(false);
+  function finishThemeAndTour() {
+    setProfile((current) => ({
+      ...current,
+      onboardingComplete: true,
+      onboardingStage: "done",
+      createdAt: current.createdAt || new Date().toISOString(),
+    }));
+    setScreen("home");
     setActiveTab("home");
-    return;
+    setShowTour(true);
+    setTourStep(0);
   }
 
-  const next = tourStep + 1;
-  setTourStep(next);
-  if (next === 0) setActiveTab("home");
-  if (next === 1) setActiveTab("routine");
-  if (next === 2) setActiveTab("chat");
-  if (next === 3) setActiveTab("progress");
-}
+  function resetApp() {
+    resetAppState(
+      setProfile,
+      setMessages,
+      setChatMessages,
+      setSelectedTheme,
+      setScreen,
+      setQuestionIndex,
+      setInputValue,
+      setActiveTab,
+      setShowSettings,
+      setShowTour,
+      setTourStep
+    );
+  }
 
-function sendChatMessage(text) {
-  const cleanText = text.trim();
-  if (!cleanText) return;
-
-let nextProfile = normalizeProfile(updateLanguageMemory(profile, cleanText));
-  const foodSignals = parseFoodSignals(cleanText);
-
-  nextProfile = {
-    ...nextProfile,
-    coachMemory: {
-      ...nextProfile.coachMemory,
-      preferredFoods: [
-        ...new Set([
-          ...(nextProfile.coachMemory.preferredFoods || []),
-          ...foodSignals.preferred,
-        ]),
-      ].slice(-12),
-      avoidedFoods: [
-        ...new Set([
-          ...(nextProfile.coachMemory.avoidedFoods || []),
-          ...foodSignals.avoided,
-        ]),
-      ].slice(-12),
-      allergies: [
-        ...new Set([
-          ...(nextProfile.coachMemory.allergies || []),
-          ...foodSignals.allergies,
-        ]),
-      ].slice(-12),
-    },
-  };
-
-  setProfile(nextProfile);
-
-  const coachName = capitalizeName(nextProfile.coachName) || "Coach";
-  const userMsg = { role: "user", text: cleanText };
-  const aiMsg = {
-    role: "ai",
-    speaker: coachName,
-    text: getAIResponse(cleanText, nextProfile),
-  };
-
-  setChatMessages((prev) => [...prev, userMsg, aiMsg]);
-  setChatInput("");
-}
-
-function saveMeasurementValue(fieldKey, value) {
-  setProfile((current) => {
-    const nextMeasurements = {
-      ...current.measurements,
-      [fieldKey]: value,
-    };
-    const now = new Date().toISOString();
-    const lastUpdate = current.coachMemory?.lastMeasurementUpdate;
-    const shouldCreateSnapshot =
-      !lastUpdate ||
-      new Date(now).getTime() - new Date(lastUpdate).getTime() >
-        1000 * 60 * 60 * 24;
-    return {
-      ...current,
-      measurements: nextMeasurements,
-      measurementHistory: shouldCreateSnapshot
-        ? [
-            ...(current.measurementHistory || []),
-            buildMeasurementSnapshot({
-              ...current,
-              measurements: nextMeasurements,
-            }),
-          ].slice(-24)
-        : current.measurementHistory || [],
-      coachMemory: {
-        ...current.coachMemory,
-        lastMeasurementUpdate: now,
-      },
-    };
-  });
-}
-
-function resetApp() {
-  localStorage.removeItem("christian-fitness-profile");
-  localStorage.removeItem("christian-fitness-messages");
-  localStorage.removeItem("christian-fitness-chat");
-  localStorage.removeItem("christian-fitness-theme");
-
-  const freshProfile = normalizeProfile({
-    coachName: "",
-    firstName: "",
-    age: "",
-    state: "",
-    gender: "",
-    pregnancyStatus: "",
-    mainGoal: "",
-    activityLevel: "",
-    foodPreferences: "",
-    measurements: {},
-    measurementHistory: [],
-    measurementUnit: "Inches",
-    onboardingComplete: false,
-    activeMeasurementField: "",
-    coachMemory: {},
-  });
-
-  setProfile(freshProfile);
-  setMessages([
-    {
-      role: "ai",
-      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
-    },
-    {
-      role: "ai",
-      text: "We’ll keep this simple and take it one step at a time.",
-    },
-  ]);
-  setChatMessages([]);
-  setSelectedTheme(COLOR_OPTIONS[0]);
-  setScreen("onboarding");
-  setQuestionIndex(0);
-  setInputValue("");
-  setActiveTab("home");
-  setRoutineFeedback("");
-  setFeedbackReason("");
-  setChatInput("");
-  setTourStep(0);
-  setShowTour(false);
-  setWeeklyReportDismissed(false);
-  setEditingSetup(false);
-  setShowSettings(false);
-}
-
-const appStyles = {
-  minHeight: "100vh",
-  background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
-  position: "relative",
-};
-if (!completedOnboarding && screen === "welcome") {
-  return (
-    <div style={appStyles}>
-      <div style={phoneStyles}>
-        <div style={themeWrap}>
-          <h2>Christian Fitness</h2>
-          <p style={subtleText}>Ready to set up your app?</p>
-          <button style={primaryButton} onClick={startOnboarding}>
-            Start
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-  if (!completedOnboarding && screen === "onboarding") {
+  if (!completedOnboarding && screen === "welcome") {
+    return <WelcomeScreen onStart={() => setScreen("onboarding")} />;
+  }
+    if (!completedOnboarding && screen === "onboarding") {
     return (
       <div style={appStyles}>
         <div style={phoneStyles}>
-          <div style={topBar}>
+          <div style={topBarDark}>
             <div>
               <h2 style={{ margin: 0 }}>Christian Fitness</h2>
               <p style={subtleText}>
@@ -2181,7 +4054,8 @@ if (!completedOnboarding && screen === "welcome") {
                 key={`${message.role}-${index}`}
                 style={{
                   display: "flex",
-                  justifyContent: message.role === "ai" ? "flex-start" : "flex-end",
+                  justifyContent:
+                    message.role === "ai" ? "flex-start" : "flex-end",
                 }}
               >
                 <div style={{ maxWidth: "82%" }}>
@@ -2215,13 +4089,13 @@ if (!completedOnboarding && screen === "welcome") {
             ))}
           </div>
 
-          <div style={inputArea}>
+          <div style={{ padding: 16, display: "grid", gap: 10 }}>
             {currentQuestion?.type === "choice" ? (
-              <div style={choiceWrap}>
+              <div style={{ display: "grid", gap: 10 }}>
                 {currentQuestion.options.map((option) => (
                   <button
                     key={option}
-                    style={choiceButton}
+                    style={primaryButton}
                     onClick={() => submitAnswer(option)}
                   >
                     {option}
@@ -2231,7 +4105,7 @@ if (!completedOnboarding && screen === "welcome") {
             ) : currentQuestion?.type === "select" ? (
               <>
                 <select
-                  style={selectInput}
+                  style={textInput}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                 >
@@ -2260,6 +4134,7 @@ if (!completedOnboarding && screen === "welcome") {
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Type your answer..."
                 />
+
                 <button style={primaryButton} onClick={() => submitAnswer()}>
                   Send
                 </button>
@@ -2273,13 +4148,16 @@ if (!completedOnboarding && screen === "welcome") {
                   const previousIndex = questionIndex - 1;
                   const previousQuestion = visibleQuestionFlow[previousIndex];
                   if (!previousQuestion) return;
+
                   setQuestionIndex(previousIndex);
                   setInputValue(profile[previousQuestion.key] || "");
                   setMessages((current) => [
                     ...current,
                     {
                       role: "ai",
-                      text: `${capitalizeName(profile.coachName) || "Coach"}: No problem — let’s change that answer.`,
+                      text: `${
+                        capitalizeName(profile.coachName) || "Coach"
+                      }: No problem — let’s change that answer.`,
                     },
                   ]);
                 }}
@@ -2292,170 +4170,116 @@ if (!completedOnboarding && screen === "welcome") {
       </div>
     );
   }
+
   if (!completedOnboarding && screen === "theme") {
-  return (
-    <div style={appStyles}>
-      <div style={phoneStyles}>
-        <div style={themeWrap}>
-          <h2 style={{ marginBottom: 6 }}>Choose your style</h2>
-          <p style={subtleText}>
-            Pick a granite-style base and compare the color differences below.
-          </p>
+    return (
+      <div style={appStyles}>
+        <div style={phoneStyles}>
+          <div style={themeWrap}>
+            <h2 style={{ marginBottom: 6 }}>Choose your style</h2>
+            <p style={subtleText}>
+              Pick a granite-style base and compare the color differences below.
+            </p>
 
-          <div style={{ display: "grid", gap: 14, width: "100%" }}>
-            {COLOR_OPTIONS.map((option) => {
-              const selected = selectedTheme.name === option.name;
+            <div style={{ display: "grid", gap: 14, width: "100%" }}>
+              {COLOR_OPTIONS.map((option) => {
+                const selected = selectedTheme.name === option.name;
 
-              return (
-                <button
-                  key={option.name}
-                  onClick={() => setSelectedTheme(option)}
-                  style={{
-                    width: "100%",
-                    borderRadius: 24,
-                    border: selected
-                      ? `3px solid ${option.accent}`
-                      : "1px solid rgba(255,255,255,0.16)",
-                    background: "#16181d",
-                    padding: 16,
-                    color: "white",
-                    cursor: "pointer",
-                    boxShadow: selected
-                      ? `0 0 0 2px rgba(255,255,255,0.08), 0 10px 30px ${option.accent}33`
-                      : "0 10px 24px rgba(0,0,0,0.18)",
-                  }}
-                >
-                  <div
+                return (
+                  <button
+                    key={option.name}
+                    onClick={() => setSelectedTheme(option)}
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "72px 1fr",
-                      gap: 14,
-                      alignItems: "center",
+                      width: "100%",
+                      borderRadius: 24,
+                      border: selected
+                        ? `3px solid ${option.accent}`
+                        : "1px solid rgba(255,255,255,0.16)",
+                      background: "#16181d",
+                      padding: 16,
+                      color: "white",
+                      cursor: "pointer",
+                      boxShadow: selected
+                        ? `0 0 0 2px rgba(255,255,255,0.08), 0 10px 30px ${option.accent}33`
+                        : "0 10px 24px rgba(0,0,0,0.18)",
                     }}
                   >
                     <div
                       style={{
-                        width: 72,
-                        height: 72,
-                        borderRadius: 22,
-                        background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        display: "grid",
+                        gridTemplateColumns: "72px 1fr",
+                        gap: 14,
+                        alignItems: "center",
                       }}
-                    />
-
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontSize: 18, fontWeight: 800 }}>
-                        {option.name}
-                      </div>
-
+                    >
                       <div
                         style={{
-                          marginTop: 6,
-                          display: "flex",
-                          gap: 8,
-                          flexWrap: "wrap",
+                          width: 72,
+                          height: 72,
+                          borderRadius: 22,
+                          background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
+                          border: "1px solid rgba(255,255,255,0.12)",
                         }}
-                      >
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 999,
-                            background: option.primary,
-                            border: "1px solid rgba(255,255,255,0.18)",
-                          }}
-                        />
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 999,
-                            background: option.accent,
-                            border: "1px solid rgba(255,255,255,0.18)",
-                          }}
-                        />
-                        <div
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 999,
-                            background: option.tint,
-                            border: "1px solid rgba(255,255,255,0.18)",
-                          }}
-                        />
-                      </div>
+                      />
 
-                      <div
-                        style={{
-                          marginTop: 10,
-                          borderRadius: 16,
-                          overflow: "hidden",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                        }}
-                      >
-                        <div
-                          style={{
-                            background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
-                            padding: "8px 12px",
-                            fontWeight: 700,
-                            fontSize: 13,
-                          }}
-                        >
-                          Preview header
+                      <div style={{ textAlign: "left" }}>
+                        <div style={{ fontSize: 18, fontWeight: 800 }}>
+                          {option.name}
                         </div>
 
                         <div
                           style={{
-                            background: `linear-gradient(180deg, #f7f7f8 0%, ${option.tint} 100%)`,
-                            padding: 12,
-                            display: "grid",
+                            marginTop: 6,
+                            display: "flex",
                             gap: 8,
+                            flexWrap: "wrap",
                           }}
                         >
                           <div
                             style={{
-                              background: "#ffffff",
-                              color: "#111",
-                              borderRadius: 14,
-                              padding: "10px 12px",
-                              fontSize: 13,
-                              fontWeight: 700,
+                              width: 28,
+                              height: 28,
+                              borderRadius: 999,
+                              background: option.primary,
+                              border: "1px solid rgba(255,255,255,0.18)",
                             }}
-                          >
-                            Card preview
-                          </div>
-
+                          />
                           <div
                             style={{
-                              background: "#111111",
-                              color: "white",
-                              borderRadius: 14,
-                              padding: "10px 12px",
-                              fontSize: 13,
-                              fontWeight: 700,
+                              width: 28,
+                              height: 28,
+                              borderRadius: 999,
+                              background: option.accent,
+                              border: "1px solid rgba(255,255,255,0.18)",
                             }}
-                          >
-                            Coach preview
-                          </div>
+                          />
+                          <div
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 999,
+                              background: option.tint,
+                              border: "1px solid rgba(255,255,255,0.18)",
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })}
+            </div>
 
-          <button style={primaryButton} onClick={finishThemeAndTour}>
-            Finish setup
-          </button>
+            <button style={{ ...primaryButton, marginTop: 14 }} onClick={finishThemeAndTour}>
+              Finish setup
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+    const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
 
-  const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
   return (
     <div style={appStyles}>
       <div style={phoneStyles}>
@@ -2475,460 +4299,68 @@ if (!completedOnboarding && screen === "welcome") {
             >
               <GearIcon size={18} />
             </button>
+
             <div style={{ flex: 1, textAlign: "center" }}>
               <h1 style={homeBrandTitle}>
                 <span style={{ display: "block" }}>Christian</span>
                 <span style={{ display: "block" }}>Fitness</span>
               </h1>
             </div>
+
             <div style={{ width: 42 }} />
           </div>
         </div>
 
         <div style={{ ...tickerViewportHome, background: homeBodyBackground }}>
-          {activeTab === "home" && (
-            <>
-              <div style={coachCard}>
-                <p style={sectionLabelWhite}>{coach.speaker}</p>
-                <h2 style={cardTitle}>{coach.message}</h2>
-                <p style={bodyTextWhite}>
-                  <strong>Daily focus:</strong> {coach.focus}
-                </p>
-                <p style={bodyTextWhite}>
-                  <strong>Today’s action:</strong> {coach.action}
-                </p>
-              </div>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Today’s Routine</p>
-                <h3 style={cardTitle}>{routineData.title}</h3>
-                <p style={bodyText}>{routineData.summary}</p>
-                <p style={bodyTextLast}>
-                  <strong>Estimated length:</strong> {routineLength}
-                </p>
-                <button style={secondaryButton} onClick={() => setActiveTab("routine")}>
-                  Open full routine
-                </button>
-              </div>
-              <div style={verseCard}>
-                <p style={sectionLabel}>Daily verse</p>
-                <h3 style={cardTitle}>{todayVerseCard.verse}</h3>
-                <p style={bodyText}>
-                  <strong>What this means today:</strong> {todayVerseCard.meaning}
-                </p>
-                <p style={bodyTextLast}>
-                  <strong>Today’s action:</strong> {todayVerseCard.action}
-                </p>
-                <h3 style={cardTitle}>{VERSES[verseIndex]}</h3>
-              </div>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Food guidance</p>
-                <p style={bodyTextLast}>{foodGuidance}</p>
-              </div>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Coach language memory</p>
-                <p style={bodyText}>
-                  <strong>Tone style:</strong> {profile.coachMemory?.toneStyle || "balanced"}
-                </p>
-                <p style={bodyText}>
-                  <strong>Detected slang:</strong>{" "}
-                  {profile.coachMemory?.slangWords?.length
-                    ? profile.coachMemory.slangWords.join(", ")
-                    : "none yet"}
-                </p>
-                <p style={bodyTextLast}>
-                  Coach mirrors language lightly, clearly, and without cursing.
-                </p>
-              </div>
-              <div style={buttonGrid}>
-                <button style={actionCard} onClick={() => setActiveTab("routine")}>
-                  Today’s Routine
-                </button>
-                <button style={actionCard} onClick={() => setActiveTab("chat")}>
-                  Chat
-                </button>
-                <button style={actionCard} onClick={() => setActiveTab("progress")}>
-                  Progress
-                </button>
-              </div>
-              <button
-                style={primaryDarkButton}
-                onClick={() => {
-                  const nextProfile = {
-                    ...profile,
-                    coachMemory: {
-                      ...profile.coachMemory,
-                      toneStyle: "direct",
-                    },
-                  };
-                  setProfile(nextProfile);
-                  setChatMessages((prev) => [
-                    ...prev,
-                    {
-                      role: "ai",
-                      speaker: capitalizeName(profile.coachName) || "Coach",
-                      text: getAIResponse("simplify my day", nextProfile),
-                    },
-                  ]);
-                  setActiveTab("routine");
-                }}
-              >
-                Simplify My Day
-              </button>
-            </>
-          )}
+          <HomeScreen
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            coach={coach}
+            routineData={routineData}
+            routineLength={routineLength}
+            todayVerseCard={todayVerseCard}
+            verseIndex={verseIndex}
+            foodGuidance={foodGuidance}
+            profile={profile}
+            setProfile={setProfile}
+            setChatMessages={setChatMessages}
+          />
 
-          {activeTab === "routine" && (
-            <>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Generated routine</p>
-                <h2 style={cardTitle}>{routineData.title}</h2>
-                <p style={bodyText}>{routineData.summary}</p>
-                <p style={bodyText}>
-                  <strong>Estimated length:</strong> {routineLength}
-                </p>
-                <p style={bodyTextLast}>
-                  This plan stays neutral when something is unknown. If it feels off,
-                  tap thumbs up or down and say why.
-                </p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Warmup</h3>
-                {routineData.warmup.map((exercise, index) => (
-                  <ExerciseCard key={`warmup-${index}`} exercise={exercise} />
-                ))}
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Main workout</h3>
-                {routineData.main.map((exercise, index) => (
-                  <ExerciseCard key={`main-${index}`} exercise={exercise} />
-                ))}
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Cooldown</h3>
-                {routineData.cooldown.map((exercise, index) => (
-                  <ExerciseCard key={`cooldown-${index}`} exercise={exercise} />
-                ))}
-              </div>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Walking suggestion</p>
-                <p style={bodyTextLast}>{routineData.walking}</p>
-              </div>
-              <div style={feedbackRow}>
-                <button
-                  style={{
-                    ...feedbackButton,
-                    background: routineFeedback === "up" ? "#22c55e" : "#ffffff",
-                    color: routineFeedback === "up" ? "white" : "#111",
-                  }}
-                  onClick={() => {
-                    setRoutineFeedback("up");
-                    setFeedbackReason("");
-                    setProfile((current) => ({
-                      ...current,
-                      coachMemory: {
-                        ...current.coachMemory,
-                        lastRoutineFeedback: "up",
-                      },
-                    }));
-                  }}
-                >
-                  👍
-                </button>
-                <button
-                  style={{
-                    ...feedbackButton,
-                    background: routineFeedback === "down" ? "#ef4444" : "#ffffff",
-                    color: routineFeedback === "down" ? "white" : "#111",
-                  }}
-                  onClick={() => {
-                    setRoutineFeedback("down");
-                    setFeedbackReason("");
-                    setProfile((current) => ({
-                      ...current,
-                      coachMemory: {
-                        ...current.coachMemory,
-                        lastRoutineFeedback: "down",
-                      },
-                    }));
-                  }}
-                >
-                  👎
-                </button>
-              </div>
-              {routineFeedback && (
-                <>
-                  <p style={feedbackQuestion}>
-                    {routineFeedback === "up"
-                      ? "What did you like?"
-                      : "What did you dislike?"}
-                  </p>
-                  <input
-                    style={textInputLight}
-                    placeholder={
-                      routineFeedback === "up"
-                        ? "Example: good pace, liked the structure, felt strong"
-                        : "Example: too hard, too long, painful, confusing"
-                    }
-                    value={feedbackReason}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setFeedbackReason(value);
-                      setProfile((current) => ({
-                        ...current,
-                        coachMemory: {
-                          ...current.coachMemory,
-                          lastRoutineFeedback: routineFeedback,
-                          lastRoutineFeedbackReason: value,
-                        },
-                      }));
-                    }}
-                  />
-                </>
-              )}
-              <button style={secondaryButton} onClick={() => setActiveTab("home")}>
-                Back to Home
-              </button>
-            </>
-          )}
+          <RoutineScreen
+            activeTab={activeTab}
+            routineData={routineData}
+            routineLength={routineLength}
+            routineFeedback={routineFeedback}
+            setRoutineFeedback={setRoutineFeedback}
+            feedbackReason={feedbackReason}
+            setFeedbackReason={setFeedbackReason}
+            profile={profile}
+            setProfile={setProfile}
+            setActiveTab={setActiveTab}
+          />
 
-          {activeTab === "chat" && (
-            <>
-              <div style={coachCard}>
-                <p style={sectionLabelWhite}>
-                  {capitalizeName(profile.coachName) || "Coach"}
-                </p>
-                <h2 style={cardTitle}>
-                  {profile.firstName
-                    ? `Welcome back, ${capitalizeName(profile.firstName)}.`
-                    : "Welcome back."}
-                </h2>
-                <p style={bodyTextWhite}>Let’s stay steady today.</p>
-                <p style={bodyTextWhite}>Tell me what you need.</p>
-              </div>
-              <div ref={appChatRef} style={appChatHistory}>
-                {chatMessages.map((msg, index) => (
-                  <div
-                    key={`${msg.role}-${index}`}
-                    style={{
-                      display: "flex",
-                      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
-                    }}
-                  >
-                    <div style={{ maxWidth: "82%" }}>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          opacity: 0.78,
-                          marginBottom: 6,
-                          color: "#111",
-                          textAlign: msg.role === "ai" ? "left" : "right",
-                        }}
-                      >
-                        {msg.role === "ai"
-                          ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
-                          : capitalizeName(profile.firstName) || "You"}
-                      </div>
-                      <div style={{ ...bubbleBase, ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight) }}>
-                        {msg.role === "ai" ? cleanCoachBubbleText(msg.text, profile.coachName) : msg.text}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={quickReplyWrap}>
-                {QUICK_REPLIES.map((item) => (
-                  <button
-                    key={item}
-                    style={quickReplyButton}
-                    onClick={() => sendChatMessage(item)}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-              <div style={chatInputRow}>
-                <input
-                  style={textInput}
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Type a message..."
-                />
-                <button
-                  style={primaryDarkButton}
-                  onClick={() => sendChatMessage(chatInput)}
-                >
-                  Send
-                </button>
-              </div>
-            </>
-          )}
+          <ChatScreen
+            activeTab={activeTab}
+            profile={profile}
+            chatMessages={chatMessages}
+            chatInput={chatInput}
+            setChatInput={setChatInput}
+            setChatMessages={setChatMessages}
+            setProfile={setProfile}
+          />
 
-          {activeTab === "progress" && (
-            <>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Progress</p>
-                <h2 style={cardTitle}>Measurements</h2>
-                <p style={bodyTextLast}>Add or update your measurements below.</p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Your Measurements</h3>
-                <div style={unitToggleWrap}>
-                  <button
-                    style={profile.measurementUnit === "Inches" ? unitToggleActive : unitToggleButton}
-                    onClick={() =>
-                      setProfile((current) => ({
-                        ...current,
-                        measurementUnit: "Inches",
-                      }))
-                    }
-                  >
-                    Inches
-                  </button>
-                  <button
-                    style={profile.measurementUnit === "Centimeters" ? unitToggleActive : unitToggleButton}
-                    onClick={() =>
-                      setProfile((current) => ({
-                        ...current,
-                        measurementUnit: "Centimeters",
-                      }))
-                    }
-                  >
-                    Centimeters
-                  </button>
-                </div>
-                <div style={measurementGrid}>
-                  {MEASUREMENT_FIELDS.map((field) => (
-                    <div key={field.key} style={measurementCard}>
-                      <div style={measurementLabelRow}>
-                        <span style={measurementLabel}>{field.label}</span>
-                        <span style={measurementTip}>? {field.tip}</span>
-                      </div>
-                      <div style={measurementInputRow}>
-                        <input
-                          style={measurementSmallInput}
-                          value={profile.measurements?.[field.key] || ""}
-                          onFocus={() =>
-                            setProfile((current) => ({
-                              ...current,
-                              activeMeasurementField: field.key,
-                            }))
-                          }
-                          onChange={(e) => saveMeasurementValue(field.key, e.target.value)}
-                          placeholder="0"
-                        />
-                        <span style={measurementUnitText}>
-                          {profile.measurementUnit === "Centimeters"
-                            ? "cm"
-                            : field.key === "weight"
-                            ? "lb"
-                            : "in"}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p style={{ ...bodyText, marginTop: 12 }}>
-                  These save on this device automatically.
-                </p>
-                <p style={bodyTextLast}>
-                  Saved measurement snapshots: <strong>{profile.measurementHistory?.length || 0}</strong>
-                </p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Measurement guide</h3>
-                {getMeasurementGuide(profile.measurementUnit).map((item) => (
-                  <p key={item} style={bodyText}>
-                    {item}
-                  </p>
-                ))}
-                <p style={bodyTextLast}>
-                  Tip: measure at about the same time of day each time for cleaner tracking.
-                </p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>How to measure</h3>
-                <TourMeasurementDiagram
-                  activePart={profile.activeMeasurementField}
-                  onSelectPart={(part) =>
-                    setProfile((current) => ({
-                      ...current,
-                      activeMeasurementField: part,
-                    }))
-                  }
-                />
-              </div>
-            </>
-          )}
+          <ProgressScreen
+            activeTab={activeTab}
+            profile={profile}
+            setProfile={setProfile}
+          />
 
-          {activeTab === "food" && (
-            <>
-              <div style={dailyCard}>
-                <p style={sectionLabel}>Food</p>
-                <h2 style={cardTitle}>Nutrition built for you</h2>
-                <p style={bodyText}>
-                  This page uses your age, goal, activity level, food preferences, and any pregnancy/postpartum info.
-                </p>
-                <p style={bodyTextLast}>
-                  <strong>Main goal:</strong> {profile.mainGoal || "Not set yet"}
-                </p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Daily targets</h3>
-                <p style={bodyText}><strong>Calories:</strong> about {nutrition.calories} daily</p>
-                <p style={bodyText}><strong>Protein:</strong> about {nutrition.protein}g daily</p>
-                <p style={bodyText}><strong>Water:</strong> about {nutrition.water} oz daily</p>
-                <p style={bodyText}><strong>Carb focus:</strong> {nutrition.carbsFocus}</p>
-                <p style={bodyTextLast}><strong>Fat focus:</strong> {nutrition.fatsFocus}</p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Why this matters</h3>
-                <p style={bodyText}>
-                  <strong>Protein:</strong> helps recovery, muscle support, fullness, and steady progress.
-                </p>
-                <p style={bodyText}>
-                  <strong>Carbs:</strong> help with energy for workouts and daily life.
-                </p>
-                <p style={bodyTextLast}>
-                  <strong>Water:</strong> supports energy, recovery, and how you feel through the day.
-                </p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Meal ideas</h3>
-                {mealIdeas.map((meal) => (
-                  <div key={meal.title} style={mealCard}>
-                    <p style={mealTitle}>{meal.title}</p>
-                    <p style={bodyText}><strong>Best for:</strong> {meal.fit}</p>
-                    <p style={bodyText}><strong>Why:</strong> {meal.why}</p>
-                    <p style={bodyTextLast}>
-                      <strong>Build it with:</strong> {meal.items.join(", ")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Saved food memory</h3>
-                <p style={bodyText}>
-                  <strong>Preferred foods:</strong>{" "}
-                  {profile.coachMemory?.preferredFoods?.length
-                    ? profile.coachMemory.preferredFoods.join(", ")
-                    : "none yet"}
-                </p>
-                <p style={bodyText}>
-                  <strong>Avoided foods:</strong>{" "}
-                  {profile.coachMemory?.avoidedFoods?.length
-                    ? profile.coachMemory.avoidedFoods.join(", ")
-                    : "none yet"}
-                </p>
-                <p style={bodyTextLast}>
-                  <strong>Allergies:</strong>{" "}
-                  {profile.coachMemory?.allergies?.length
-                    ? profile.coachMemory.allergies.join(", ")
-                    : "none yet"}
-                </p>
-              </div>
-            </>
-          )}
+          <FoodScreen
+            activeTab={activeTab}
+            profile={profile}
+            nutrition={nutrition}
+            mealIdeas={mealIdeas}
+          />
         </div>
 
         <div style={bottomNav}>
@@ -2938,24 +4370,28 @@ if (!completedOnboarding && screen === "welcome") {
           >
             Home
           </button>
+
           <button
             style={activeTab === "routine" ? navButtonActive : navButton}
             onClick={() => setActiveTab("routine")}
           >
             Routine
           </button>
+
           <button
             style={activeTab === "chat" ? navButtonActive : navButton}
             onClick={() => setActiveTab("chat")}
           >
             Chat
           </button>
+
           <button
             style={activeTab === "progress" ? navButtonActive : navButton}
             onClick={() => setActiveTab("progress")}
           >
             Progress
           </button>
+
           <button
             style={activeTab === "food" ? navButtonActive : navButton}
             onClick={() => setActiveTab("food")}
@@ -2964,648 +4400,192 @@ if (!completedOnboarding && screen === "welcome") {
           </button>
         </div>
 
-        {showSettings && (
-          <div style={tourOverlay} onClick={() => setShowSettings(false)}>
-            <div style={settingsModal} onClick={(e) => e.stopPropagation()}>
-              <p style={sectionLabel}>Settings</p>
-              <h3 style={{ marginTop: 8, marginBottom: 12 }}>App settings</h3>
-              <div style={routineSectionCard}>
-                <p style={bodyText}>
-                  <strong>Coach name:</strong> {capitalizeName(profile.coachName) || "Coach"}
-                </p>
-                <p style={bodyText}>
-                  <strong>User name:</strong> {capitalizeName(profile.firstName) || "Not set"}
-                </p>
-                <p style={bodyText}>
-                  <strong>Goal:</strong> {profile.mainGoal || "Not set"}
-                </p>
-                <p style={bodyTextLast}>
-                  <strong>Activity:</strong> {profile.activityLevel || "Not set"}
-                </p>
-              </div>
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Theme</h3>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {COLOR_OPTIONS.map((option) => (
-                    <button
-                      key={option.name}
-                      onClick={() => setSelectedTheme(option)}
-                      style={{
-                        ...themeOptionButton,
-                        border:
-                          selectedTheme.name === option.name
-                            ? `2px solid ${option.accent}`
-                            : "1px solid rgba(0,0,0,0.08)",
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 999,
-                          background: `linear-gradient(135deg, ${option.primary}, ${option.accent})`,
-                          display: "inline-block",
-                        }}
-                      />
-                      {option.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <button
-                style={secondaryButton}
-                onClick={() =>
-                  setProfile((current) => ({
-                    ...current,
-                    coachMemory: {
-                      ...current.coachMemory,
-                      recurringTopics: [],
-                      preferredFoods: [],
-                      avoidedFoods: [],
-                      allergies: [],
-                      slangWords: [],
-                      phrasePatterns: [],
-                      toneStyle: "balanced",
-                    },
-                  }))
-                }
-              >
-                Clear coach memory
-              </button>
-              <button style={dangerButton} onClick={resetApp}>
-                Reset App
-              </button>
-              <button
-                style={primaryDarkButton}
-                onClick={() => setShowSettings(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+        <SettingsModal
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          profile={profile}
+          selectedTheme={selectedTheme}
+          setSelectedTheme={setSelectedTheme}
+          setProfile={setProfile}
+          resetApp={resetApp}
+        />
+
+        <AppTour
+          showTour={showTour}
+          tourStep={tourStep}
+          setTourStep={setTourStep}
+          setShowTour={setShowTour}
+          setActiveTab={setActiveTab}
+        />
       </div>
     </div>
   );
 }
 
-const quickReplyWrap = {
-  display: "grid",
-  gap: 8,
-};
-
-const quickReplyButton = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  background: "rgba(255,255,255,0.9)",
-  color: "#111",
-  borderRadius: 18,
-  padding: "14px 16px",
-  textAlign: "left",
-  fontWeight: 600,
-  boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-  cursor: "pointer",
-};
-
-const diagramCard = {
-  background: "#f8fafc",
-  borderRadius: 18,
-  padding: 14,
-  textAlign: "left",
-};
-
-const tourOverlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.45)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 18,
-  zIndex: 50,
-};
-
-const settingsModal = {
-  width: "100%",
-  maxWidth: 420,
-  maxHeight: "80vh",
-  overflowY: "auto",
-  background: "white",
-  color: "#111",
-  borderRadius: 24,
-  padding: 18,
-  boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
-};
-
-const mealCard = {
-  background: "#fff",
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 18,
-  padding: 14,
-  marginBottom: 10,
-};
-
-const mealTitle = {
-  margin: "0 0 8px",
-  fontWeight: 800,
-  fontSize: 16,
-};
-
-const dangerButton = {
-  width: "100%",
-  border: "none",
-  borderRadius: 18,
-  padding: "15px 18px",
-  background: "#111111",
-  color: "white",
-  fontWeight: 700,
-  fontSize: 16,
-  cursor: "pointer",
-};
-
-const phoneStyles = {
-  width: "100%",
-  maxWidth: 430,
-  minHeight: "100vh",
-  margin: "0 auto",
-  background: "#ffffff",
-  boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 20px 80px rgba(0,0,0,0.35)",
-  position: "relative",
-  overflow: "hidden",
-};
-
-const topBar = {
-  padding: "20px 18px 10px",
-  background: "#111827",
-  color: "white",
-};
-
-const subtleText = {
-  margin: "6px 0 0",
-  color: "rgba(255,255,255,0.72)",
-  fontSize: 14,
-  lineHeight: 1.45,
-};
-
-const bubbleBase = {
-  borderRadius: 18,
-  padding: "12px 14px",
-  fontSize: 15,
-  lineHeight: 1.5,
-  whiteSpace: "pre-wrap",
-};
-
-const aiBubble = {
-  background: "rgba(255,255,255,0.12)",
-  color: "white",
-};
-
-const userBubble = {
-  background: "#ffffff",
-  color: "#111111",
-};
-
-const aiBubbleSolid = {
-  background: "#111111",
-  color: "white",
-};
-
-const userBubbleLight = {
-  background: "#ffffff",
-  color: "#111111",
-  border: "1px solid rgba(0,0,0,0.08)",
-};
-
-const inputArea = {
-  padding: 16,
-  display: "grid",
-  gap: 10,
-  background: "#0f172a",
-};
-
-const onboardingChatArea = {
-  display: "grid",
-  gap: 12,
-  padding: 16,
-  minHeight: 420,
-  background: "linear-gradient(180deg, #111827 0%, #1f2937 100%)",
-};
-
-const choiceWrap = {
-  display: "grid",
-  gap: 8,
-};
-
-const choiceButton = {
-  width: "100%",
-  border: "none",
-  borderRadius: 16,
-  padding: "14px 16px",
-  background: "#ffffff",
-  color: "#111111",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const selectInput = {
-  width: "100%",
-  borderRadius: 14,
-  border: "1px solid rgba(0,0,0,0.12)",
-  padding: "14px 16px",
-  fontSize: 16,
-};
-
-const textInput = {
-  width: "100%",
-  borderRadius: 14,
-  border: "1px solid rgba(0,0,0,0.12)",
-  padding: "14px 16px",
-  fontSize: 16,
-  outline: "none",
-  background: "#ffffff",
-  color: "#111111",
-};
-
-const textInputLight = {
-  width: "100%",
-  borderRadius: 14,
-  border: "1px solid rgba(0,0,0,0.12)",
-  padding: "14px 16px",
-  fontSize: 15,
-  outline: "none",
-  background: "#ffffff",
-  color: "#111111",
-};
-
-const primaryButton = {
-  width: "100%",
-  border: "none",
-  borderRadius: 16,
-  padding: "14px 16px",
-  background: "#111111",
-  color: "white",
-  fontWeight: 700,
-  fontSize: 16,
-  cursor: "pointer",
-};
-
-const primaryDarkButton = {
-  width: "100%",
-  border: "none",
-  borderRadius: 16,
-  padding: "14px 16px",
-  background: "#111111",
-  color: "white",
-  fontWeight: 700,
-  fontSize: 16,
-  cursor: "pointer",
-};
-
-const secondaryButton = {
-  width: "100%",
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 16,
-  padding: "14px 16px",
-  background: "#ffffff",
-  color: "#111111",
-  fontWeight: 700,
-  fontSize: 15,
-  cursor: "pointer",
-};
-
-const secondaryOnboardingButton = {
-  width: "100%",
-  border: "1px solid rgba(255,255,255,0.18)",
-  borderRadius: 16,
-  padding: "14px 16px",
-  background: "transparent",
-  color: "white",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const themeWrap = {
-  minHeight: "100vh",
-  padding: 20,
-  display: "grid",
-  alignContent: "center",
-  gap: 16,
-  background: "#0f172a",
-  color: "white",
-};
-
-const homeHeader = {
-  padding: "18px 16px 14px",
-};
-
-const headerTopRow = {
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-};
-
-const settingsIconButton = {
-  width: 42,
-  height: 42,
-  border: "1px solid rgba(255,255,255,0.2)",
-  borderRadius: 999,
-  background: "rgba(255,255,255,0.12)",
-  display: "grid",
-  placeItems: "center",
-  cursor: "pointer",
-};
-
-const homeBrandTitle = {
-  margin: 0,
-  fontSize: 22,
-  fontWeight: 900,
-  lineHeight: 1.05,
-};
-
-const tickerViewportHome = {
-  padding: 16,
-  display: "grid",
-  gap: 14,
-  minHeight: "calc(100vh - 150px)",
-};
-
-const coachCard = {
-  borderRadius: 22,
-  padding: 18,
-  background: "linear-gradient(135deg, #111827 0%, #1f2937 100%)",
-  color: "white",
-};
-
-const dailyCard = {
-  background: "#ffffff",
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 22,
-  padding: 18,
-};
-
-const verseCard = {
-  background: "#ffffff",
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 22,
-  padding: 18,
-};
-
-const sectionLabel = {
-  margin: "0 0 8px",
-  fontSize: 12,
-  fontWeight: 800,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "#64748b",
-};
-
-const sectionLabelWhite = {
-  margin: "0 0 8px",
-  fontSize: 12,
-  fontWeight: 800,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "rgba(255,255,255,0.76)",
-};
-
-const cardTitle = {
-  margin: "0 0 10px",
-  fontSize: 22,
-  lineHeight: 1.15,
-  fontWeight: 900,
-  color: "inherit",
-};
-
-const bodyText = {
-  margin: "0 0 8px",
-  color: "#111111",
-  lineHeight: 1.55,
-};
-
-const bodyTextWhite = {
-  margin: "0 0 8px",
-  color: "white",
-  lineHeight: 1.55,
-};
-
-const bodyTextLast = {
-  margin: 0,
-  color: "#111111",
-  lineHeight: 1.55,
-};
-
-const buttonGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
-  gap: 10,
-};
-
-const actionCard = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 18,
-  padding: "16px 12px",
-  background: "#ffffff",
-  color: "#111111",
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
-const routineSectionCard = {
-  background: "#ffffff",
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 22,
-  padding: 18,
-};
-
-const routineSectionTitle = {
-  margin: "0 0 12px",
-  fontSize: 18,
-  fontWeight: 900,
-  color: "#111111",
-};
-
-const exerciseCard = {
-  display: "grid",
-  gap: 12,
-  background: "#f8fafc",
-  border: "1px solid rgba(0,0,0,0.06)",
-  borderRadius: 18,
-  padding: 14,
-  marginBottom: 12,
-};
-
-const exerciseTitle = {
-  margin: "0 0 6px",
-  fontSize: 17,
-  fontWeight: 800,
-  color: "#111111",
-};
-
-const exerciseMeta = {
-  margin: "0 0 6px",
-  color: "#111111",
-  lineHeight: 1.45,
-};
-
-const exerciseNote = {
-  margin: 0,
-  color: "#475569",
-  lineHeight: 1.45,
-};
-
-const videoWrap = {
-  width: "100%",
-};
-
-const videoFrame = {
-  border: "none",
-  borderRadius: 14,
-  display: "block",
-};
-
-const feedbackRow = {
-  display: "flex",
-  gap: 10,
-};
-
-const feedbackButton = {
-  flex: 1,
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 16,
-  padding: "14px 16px",
-  fontSize: 22,
-  cursor: "pointer",
-};
-
-const feedbackQuestion = {
-  margin: "4px 0 8px",
-  fontWeight: 800,
-  color: "#111111",
-};
-
-const appChatHistory = {
-  display: "grid",
-  gap: 12,
-  maxHeight: 340,
-  overflowY: "auto",
-  padding: 4,
-};
-
-const chatInputRow = {
-  display: "grid",
-  gridTemplateColumns: "1fr auto",
-  gap: 10,
-  alignItems: "center",
-};
-
-const unitToggleWrap = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 8,
-  marginBottom: 14,
-};
-
-const unitToggleButton = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 14,
-  padding: "12px 14px",
-  background: "#ffffff",
-  color: "#111111",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const unitToggleActive = {
-  ...unitToggleButton,
-  background: "#111111",
-  color: "white",
-};
-
-const measurementGrid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 12,
-};
-
-const measurementCard = {
-  background: "#f8fafc",
-  borderRadius: 16,
-  padding: 12,
-  border: "1px solid rgba(0,0,0,0.06)",
-};
-
-const measurementLabelRow = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 8,
-  marginBottom: 10,
-};
-
-const measurementLabel = {
-  fontWeight: 800,
-  color: "#111111",
-};
-
-const measurementTip = {
-  fontSize: 12,
-  color: "#64748b",
-};
-
-const measurementInputRow = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-};
-
-const measurementSmallInput = {
-  width: "100%",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.12)",
-  padding: "10px 12px",
-  fontSize: 15,
-};
-
-const measurementUnitText = {
-  minWidth: 28,
-  fontWeight: 700,
-  color: "#475569",
-};
-
-const bottomNav = {
-  position: "sticky",
-  bottom: 0,
-  display: "grid",
-  gridTemplateColumns: "repeat(5, 1fr)",
-  gap: 8,
-  padding: 12,
-  background: "rgba(255,255,255,0.96)",
-  borderTop: "1px solid rgba(0,0,0,0.08)",
-};
-
-const navButton = {
-  border: "1px solid rgba(0,0,0,0.08)",
-  borderRadius: 14,
-  padding: "12px 8px",
-  background: "#ffffff",
-  color: "#111111",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const navButtonActive = {
-  ...navButton,
-  background: "#111111",
-  color: "white",
-};
-
-const themeOptionButton = {
-  width: "100%",
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-  borderRadius: 16,
-  padding: "12px 14px",
-  background: "#ffffff",
-  color: "#111111",
-  cursor: "pointer",
-  fontWeight: 700,
-};
+export default function App() {
+  return <MainAppContent />;
+}
+// ================== TOUR ==================
+function AppTour({
+  showTour,
+  tourStep,
+  setTourStep,
+  setShowTour,
+  setActiveTab,
+}) {
+  if (!showTour) return null;
+
+  const steps = [
+    {
+      title: "Home",
+      body: "This is your daily main screen. It shows what matters most today.",
+      tab: "home",
+    },
+    {
+      title: "Routine",
+      body: "This is your workout. Follow warmup → main → cooldown.",
+      tab: "routine",
+    },
+    {
+      title: "Chat",
+      body: "Talk to your coach anytime. It adapts to you.",
+      tab: "chat",
+    },
+    {
+      title: "Progress",
+      body: "Track your measurements and see changes over time.",
+      tab: "progress",
+    },
+    {
+      title: "Food",
+      body: "Simple nutrition guidance based on your goal.",
+      tab: "food",
+    },
+  ];
+
+  const step = steps[tourStep];
+
+  function next() {
+    if (tourStep >= steps.length - 1) {
+      setShowTour(false);
+      setActiveTab("home");
+      return;
+    }
+
+    const nextStep = tourStep + 1;
+    setTourStep(nextStep);
+    setActiveTab(steps[nextStep].tab);
+  }
+
+  return (
+    <div style={tourOverlay}>
+      <div style={settingsModal}>
+        <p style={sectionLabel}>App Tour</p>
+        <h2 style={{ marginTop: 6 }}>{step.title}</h2>
+        <p style={{ marginTop: 10 }}>{step.body}</p>
+
+        <button
+          style={{ ...primaryDarkButton, marginTop: 16 }}
+          onClick={next}
+        >
+          {tourStep === steps.length - 1 ? "Finish" : "Next"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ================== HELPERS ==================
+function sendCoachReply(text, profile) {
+  return {
+    role: "ai",
+    speaker: capitalizeName(profile.coachName) || "Coach",
+    text: getAIResponse(text, profile),
+  };
+}
+
+function updateLanguageMemory(profile, text) {
+  const slang = detectSlang(text);
+  const tone = detectToneStyle(text, profile.age);
+
+  return {
+    ...profile,
+    coachMemory: {
+      ...profile.coachMemory,
+      slangWords: [
+        ...new Set([
+          ...(profile.coachMemory?.slangWords || []),
+          ...slang,
+        ]),
+      ].slice(-20),
+      toneStyle: tone || profile.coachMemory?.toneStyle || "balanced",
+    },
+  };
+}
+
+const STORAGE_KEYS = {
+  profile: "christian-fitness-profile",
+  messages: "christian-fitness-messages",
+  chat: "christian-fitness-chat",
+  theme: "christian-fitness-theme",
+};
+
+const DEFAULT_PROFILE = {
+  coachName: "",
+  firstName: "",
+  age: "",
+  state: "",
+  gender: "",
+  pregnancyStatus: "",
+  mainGoal: "",
+  activityLevel: "",
+  foodPreferences: "",
+  measurements: {},
+  measurementHistory: [],
+  measurementUnit: "Inches",
+  onboardingComplete: false,
+  coachMemory: {},
+};
+
+function getInitialMessages() {
+  return [
+    {
+      role: "ai",
+      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+    },
+    {
+      role: "ai",
+      text: "We’ll keep this simple and take it one step at a time.",
+    },
+  ];
+}
+
+function resetAppState(
+  setProfile,
+  setMessages,
+  setChatMessages,
+  setSelectedTheme,
+  setScreen,
+  setQuestionIndex,
+  setInputValue,
+  setActiveTab,
+  setShowSettings,
+  setShowTour,
+  setTourStep
+) {
+  localStorage.clear();
+
+  setProfile(normalizeProfile(DEFAULT_PROFILE));
+  setMessages(getInitialMessages());
+  setChatMessages([]);
+  setSelectedTheme(COLOR_OPTIONS[0]);
+
+  setScreen("welcome");
+  setQuestionIndex(0);
+  setInputValue("");
+  setActiveTab("home");
+
+  setShowSettings(false);
+  setShowTour(false);
+  setTourStep(0);
+}
