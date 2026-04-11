@@ -863,7 +863,7 @@ function resetAppState(
   setMessages(DEFAULT_MESSAGES);
   setChatMessages([]);
   setSelectedTheme(COLOR_OPTIONS[0]);
-  setScreen("onboarding");
+setScreen("welcome");
   setQuestionIndex(0);
   setInputValue("");
   setActiveTab("home");
@@ -1019,7 +1019,7 @@ function AppTour({ showTour, tourStep, setTourStep, setShowTour, setActiveTab })
 
 function MainAppContent() {
   const [verseIndex, setVerseIndex] = useState(0);
-  const [screen, setScreen] = useState("onboarding");
+const [screen, setScreen] = useState("welcome");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [activeTab, setActiveTab] = useState("home");
@@ -1354,7 +1354,27 @@ function MainAppContent() {
     setChatMessages((prev) => [...prev, { role: "user", text: cleanText }, coachReply]);
     setChatInput("");
   }
-
+if (!completedOnboarding && screen === "welcome") {
+  return (
+    <div style={styles.appStyles}>
+      <div style={styles.phoneStyles}>
+        <div style={styles.themeWrap}>
+          <h2 style={{ marginBottom: 8 }}>Christian Fitness</h2>
+          <p style={styles.subtleText}>
+            A faith-based fitness coach with onboarding, routines, food guidance,
+            chat, progress tracking, and measurements.
+          </p>
+          <button
+            style={styles.primaryButton}
+            onClick={() => setScreen("onboarding")}
+          >
+            Start setup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
   if (!completedOnboarding && screen === "onboarding") {
     return (
       <div style={appStyles}>
