@@ -656,7 +656,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [chatInput, setChatInput] = useState("");
   const [showSettings, setShowSettings] = useState(false);
-  const appChatRef = useRef(null);
+ const appChatRef = useRef(null);
+const onboardingChatRef = useRef(null);
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
@@ -712,15 +713,25 @@ return saved
     });
   });
 
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem("christian-fitness-messages");
-    return saved
-      ? JSON.parse(saved)
-      : [
-          { role: "ai", text: "Hey — I’m here to help you build a routine that cares for your body and honors God too." },
-          { role: "ai", text: "We’ll keep this simple and take it one step at a time." },
-        ];
-  });
+const [messages, setMessages] = useState(() => {
+  const saved = localStorage.getItem("christian-fitness-messages");
+  return saved
+    ? JSON.parse(saved)
+    : [
+        {
+          role: "ai",
+          text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+        },
+        {
+          role: "ai",
+          text: "We’ll keep this simple and take it one step at a time.",
+        },
+        {
+          role: "ai",
+          text: QUESTION_FLOW[0].label,
+        },
+      ];
+});
 
   const [chatMessages, setChatMessages] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-chat");
@@ -762,13 +773,21 @@ return saved
     localStorage.setItem("christian-fitness-theme", JSON.stringify(selectedTheme));
   }, [selectedTheme]);
 
-  useEffect(() => {
-    const el = appChatRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
-  }, [chatMessages]);
+useEffect(() => {
+  const el = appChatRef.current;
+  if (!el) return;
+  requestAnimationFrame(() => {
+    el.scrollTop = el.scrollHeight;
+  });
+}, [chatMessages]);
+
+useEffect(() => {
+  const el = onboardingChatRef.current;
+  if (!el) return;
+  requestAnimationFrame(() => {
+    el.scrollTop = el.scrollHeight;
+  });
+}, [messages]);
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
   const currentQuestion = visibleQuestionFlow[questionIndex];
@@ -781,10 +800,20 @@ const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
 function startOnboarding() {
   setScreen("onboarding");
   setQuestionIndex(0);
-  if (messages.length <= 2) {
-    setMessages((current) => [
-      ...current,
-      { role: "ai", text: QUESTION_FLOW[0].label },
+  if (messages.length === 0) {
+    setMessages([
+      {
+        role: "ai",
+        text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+      },
+      {
+        role: "ai",
+        text: "We’ll keep this simple and take it one step at a time.",
+      },
+      {
+        role: "ai",
+        text: QUESTION_FLOW[0].label,
+      },
     ]);
   }
 }
@@ -983,97 +1012,111 @@ function resetApp() {
     );
   }
 
-  if (!profile.onboardingComplete && screen === "onboarding") {
-    return (
-      <div style={appStyles}>
-        <div style={phoneStyles}>
-          <div style={topBar}>
-            <div>
-              <h2 style={{ margin: 0 }}>Christian Fitness</h2>
-              <p style={subtleText}>
-                Question {questionIndex + 1} of {visibleQuestionFlow.length}
-              </p>
-            </div>
-          </div>
-
-          <div style={onboardingChatArea}>
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                style={{
-                  display: "flex",
-                  justifyContent: message.role === "ai" ? "flex-start" : "flex-end",
-                }}
-              >
-                <div style={{ maxWidth: "82%" }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      opacity: 0.75,
-                      marginBottom: 6,
-                      color: "white",
-                      textAlign: message.role === "ai" ? "left" : "right",
-                    }}
-                  >
-                    {message.role === "ai"
-                      ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
-                      : capitalizeName(profile.firstName) || "You"}
-                  </div>
-                  <div style={{ ...bubbleBase, ...(message.role === "ai" ? aiBubble : userBubble) }}>
-                    {message.text}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={inputArea}>
-            {currentQuestion?.type === "choice" ? (
-              <div style={choiceWrap}>
-                {currentQuestion.options.map((option) => (
-                  <button key={option} style={choiceButton} onClick={() => submitAnswer(option)}>
-                    {option}
-                  </button>
-                ))}
-              </div>
-            ) : currentQuestion?.type === "select" ? (
-              <>
-                <select
-                  style={selectInput}
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                >
-                  <option value="">Select your state...</option>
-                  {currentQuestion.options.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <button style={primaryButton} onClick={() => submitAnswer()} disabled={!inputValue}>
-                  Send
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  style={textInput}
-                  value={inputValue}
-                  type={currentQuestion?.type === "number" ? "number" : "text"}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your answer..."
-                />
-                <button style={primaryButton} onClick={() => submitAnswer()}>
-                  Send
-                </button>
-              </>
-            )}
+if (!profile.onboardingComplete && screen === "onboarding") {
+  return (
+    <div style={appStyles}>
+      <div style={phoneStyles}>
+        <div style={topBar}>
+          <div>
+            <h2 style={{ margin: 0 }}>Christian Fitness</h2>
+            <p style={subtleText}>
+              Question {questionIndex + 1} of {visibleQuestionFlow.length}
+            </p>
           </div>
         </div>
+       <div ref={onboardingChatRef} style={onboardingChatArea}>
+          {messages.map((message, index) => (
+            <div
+              key={`${message.role}-${index}`}
+              style={{
+                display: "flex",
+                justifyContent:
+                  message.role === "ai" ? "flex-start" : "flex-end",
+              }}
+            >
+              <div style={{ maxWidth: "82%" }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    opacity: 0.75,
+                    marginBottom: 6,
+                    color: "white",
+                    textAlign: message.role === "ai" ? "left" : "right",
+                  }}
+                >
+                  {message.role === "ai"
+                    ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
+                    : capitalizeName(profile.firstName) || "You"}
+                </div>
+                <div
+                  style={{
+                    ...bubbleBase,
+                    ...(message.role === "ai" ? aiBubble : userBubble),
+                  }}
+                >
+                  {message.role === "ai"
+                    ? cleanCoachBubbleText(message.text, profile.coachName)
+                    : message.text}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={inputArea}>
+          {currentQuestion?.type === "choice" ? (
+            <div style={choiceWrap}>
+              {currentQuestion.options.map((option) => (
+                <button
+                  key={option}
+                  style={choiceButton}
+                  onClick={() => submitAnswer(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          ) : currentQuestion?.type === "select" ? (
+            <>
+              <select
+                style={selectInput}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+              >
+                <option value="">Select your state...</option>
+                {currentQuestion.options.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <button
+                style={primaryButton}
+                onClick={() => submitAnswer()}
+                disabled={!inputValue}
+              >
+                Send
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                style={textInput}
+                value={inputValue}
+                type={currentQuestion?.type === "number" ? "number" : "text"}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Type your answer..."
+              />
+              <button style={primaryButton} onClick={() => submitAnswer()}>
+                Send
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const homeBodyBackground = `linear-gradient(180deg, #f7f7f8 0%, ${selectedTheme.tint} 100%)`;
 
@@ -1107,11 +1150,11 @@ function resetApp() {
             <div style={{ width: 42 }} />
           </div>
 
-          <div style={tickerViewportHome}>
-            <div key={verseIndex} style={tickerTextHome}>
-              {VERSES[verseIndex]}
-            </div>
-          </div>
+<div style={tickerViewportHome}>
+  <div key={verseIndex} style={tickerTextHome}>
+    {VERSES[verseIndex]}
+  </div>
+</div>
         </div>
 
         <div style={{ ...homeBody, background: homeBodyBackground }}>
@@ -1346,18 +1389,28 @@ function resetApp() {
                 </div>
               </div>
 
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>How to measure</h3>
-                <TourMeasurementDiagram
-                  activePart={profile.activeMeasurementField}
-                  onSelectPart={(part) =>
-                    setProfile((current) => ({
-                      ...current,
-                      activeMeasurementField: part,
-                    }))
-                  }
-                />
-              </div>
+<div style={routineSectionCard}>
+  <h3 style={routineSectionTitle}>Measurement guide</h3>
+  <p style={bodyText}>Chest: wrap the tape around the fullest part of your chest.</p>
+  <p style={bodyText}>Waist: wrap the tape around the narrowest part of your waist.</p>
+  <p style={bodyText}>High Hip: measure just above the fullest part of your hips.</p>
+  <p style={bodyText}>Hip: measure around the fullest part of your hips and glutes.</p>
+  <p style={bodyText}>Thigh: measure around the widest part of one upper thigh.</p>
+  <p style={bodyText}>Arm: measure around the fullest part of your upper arm while relaxed.</p>
+  <p style={bodyTextLast}>Calf: measure around the fullest part of your calf.</p>
+</div>
+<div style={routineSectionCard}>
+  <h3 style={routineSectionTitle}>How to measure</h3>
+  <TourMeasurementDiagram
+    activePart={profile.activeMeasurementField}
+    onSelectPart={(part) =>
+      setProfile((current) => ({
+        ...current,
+        activeMeasurementField: part,
+      }))
+    }
+  />
+</div>
             </>
           )}
 
