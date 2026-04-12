@@ -348,7 +348,7 @@ function getStateFunFact(state) {
     Georgia: "Fun fact: Georgia is known as the Peach State.",
     Illinois: "Fun fact: Illinois is home to Chicago.",
     Michigan: "Fun fact: Michigan touches four of the five Great Lakes.",
-    NewYork: "Fun fact: New York is home to the Statue of Liberty.",
+   "New York": "Fun fact: New York is home to the Statue of Liberty.",
     Texas: "Fun fact: Texas is the second-largest U.S. state.",
   };
   return facts[state] || `Fun fact: ${state} has its own unique history and beauty.`;
@@ -858,12 +858,11 @@ function resetAppState(
   localStorage.removeItem(STORAGE_KEYS.messages);
   localStorage.removeItem(STORAGE_KEYS.chat);
   localStorage.removeItem(STORAGE_KEYS.theme);
-
   setProfile(normalizeProfile(DEFAULT_PROFILE));
   setMessages(DEFAULT_MESSAGES);
   setChatMessages([]);
   setSelectedTheme(COLOR_OPTIONS[0]);
-setScreen("welcome");
+  setScreen("welcome");
   setQuestionIndex(0);
   setInputValue("");
   setActiveTab("home");
@@ -1033,10 +1032,22 @@ const [screen, setScreen] = useState("welcome");
   const onboardingChatRef = useRef(null);
   const appChatRef = useRef(null);
 
-  const [profile, setProfile] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.profile);
-    return saved ? normalizeProfile(JSON.parse(saved)) : normalizeProfile(DEFAULT_PROFILE);
-  });
+const [profile, setProfile] = useState(() => {
+  const saved = localStorage.getItem(STORAGE_KEYS.profile);
+  if (!saved) return normalizeProfile(DEFAULT_PROFILE);
+
+  const parsed = normalizeProfile(JSON.parse(saved));
+
+  if (!parsed.onboardingComplete) {
+    return {
+      ...parsed,
+      onboardingComplete: false,
+      onboardingStage: parsed.onboardingStage || "",
+    };
+  }
+
+  return parsed;
+});
 
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.messages);
@@ -1090,12 +1101,18 @@ const [screen, setScreen] = useState("welcome");
     });
   }, [chatMessages]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVerseIndex((current) => (current + 1) % VERSES.length);
-    }, 12000);
-    return () => clearInterval(interval);
-  }, []);
+useEffect(() => {
+  const interval = setInterval(() => {
+    setVerseIndex((current) => (current + 1) % VERSES.length);
+  }, 12000);
+  return () => clearInterval(interval);
+}, []);
+
+useEffect(() => {
+  if (!profile.onboardingComplete && screen !== "welcome" && screen !== "onboarding" && screen !== "theme") {
+    setScreen("welcome");
+  }
+}, [profile.onboardingComplete, screen]);
 
   const visibleQuestionFlow = useMemo(() => getVisibleQuestionFlow(profile), [profile]);
   const currentQuestion = visibleQuestionFlow[questionIndex];
