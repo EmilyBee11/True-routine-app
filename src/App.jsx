@@ -733,11 +733,15 @@ const [messages, setMessages] = useState(() => {
       ];
 });
 
-  const [chatMessages, setChatMessages] = useState(() => {
-    const saved = localStorage.getItem("christian-fitness-chat");
-    return saved ? JSON.parse(saved) : [];
-  });
-
+const [chatMessages, setChatMessages] = useState(() => {
+  const saved = localStorage.getItem("christian-fitness-chat");
+  return saved
+    ? JSON.parse(saved).map((msg) => ({
+        ...msg,
+        speaker: capitalizeName(msg.speaker),
+      }))
+    : [];
+});
   const [selectedTheme, setSelectedTheme] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-theme");
     return saved ? JSON.parse(saved) : COLOR_OPTIONS[0];
@@ -800,7 +804,8 @@ const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
 function startOnboarding() {
   setScreen("onboarding");
   setQuestionIndex(0);
-  if (messages.length === 0) {
+  setInputValue("");
+  if (messages.length <= 2) {
     setMessages([
       {
         role: "ai",
@@ -937,8 +942,56 @@ function resetApp() {
   localStorage.removeItem("christian-fitness-messages");
   localStorage.removeItem("christian-fitness-chat");
   localStorage.removeItem("christian-fitness-theme");
-
-  setProfile(normalizeProfile({}));
+  setProfile(
+    normalizeProfile({
+      coachName: "",
+      firstName: "",
+      age: "",
+      state: "",
+      gender: "",
+      pregnancyStatus: "",
+      pregnancyTrimester: "",
+      pregnancyRestrictions: "",
+      pregnancySymptoms: "",
+      postpartumTime: "",
+      deliveryType: "",
+      postpartumConcerns: "",
+      relationshipStatus: "",
+      denomination: "",
+      whyStarted: "",
+      lifeChange: "",
+      activityLevel: "",
+      hasLimitations: "",
+      limitationType: "",
+      limitationName: "",
+      limitationDuration: "",
+      activityLimit: "",
+      mainGoal: "",
+      bodyFocus: "",
+      foodPreferences: "",
+      measurements: {},
+      measurementHistory: [],
+      measurementUnit: "Inches",
+      onboardingComplete: false,
+      onboardingStage: "",
+      activeMeasurementField: "",
+      createdAt: "",
+      coachMemory: {
+        recurringTopics: [],
+        preferredFoods: [],
+        avoidedFoods: [],
+        allergies: [],
+        slangWords: [],
+        phrasePatterns: [],
+        toneStyle: "balanced",
+        ageStyle: "neutral",
+        lastMeasurementUpdate: "",
+        lastRoutineFeedback: "",
+        lastRoutineFeedbackReason: "",
+        weeklyCheckins: [],
+      },
+    })
+  );
   setMessages([
     {
       role: "ai",
@@ -947,6 +1000,10 @@ function resetApp() {
     {
       role: "ai",
       text: "We’ll keep this simple and take it one step at a time.",
+    },
+    {
+      role: "ai",
+      text: QUESTION_FLOW[0].label,
     },
   ]);
   setChatMessages([]);
@@ -1241,14 +1298,14 @@ if (!profile.onboardingComplete && screen === "onboarding") {
                 <p style={bodyText}>{routineData.summary}</p>
               </div>
 
-              <div style={routineSectionCard}>
-                <h3 style={routineSectionTitle}>Today’s blocks</h3>
-                {routineData.blocks.map((block) => (
-                  <p key={block} style={bodyText}>
-                    • {block}
-                  </p>
-                ))}
-              </div>
+<div style={routineSectionCard}>
+  <h3 style={routineSectionTitle}>Today’s blocks</h3>
+  {routineData.blocks.map((block, index) => (
+    <p key={`${block}-${index}`} style={bodyText}>
+      • {block}
+    </p>
+  ))}
+</div>
 
               <button style={secondaryButton} onClick={() => setActiveTab("home")}>
                 Back to Home
@@ -1267,35 +1324,42 @@ if (!profile.onboardingComplete && screen === "onboarding") {
               </div>
 
               <div ref={appChatRef} style={appChatHistory}>
-                {chatMessages.map((msg, index) => (
-                  <div
-                    key={`${msg.role}-${index}`}
-                    style={{
-                      display: "flex",
-                      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
-                    }}
-                  >
-                    <div style={{ maxWidth: "82%" }}>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          opacity: 0.78,
-                          marginBottom: 6,
-                          color: "#111",
-                          textAlign: msg.role === "ai" ? "left" : "right",
-                        }}
-                      >
-                        {msg.role === "ai"
-                          ? `Coach ${capitalizeName(profile.coachName) || "Coach"}`
-                          : capitalizeName(profile.firstName) || "You"}
-                      </div>
-                      <div style={{ ...bubbleBase, ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight) }}>
-                        {msg.role === "ai" ? cleanCoachBubbleText(msg.text, profile.coachName) : msg.text}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+{chatMessages.map((msg, index) => (
+  <div
+    key={`${msg.role}-${index}`}
+    style={{
+      display: "flex",
+      justifyContent: msg.role === "ai" ? "flex-start" : "flex-end",
+    }}
+  >
+    <div style={{ maxWidth: "82%" }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          opacity: 0.78,
+          marginBottom: 6,
+          color: "#111",
+          textAlign: msg.role === "ai" ? "left" : "right",
+        }}
+      >
+        {msg.role === "ai"
+          ? `Coach ${capitalizeName(msg.speaker || profile.coachName) || "Coach"}`
+          : capitalizeName(profile.firstName) || "You"}
+      </div>
+      <div
+        style={{
+          ...bubbleBase,
+          ...(msg.role === "ai" ? aiBubbleSolid : userBubbleLight),
+        }}
+      >
+        {msg.role === "ai"
+          ? cleanCoachBubbleText(msg.text, msg.speaker || profile.coachName)
+          : msg.text}
+      </div>
+    </div>
+  </div>
+))}
               </div>
 
               <div style={quickReplyWrap}>
