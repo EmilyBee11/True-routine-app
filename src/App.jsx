@@ -18,8 +18,8 @@ const ALL_STATES = [
 ];
 
 const QUESTION_FLOW = [
-  { key: "coachName", label: "What do you want to call your coach?", type: "text" },
-  { key: "firstName", label: "What’s your first name?", type: "text" },
+  { key: "coachName", label: "Before we start, what do you want to call your Coach?", type: "text" },
+  { key: "firstName", label: "And what’s your first name?", type: "text" },
   { key: "age", label: "How old are you?", type: "number" },
   { key: "state", label: "What state do you live in?", type: "select", options: ALL_STATES },
   { key: "gender", label: "Are you a man or a woman?", type: "choice", options: ["Woman", "Man"] },
@@ -30,7 +30,53 @@ const QUESTION_FLOW = [
     options: ["Pregnant", "Postpartum", "No"],
     showIf: (profile) => profile.gender === "Woman",
   },
-  { key: "mainGoal", label: "What is your main goal right now?", type: "text" },
+  {
+    key: "pregnancyTrimester",
+    label: "Which trimester are you in?",
+    type: "choice",
+    options: ["First", "Second", "Third"],
+    showIf: (profile) =>
+      profile.gender === "Woman" && profile.pregnancyStatus === "Pregnant",
+  },
+  {
+    key: "pregnancyRestrictions",
+    label: "Has your doctor told you to avoid any movements or activities?",
+    type: "text",
+    showIf: (profile) =>
+      profile.gender === "Woman" && profile.pregnancyStatus === "Pregnant",
+  },
+  {
+    key: "pregnancySymptoms",
+    label: "Any pain, pressure, dizziness, or discomfort I should know about?",
+    type: "text",
+    showIf: (profile) =>
+      profile.gender === "Woman" && profile.pregnancyStatus === "Pregnant",
+  },
+  {
+    key: "postpartumTime",
+    label: "How far postpartum are you right now?",
+    type: "text",
+    showIf: (profile) =>
+      profile.gender === "Woman" && profile.pregnancyStatus === "Postpartum",
+  },
+  {
+    key: "deliveryType",
+    label: "Was delivery vaginal or C-section? You can also say skip.",
+    type: "text",
+    showIf: (profile) =>
+      profile.gender === "Woman" && profile.pregnancyStatus === "Postpartum",
+  },
+  {
+    key: "postpartumConcerns",
+    label: "Any core, pelvic floor, back, bleeding, or recovery issues I should know about?",
+    type: "text",
+    showIf: (profile) =>
+      profile.gender === "Woman" && profile.pregnancyStatus === "Postpartum",
+  },
+  { key: "relationshipStatus", label: "What’s your current relationship status?", type: "text" },
+  { key: "denomination", label: "What denomination are you, if any?", type: "text" },
+  { key: "whyStarted", label: "What made you want to start this right now?", type: "text" },
+  { key: "lifeChange", label: "What are you hoping changes in your life because of this?", type: "text" },
   {
     key: "activityLevel",
     label: "How active are you right now?",
@@ -38,17 +84,47 @@ const QUESTION_FLOW = [
     options: ["Beginner", "Somewhat active", "Active"],
   },
   {
-    key: "foodPreferences",
-    label: "Any food preferences, dislikes, or allergies?",
-    type: "text",
+    key: "hasLimitations",
+    label: "Do you have any injuries, disabilities, pain, or physical limitations I should know about?",
+    type: "choice",
+    options: ["Yes", "No"],
   },
+  {
+    key: "limitationType",
+    label: "Is it more of an injury, a disability, chronic pain, or something else?",
+    type: "text",
+    showIf: (profile) => profile.hasLimitations === "Yes",
+  },
+  {
+    key: "limitationName",
+    label: "What is it called, or how would you describe it?",
+    type: "text",
+    showIf: (profile) => profile.hasLimitations === "Yes",
+  },
+  {
+    key: "limitationDuration",
+    label: "How long have you been dealing with it?",
+    type: "text",
+    showIf: (profile) => profile.hasLimitations === "Yes",
+  },
+  {
+    key: "activityLimit",
+    label: "How active can you comfortably be right now?",
+    type: "text",
+    showIf: (profile) => profile.hasLimitations === "Yes",
+  },
+  { key: "mainGoal", label: "What are you trying to improve right now with your body or health?", type: "text" },
+  { key: "bodyFocus", label: "What part of your body, routine, or fitness do you want to improve first?", type: "text" },
+  { key: "foodPreferences", label: "Any food preferences, dislikes, or allergies?", type: "text" },
 ];
 
 const QUICK_REPLIES = [
   "Simplify my day",
+  "Adjust my routine",
   "Help with food today",
   "I feel discouraged",
   "Pray for me",
+  "Where do I put my measurements?",
   "What’s my routine?",
 ];
 
@@ -89,9 +165,57 @@ function capitalizeName(value) {
 
 function normalizeProfile(profile) {
   return {
+    coachName: "",
+    firstName: "",
+    age: "",
+    state: "",
+    gender: "",
+    pregnancyStatus: "",
+    pregnancyTrimester: "",
+    pregnancyRestrictions: "",
+    pregnancySymptoms: "",
+    postpartumTime: "",
+    deliveryType: "",
+    postpartumConcerns: "",
+    relationshipStatus: "",
+    denomination: "",
+    whyStarted: "",
+    lifeChange: "",
+    activityLevel: "",
+    hasLimitations: "",
+    limitationType: "",
+    limitationName: "",
+    limitationDuration: "",
+    activityLimit: "",
+    mainGoal: "",
+    bodyFocus: "",
+    foodPreferences: "",
+    measurements: {},
+    measurementHistory: [],
+    measurementUnit: "Inches",
+    onboardingComplete: false,
+    onboardingStage: "",
+    activeMeasurementField: "",
+    createdAt: "",
+    coachMemory: {
+      recurringTopics: [],
+      preferredFoods: [],
+      avoidedFoods: [],
+      allergies: [],
+      slangWords: [],
+      phrasePatterns: [],
+      toneStyle: "balanced",
+      ageStyle: "neutral",
+      lastMeasurementUpdate: "",
+      lastRoutineFeedback: "",
+      lastRoutineFeedbackReason: "",
+      weeklyCheckins: [],
+    },
     ...profile,
     coachName: capitalizeName(profile.coachName),
     firstName: capitalizeName(profile.firstName),
+    limitationType: capitalizeName(profile.limitationType),
+    limitationName: capitalizeName(profile.limitationName),
     measurements: profile.measurements || {},
     measurementHistory: profile.measurementHistory || [],
     measurementUnit: profile.measurementUnit || "Inches",
@@ -104,7 +228,11 @@ function normalizeProfile(profile) {
       phrasePatterns: [],
       toneStyle: "balanced",
       ageStyle: "neutral",
-      ...profile.coachMemory,
+      lastMeasurementUpdate: "",
+      lastRoutineFeedback: "",
+      lastRoutineFeedbackReason: "",
+      weeklyCheckins: [],
+      ...(profile.coachMemory || {}),
     },
   };
 }
@@ -530,25 +658,56 @@ export default function App() {
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem("christian-fitness-profile");
-    return saved
-      ? normalizeProfile(JSON.parse(saved))
-      : normalizeProfile({
-          coachName: "",
-          firstName: "",
-          age: "",
-          state: "",
-          gender: "",
-          pregnancyStatus: "",
-          mainGoal: "",
-          activityLevel: "",
-          foodPreferences: "",
-          measurements: {},
-          measurementHistory: [],
-          measurementUnit: "Inches",
-          onboardingComplete: false,
-          activeMeasurementField: "",
-          coachMemory: {},
-        });
+return saved
+  ? normalizeProfile(JSON.parse(saved))
+  : normalizeProfile({
+      coachName: "",
+      firstName: "",
+      age: "",
+      state: "",
+      gender: "",
+      pregnancyStatus: "",
+      pregnancyTrimester: "",
+      pregnancyRestrictions: "",
+      pregnancySymptoms: "",
+      postpartumTime: "",
+      deliveryType: "",
+      postpartumConcerns: "",
+      relationshipStatus: "",
+      denomination: "",
+      whyStarted: "",
+      lifeChange: "",
+      activityLevel: "",
+      hasLimitations: "",
+      limitationType: "",
+      limitationName: "",
+      limitationDuration: "",
+      activityLimit: "",
+      mainGoal: "",
+      bodyFocus: "",
+      foodPreferences: "",
+      measurements: {},
+      measurementHistory: [],
+      measurementUnit: "Inches",
+      onboardingComplete: false,
+      onboardingStage: "",
+      activeMeasurementField: "",
+      createdAt: "",
+      coachMemory: {
+        recurringTopics: [],
+        preferredFoods: [],
+        avoidedFoods: [],
+        allergies: [],
+        slangWords: [],
+        phrasePatterns: [],
+        toneStyle: "balanced",
+        ageStyle: "neutral",
+        lastMeasurementUpdate: "",
+        lastRoutineFeedback: "",
+        lastRoutineFeedbackReason: "",
+        weeklyCheckins: [],
+      },
+    });
   });
 
   const [messages, setMessages] = useState(() => {
