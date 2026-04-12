@@ -619,12 +619,14 @@ function TourMeasurementDiagram({ activePart, onSelectPart }) {
         <path d="M160 250 L152 345 L163 385" stroke="#222" strokeWidth="2" fill="none" />
         <path d="M200 250 L208 345 L197 385" stroke="#222" strokeWidth="2" fill="none" />
 
-        {[
-          { key: "chest", y: 135, label: "CHEST" },
-          { key: "waist", y: 185, label: "WAIST" },
-          { key: "hip", y: 230, label: "HIP" },
-          { key: "thigh", y: 300, label: "THIGH" },
-        ].map((item) => (
+{[
+  { key: "chest", y: 135, label: "CHEST" },
+  { key: "waist", y: 185, label: "WAIST" },
+  { key: "highHip", y: 210, label: "HIGH HIP" },
+  { key: "hip", y: 230, label: "HIP" },
+  { key: "thigh", y: 300, label: "THIGH" },
+  { key: "calf", y: 350, label: "CALF" },
+].map((item) => (
           <g key={item.key} onClick={() => onSelectPart(item.key)} style={{ cursor: "pointer" }}>
             <rect
               x="18"
@@ -770,52 +772,70 @@ return saved
 
   const visibleQuestionFlow = getVisibleQuestionFlow(profile);
   const currentQuestion = visibleQuestionFlow[questionIndex];
-  const routineData = useMemo(() => getRoutineData(profile), [profile]);
-  const coach = useMemo(() => getCoachMessage(profile), [profile]);
-  const nutrition = useMemo(() => getNutritionTargets(profile), [profile]);
-  const mealIdeas = useMemo(() => getMealIdeas(profile), [profile]);
+const routineData = useMemo(() => getRoutineData(profile), [profile]);
+const coach = useMemo(() => getCoachMessage(profile), [profile]);
+const nutrition = useMemo(() => getNutritionTargets(profile), [profile]);
+const mealIdeas = useMemo(() => getMealIdeas(profile), [profile]);
+const foodGuidance = useMemo(() => getFoodGuidance(profile), [profile]);
 
-  function startOnboarding() {
-    setScreen("onboarding");
-    if (messages.length <= 2) {
-      setMessages((current) => [...current, { role: "ai", text: QUESTION_FLOW[0].label }]);
-    }
+function startOnboarding() {
+  setScreen("onboarding");
+  setQuestionIndex(0);
+  if (messages.length <= 2) {
+    setMessages((current) => [
+      ...current,
+      { role: "ai", text: QUESTION_FLOW[0].label },
+    ]);
+  }
+}
+
+function submitAnswer(answerOverride) {
+  const answer =
+    typeof answerOverride === "string" ? answerOverride : inputValue.trim();
+  if (!currentQuestion || !answer) return;
+
+  const safeAnswer =
+    typeof answer === "string" &&
+    answer.toLowerCase() === "skip" &&
+    currentQuestion.type === "text"
+      ? ""
+      : answer;
+
+  const normalizedAnswer =
+    currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
+      ? capitalizeName(safeAnswer)
+      : safeAnswer;
+
+  const nextProfile = normalizeProfile({
+    ...profile,
+    [currentQuestion.key]: normalizedAnswer,
+  });
+
+  setMessages((current) => [...current, { role: "user", text: safeAnswer }]);
+  setProfile(nextProfile);
+  setInputValue("");
+
+  const nextFlow = getVisibleQuestionFlow(nextProfile);
+  const nextIndex = questionIndex + 1;
+
+  if (nextIndex < nextFlow.length) {
+    setQuestionIndex(nextIndex);
+    setMessages((current) => [
+      ...current,
+      { role: "ai", text: nextFlow[nextIndex].label },
+    ]);
+    return;
   }
 
-  function submitAnswer(answerOverride) {
-    const answer = typeof answerOverride === "string" ? answerOverride : inputValue.trim();
-    if (!currentQuestion || !answer) return;
-
-    const normalizedAnswer =
-      currentQuestion.key === "coachName" || currentQuestion.key === "firstName"
-        ? capitalizeName(answer)
-        : answer;
-
-    const nextProfile = normalizeProfile({
-      ...profile,
-      [currentQuestion.key]: normalizedAnswer,
-    });
-
-    setMessages((current) => [...current, { role: "user", text: answer }]);
-    setProfile(nextProfile);
-    setInputValue("");
-
-    const nextFlow = getVisibleQuestionFlow(nextProfile);
-    const nextIndex = questionIndex + 1;
-
-    if (nextIndex < nextFlow.length) {
-      setQuestionIndex(nextIndex);
-      setMessages((current) => [...current, { role: "ai", text: nextFlow[nextIndex].label }]);
-      return;
-    }
-
-    setProfile((current) => ({
-      ...nextProfile,
-      onboardingComplete: true,
-    }));
-    setScreen("home");
-    setActiveTab("home");
-  }
+  setProfile({
+    ...nextProfile,
+    onboardingComplete: true,
+    onboardingStage: "done",
+    createdAt: nextProfile.createdAt || new Date().toISOString(),
+  });
+  setScreen("home");
+  setActiveTab("home");
+}
 
   function sendChatMessage(text) {
     const cleanText = text.trim();
@@ -848,35 +868,67 @@ return saved
     setChatInput("");
   }
 
-  function saveMeasurementValue(fieldKey, value) {
-    setProfile((current) => {
-      const nextMeasurements = {
-        ...current.measurements,
-        [fieldKey]: value,
-      };
+function saveMeasurementValue(fieldKey, value) {
+  setProfile((current) => {
+    const nextMeasurements = {
+      ...current.measurements,
+      [fieldKey]: value,
+    };
 
-      return {
-        ...current,
-        measurements: nextMeasurements,
-        measurementHistory: [
-          ...(current.measurementHistory || []).slice(-23),
-          buildMeasurementSnapshot({
-            ...current,
-            measurements: nextMeasurements,
-          }),
-        ],
-      };
-    });
-  }
+    const now = new Date().toISOString();
+    const lastUpdate = current.coachMemory?.lastMeasurementUpdate;
 
-  function resetApp() {
-    localStorage.removeItem("christian-fitness-profile");
-    localStorage.removeItem("christian-fitness-messages");
-    localStorage.removeItem("christian-fitness-chat");
-    localStorage.removeItem("christian-fitness-theme");
-    window.location.reload();
-  }
+    const shouldCreateSnapshot =
+      !lastUpdate ||
+      new Date(now).getTime() - new Date(lastUpdate).getTime() >
+        1000 * 60 * 60 * 24;
 
+    return {
+      ...current,
+      measurements: nextMeasurements,
+      measurementHistory: shouldCreateSnapshot
+        ? [
+            ...(current.measurementHistory || []),
+            buildMeasurementSnapshot({
+              ...current,
+              measurements: nextMeasurements,
+            }),
+          ].slice(-24)
+        : current.measurementHistory || [],
+      coachMemory: {
+        ...current.coachMemory,
+        lastMeasurementUpdate: now,
+      },
+    };
+  });
+}
+
+function resetApp() {
+  localStorage.removeItem("christian-fitness-profile");
+  localStorage.removeItem("christian-fitness-messages");
+  localStorage.removeItem("christian-fitness-chat");
+  localStorage.removeItem("christian-fitness-theme");
+
+  setProfile(normalizeProfile({}));
+  setMessages([
+    {
+      role: "ai",
+      text: "Hey — I’m here to help you build a routine that cares for your body and honors God too.",
+    },
+    {
+      role: "ai",
+      text: "We’ll keep this simple and take it one step at a time.",
+    },
+  ]);
+  setChatMessages([]);
+  setSelectedTheme(COLOR_OPTIONS[0]);
+  setScreen("welcome");
+  setQuestionIndex(0);
+  setInputValue("");
+  setActiveTab("home");
+  setChatInput("");
+  setShowSettings(false);
+}
   const appStyles = {
     minHeight: "100vh",
     background: "linear-gradient(180deg, #050506 0%, #121317 40%, #ededee 100%)",
@@ -1092,7 +1144,7 @@ return saved
 
               <div style={dailyCard}>
                 <p style={sectionLabel}>Food guidance</p>
-                <p style={bodyTextLast}>{getFoodGuidance(profile)}</p>
+<p style={bodyTextLast}>{foodGuidance}</p>
               </div>
 
               <div style={dailyCard}>
